@@ -1,0 +1,40 @@
+---
+title: "Wix"
+description: "Integrate PayGlocal on a Wix site using Velo code."
+icon: "wix"
+---
+
+<Info>
+  Wix does not support third-party payment apps in the classic sense. Integration is done by writing Velo (Wix's JavaScript runtime) code that calls the PayGlocal Payment APIs directly.
+</Info>
+
+## Prerequisites
+
+- A Wix site on a plan that supports **Velo** (Wix's code environment).
+- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
+- Familiarity with the [Payment APIs](/api-reference/payment/overview) — Velo integration is API-driven, not plugin-driven.
+
+## Install
+
+<Steps>
+  <Step title="Enable Velo">
+    In the Wix editor, turn on **Dev Mode** to enable Velo.
+  </Step>
+  <Step title="Add backend code">
+    Create a backend `.jsw` file that builds a JWS token with your RSA private key and calls the PayGlocal `initiate` endpoint. See [Payment Flow](/integration/payment-flow) for the request contract.
+  </Step>
+  <Step title="Wire to checkout">
+    From your cart or checkout page, call the backend function and redirect the customer to the returned `redirectUrl`.
+  </Step>
+  <Step title="Handle the return">
+    Implement a return page that calls [Get Status](/api-reference/payment/get-status) to confirm payment outcome before fulfilling the order.
+  </Step>
+</Steps>
+
+## Test
+
+Use the [test cards](/reference/test-cards) to verify the flow end-to-end in sandbox.
+
+<Note>
+  Code samples for the Velo backend function are published on the merchant help centre.
+</Note>

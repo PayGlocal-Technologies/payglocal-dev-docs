@@ -1,0 +1,28 @@
+---
+title: "Test Cards"
+description: "Cards for exercising success and failure paths in the PayGlocal sandbox."
+icon: "credit-card"
+---
+
+Use the following cards against the PayGlocal **sandbox** environment to exercise every payment outcome your integration needs to handle. Each card triggers a deterministic scenario.
+
+<Warning>
+  These cards work **only in sandbox**. They are rejected in production.
+</Warning>
+
+## Cards
+
+| Card Number | Brand | Scenario |
+|-------------|------|----------|
+| `4242424242424242` | VISA | Seamless Success (International Card) |
+| `5497774415170603` | MASTERCARD | Seamless Success (Domestic Card) |
+| `4000000000000127` | MASTERCARD | Authentication Failure |
+| `5555555555554444` | MASTERCARD | Invalid CVV |
+| `4000000000000002` | VISA | Stolen Card |
+| `4000000000000119` | VISA | Insufficient Funds |
+
+## Usage
+
+For **expiry**, use any valid future date. For **CVV**, use any 3-digit value (except when testing the Invalid CVV scenario). For **OTP** during 3DS challenges, follow the on-screen sandbox prompt.
+
+Make sure your integration handles every failure scenario above — do not ship a flow that only exercises the success path.

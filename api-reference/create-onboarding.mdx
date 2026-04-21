@@ -1,0 +1,22 @@
+---
+title: "Create Onboarding"
+openapi: "POST /gcc/v2/partner/merchant/onboard"
+---
+
+## When to Use
+
+Always the **first API call** in the onboarding sequence. The `onboardingId` returned in the response is required as a path parameter for every subsequent call.
+
+A merchant is uniquely identified by their PAN. Each PAN can have only one active onboarding record in the PayGlocal system.
+
+Valid PAN types: `P` (Individual), `C` (Company), `T` (Trust), `F` (Firm).
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400` |
+| Invalid field format | `400` |
+| PAN type is not one of P, C, T, F | `400` |
+| PAN already exists in the PayGlocal system | `400` |
+| PAN does not exist (invalid PAN) | `400` |

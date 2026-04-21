@@ -1,0 +1,27 @@
+---
+title: "Add / Update Beneficial Owner"
+openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/beneficial-owner"
+---
+
+## When to Use
+
+Submits or replaces the list of Ultimate Beneficial Owners (UBOs) for a merchant.
+
+<Warning>
+  The array sent in the request body **completely replaces** the existing list of beneficial owners. Always send all UBOs in a single request — partial updates are not supported.
+</Warning>
+
+A **beneficial owner** is any individual holding more than **10% equity** in the entity. For Partnerships, LLPs, and Companies, include every such individual with their PAN and shareholding percentage. See [Merchant Requirements](/guides/merchant-requirements#documents-by-entity-type) for the full list per entity type.
+
+Beneficial owner details cannot be updated after the merchant's verification step is complete.
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400` |
+| PAN is not a personal PAN (type `P`) | `400` |
+| PAN does not exist | `400` |
+| Update attempted after verification step is complete | `400` |
+| `onboardingId` does not exist | `404` |
+| `onboardingId` does not belong to this partner | `403` |

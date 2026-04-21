@@ -1,0 +1,45 @@
+---
+title: "Check Mandate Status"
+description: "Retrieve the current status, payment count, and details of a standing instruction mandate."
+openapi: "POST /gl/v1/payments/si/status"
+---
+
+## When to Use
+
+Check the current lifecycle state of a standing-instruction mandate — e.g., whether it's still active, how many debits have been processed, and how many remain.
+
+## Mandate Status Values
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Mandate is active and can be used for subsequent payments |
+| `INACTIVE` | Mandate was revoked via API or Control Center |
+| `EXHAUSTED` | All configured payments have been processed |
+
+## Example Data Payloads
+
+**Active mandate:**
+```json
+{
+  "mandateData": {
+    "mandateStatus": "ACTIVE",
+    "mandateCreateDate": "20211204",
+    "maskedMandateId": "md_94fxxxxxx3e15",
+    "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+    "numberOfPaymentsProcessed": "4",
+    "numberOfPaymentsRemaining": "2"
+  }
+}
+```
+
+**Exhausted mandate:**
+```json
+{
+  "mandateData": {
+    "mandateStatus": "EXHAUSTED",
+    "mandateExhaustionDate": "20211209",
+    "numberOfPaymentsProcessed": "6",
+    "numberOfPaymentsRemaining": "0"
+  }
+}
+```

@@ -1,0 +1,156 @@
+---
+title: "Standing Instructions Flow"
+description: "Set up recurring payment mandates for international cards with PayGlocal's Standing Instructions feature."
+---
+
+## Overview
+
+PayGlocal supports **Standing Instructions (SI)** for cards issued outside India. A standing instruction allows you to:
+
+- Set up a recurring payment mandate on the first transaction
+- Debit the customer's card for subsequent payments using a **Mandate ID** — without the customer needing to re-authenticate
+- Optionally enable **Auto Debit**, where PayGlocal automatically initiates subsequent payments at your configured frequency
+
+<Note>
+  Standing Instructions are supported for **international cards only**. The PayCollect flow does not support setting up Standing Instructions for cards.
+</Note>
+
+## Three-Step SI Flow
+
+### Step 1 — First Payment (with SI Setup)
+
+```
+Browser                Client/Merchant Server              PayGlocal Server
+   │                          │                                    │
+   │  Initiate first payment  │                                    │
+   │─────────────────────────▶│                                    │
+   │                          │  GPI Request with SI data          │
+   │                          │──────────────────────────────────▶│
+   │                          │  RedirectURL + GID + Mandate ID    │
+   │                          │◀──────────────────────────────────│
+   │  Redirect to PayGlocal   │                                    │
+   │◀─────────────────────────│                                    │
+   │──────────────────────────────────────────────────────────────▶│
+   │                          │                      Payment        │
+   │  Redirect back (POST)    │                      completes      │
+   │◀──────────────────────────────────────────────────────────────│
+```
+
+Include the `standingInstruction.data` block in your GPI request (see [GPI Service](/payment-services/gpi-service) for the full request).
+
+The GPI response includes a **Mandate ID** if SI data was provided:
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://...",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### Step 2 — Fetch SI ID from Get Status
+
+After the first payment completes successfully, call the [Get Status API](/payment-services/get-status-service) to retrieve the **Standing Instruction ID (SI ID)**:
+
+```
+Client/Merchant Server          PayGlocal Server
+       │                               │
+       │  GET /status (with GID)       │
+       │──────────────────────────────▶│
+       │  Payment status + SI ID       │
+       │◀──────────────────────────────│
+```
+
+The response includes:
+- `maskedMandateId` — use this for subsequent payment requests
+- `siId` — use this to manage the SI in the PayGlocal Control Center
+
+### Step 3 — Subsequent Payments
+
+Use the Mandate ID to trigger subsequent transactions without customer involvement:
+
+```
+Client/Merchant Server             PayGlocal Server
+       │                                  │
+       │  POST /si/sale (with Mandate ID) │
+       │─────────────────────────────────▶│
+       │  Payment confirmation            │
+       │◀─────────────────────────────────│
+```
+
+## Mandate Types
+
+| SI Type | Description | Required Fields |
+|---------|-------------|-----------------|
+| `FIXED` | Each subsequent payment is for a fixed amount | `amount`, `numberOfPayments`, `frequency` |
+| `VARIABLE` | Each subsequent payment can be a different amount up to a maximum | `maxAmount`, `numberOfPayments`, `frequency` |
+
+## Frequency Options
+
+`ONDEMAND` · `WEEKLY` · `BIWEEKLY` · `MONTHLY` · `QUARTERLY` · `HALFYEARLY` · `YEARLY`
+
+<Note>
+  When Auto Debit is enabled for your MID, `ONDEMAND` frequency and `VARIABLE` type are not supported.
+</Note>
+
+## Mandate Statuses
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Mandate is active and can be used for subsequent transactions |
+| `INACTIVE` | Mandate has been revoked via the cancellation API or PayGlocal Control Center |
+| `EXHAUSTED` | All allowed payments (per `numberOfPayments`) have been processed |
+
+## Auto Debit
+
+When **Auto Debit** is enabled at the MID level, PayGlocal automatically initiates subsequent transactions at the configured frequency and amount — no API call from you is required.
+
+Conditions for Auto Debit:
+- SI type must be `FIXED`
+- SI frequency must not be `ONDEMAND`
+- `startDate` is mandatory (format: `yyyyMMdd`)
+
+PayGlocal sends a **webhook notification** to your configured callback URL after each auto-debit attempt:
+
+**Success:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+}
+```
+
+**Failure:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "FAILURE",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+}
+```
+
+Contact your PayGlocal representative to enable Auto Debit on your MID.
+
+## Related API Reference
+
+<CardGroup cols={2}>
+  <Card title="SI Subsequent Payment" icon="rotate" href="/api-reference/standing-instructions/si-subsequent-payment">
+    Initiate a subsequent payment using a Mandate ID.
+  </Card>
+  <Card title="SI Cancellation" icon="ban" href="/api-reference/standing-instructions/si-cancellation">
+    Revoke an active mandate to stop future debits.
+  </Card>
+  <Card title="SI Status" icon="magnifying-glass" href="/api-reference/standing-instructions/si-status">
+    Check mandate status and payment history.
+  </Card>
+</CardGroup>

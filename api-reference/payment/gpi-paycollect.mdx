@@ -1,0 +1,37 @@
+---
+title: "Initiate Payment (PayCollect)"
+description: "Initiate a payment for non-PCI DSS entities. PayGlocal collects card details from the customer on its hosted page."
+openapi: "POST /gl/v1/payments/initiate/paycollect"
+---
+
+## When to Use
+
+Use PayCollect if you are **not PCI DSS certified**. You send minimal transaction data; PayGlocal collects card details and payment method selection from the customer on its hosted page.
+
+<Warning>
+  PayCollect does **not** support setting up Standing Instructions for cards.
+</Warning>
+
+## For Alternative Payment Methods
+
+PayGlocal supports global alternative payment methods (iDeal, Sofort, Trustly, giropay, EPS, wallets, BNPL) for merchants exporting outside India. These require `riskData.shippingData.addressCountry` and `emailId`:
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR"
+  },
+  "riskData": {
+    "customerData": {
+      "merchantAssignedCustomerId": "11230092"
+    },
+    "shippingData": {
+      "addressCountry": "US",
+      "emailId": "customer@example.com"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```

@@ -1,0 +1,36 @@
+---
+title: "Plugin Integration"
+description: "Accept PayGlocal payments on your existing e-commerce platform — no API work required."
+icon: "puzzle-piece"
+---
+
+PayGlocal ships official plugins for the major e-commerce platforms. Install the plugin, paste your credentials, and your checkout is live.
+
+## Supported platforms
+
+<CardGroup cols={2}>
+  <Card title="Shopify" icon="shopify" href="/plugins/shopify">
+    App-store install.
+  </Card>
+  <Card title="WooCommerce" icon="wordpress" href="/plugins/woocommerce">
+    Self-hosted ZIP plugin.
+  </Card>
+  <Card title="Magento" icon="magento" href="/plugins/magento">
+    Self-hosted module.
+  </Card>
+  <Card title="OpenCart" icon="cart-shopping" href="/plugins/opencart">
+    Self-hosted extension.
+  </Card>
+  <Card title="Wix" icon="wix" href="/plugins/wix">
+    Code integration via Velo.
+  </Card>
+</CardGroup>
+
+## What you'll need
+
+Before starting any plugin setup, generate the required credentials from [GCC](/getting-started/gcc-dashboard):
+
+- **API Key** — for API authentication.
+- **RSA Keys** (private + PayGlocal public certificate) — for JWS token signing.
+
+See [Key Management](/key-management/overview) for details.

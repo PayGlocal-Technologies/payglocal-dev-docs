@@ -1,0 +1,100 @@
+/* ============================================================
+   PayGlocal Developer Portal — Custom Styles
+   ============================================================ */
+
+/* ── Fonts ────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
+
+code,
+pre,
+pre *,
+kbd,
+samp,
+[class*="CodeBlock"],
+[class*="code-block"],
+[class*="prism"],
+.language-bash,
+.language-json,
+.language-python,
+.language-javascript,
+.language-java {
+  font-family: 'Fira Code', 'Fira Mono', monospace !important;
+  font-variant-ligatures: contextual;
+}
+
+/* ── ParamField / API table improvements ──────────────────── */
+
+table {
+  font-size: 0.875rem;
+}
+
+table td:first-child code,
+table th:first-child {
+  white-space: nowrap;
+}
+
+table td:nth-child(3) {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+[class*="ParamField"] + [class*="ParamField"] {
+  margin-top: 0.25rem;
+}
+
+/* Keep code blocks from overflowing their container */
+pre, code {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Softer code-block corners, consistent with Sequoia */
+pre {
+  border-radius: 8px;
+}
+
+/* ── Callout / Alert differentiation ──────────────────────── */
+
+[data-callout-type="warning"] {
+  border-left: 3px solid #f59e0b;
+  background-color: rgba(245, 158, 11, 0.06);
+}
+
+[data-callout-type="note"] {
+  border-left: 3px solid #1A6FE8;
+  background-color: rgba(26, 111, 232, 0.05);
+}
+
+[data-callout-type="tip"] {
+  border-left: 3px solid #10b981;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+/* ── Table enhancements ────────────────────────────────────── */
+
+table tbody tr:hover {
+  background-color: rgba(26, 111, 232, 0.04);
+  transition: background-color 0.1s ease;
+}
+
+/* ── Hero card hover on introduction page ─────────────────── */
+
+[data-page="introduction"] .card,
+#introduction .card {
+  border: 1.5px solid rgba(26, 111, 232, 0.15);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+[data-page="introduction"] .card:hover,
+#introduction .card:hover {
+  box-shadow: 0 4px 20px rgba(26, 111, 232, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ── Code group tab labels ─────────────────────────────────── */
+
+[class*="CodeGroup"] [role="tablist"] button {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}

@@ -1,0 +1,131 @@
+---
+title: "Sandbox Testing"
+description: "Test your integration end-to-end using the PayGlocal Sandbox environment — test cards, test PANs, and how to simulate every scenario."
+---
+
+## Sandbox Environment
+
+The Sandbox is a full replica of Production — same API, same response structure, same authentication — but no real transactions are processed. All test data is isolated and reset periodically.
+
+| | Sandbox | Production |
+|-|---------|------------|
+| API Base URL | `https://api.uat.payglocal.in` | `https://api.prod.payglocal.in` |
+| Control Center | `https://gcc.uat.payglocal.in` | `https://gcc.prod.payglocal.in` |
+| Real transactions | No | Yes |
+| Key download | Separate sandbox keys | Separate production keys |
+
+<Warning>
+  Sandbox keys do **not** work in Production and vice versa. Always download keys from the correct environment.
+</Warning>
+
+---
+
+## Setting Up Sandbox Credentials
+
+1. Log in to `https://gcc.uat.payglocal.in` with your sandbox account credentials.
+2. Navigate to **Key Management → API Keys** and create a new key pair.
+3. Download your **Private Key (PVT-KEY)** — this is your only chance to download it.
+4. Download **PayGlocal's Public Certificate (PUBCERT)** from Manage Keys.
+5. Configure your client code with the sandbox MID, key paths, and extracted KIDs.
+
+For the full key setup process, see [Key Management Overview](/key-management/overview).
+
+---
+
+## Test PANs for Merchant Onboarding
+
+Use these PAN formats to test different entity types in the Create Onboarding endpoint:
+
+| Entity Type | PAN Format | `panType` value |
+|-------------|-----------|-----------------|
+| Individual / Proprietorship | Starts with `P` — e.g., `ABCPE1234F` | `P` |
+| Company | Starts with `C` — e.g., `ABCCE1234F` | `C` |
+| Trust | Starts with `T` — e.g., `ABCTE1234F` | `T` |
+| Firm | Starts with `F` — e.g., `ABCFE1234F` | `F` |
+
+<Note>
+  Contact your PayGlocal integration representative for specific sandbox test PANs that pass validation.
+</Note>
+
+---
+
+## Test Cards for Payment Integration
+
+Use these card numbers to simulate different payment outcomes in Sandbox:
+
+| Scenario | Card Number | Expiry | CVV |
+|----------|------------|--------|-----|
+| Successful payment | `4111111111111111` | Any future date | Any 3 digits |
+| Successful payment (Mastercard) | `5132552222223470` | Any future date | Any 3 digits |
+| Issuer decline | `4000000000000002` | Any future date | Any 3 digits |
+| Insufficient funds | `4000000000009995` | Any future date | Any 3 digits |
+| Card expired | Any valid number | Past date | Any 3 digits |
+| 3DS authentication required | `4000000000003220` | Any future date | Any 3 digits |
+
+<Note>
+  These are standard Stripe/test card numbers for reference. Contact your PayGlocal integration team for the exact sandbox test cards validated for your MID.
+</Note>
+
+---
+
+## Simulating Specific Scenarios
+
+### Test a Full Payment Flow
+
+1. Create a GPI request with a success test card.
+2. Redirect to the `redirectUrl` — PayGlocal's Sandbox payment page opens.
+3. Complete the payment on the test page (no real card processing).
+4. PayGlocal redirects back to your `merchantCallbackURL` with `x-gl-token`.
+5. Validate the token and extract the `SENT_FOR_CAPTURE` status.
+6. Call Get Status to confirm.
+
+### Test a Declined Payment
+
+1. Use a decline test card in the GPI request.
+2. After redirect and callback, the token will carry a decline status.
+3. Validate your error handling and customer messaging.
+
+### Test 3DS Flow
+
+1. Use a 3DS test card.
+2. PayGlocal's Sandbox page will simulate the 3DS challenge step.
+3. Complete the simulated challenge to proceed.
+
+### Test Standing Instructions
+
+1. Include `standingInstruction.data` in your GPI request.
+2. After the first successful payment, call Get Status to retrieve the `maskedMandateId` and `siId`.
+3. Use the Mandate ID in a subsequent SI Sale request.
+4. Verify the response shows `SENT_FOR_CAPTURE`.
+
+### Test Refunds
+
+1. Complete a successful payment (status: `SENT_FOR_CAPTURE`).
+2. Call the Refund endpoint with the GID.
+3. Verify the response shows `SENT_FOR_REFUND`.
+
+---
+
+## Sandbox Limitations
+
+- Auto Debit webhook delivery may be delayed in Sandbox.
+- Some alternative payment methods (iDeal, Sofort, etc.) may not be available in Sandbox.
+- VKYC and DigiLocker in the iFrame use test flows — no real identity verification occurs.
+- Penny drop bank account verification uses test IFSC codes — contact your PayGlocal representative for valid test account details.
+
+---
+
+## Go-Live Checklist
+
+Before requesting Production access:
+
+- [ ] All API calls return expected responses in Sandbox
+- [ ] Callback URL validation working (token signature verification)
+- [ ] Get Status fallback implemented (in case callback fails)
+- [ ] Error handling for all decline and error status codes
+- [ ] Risk data included for international card transactions
+- [ ] `merchantUniqueId` is unique per transaction
+- [ ] Keys stored securely server-side (not in client-side code)
+- [ ] Submitted sandbox testing evidence to PayGlocal for go-live approval
+
+See [Requirements & Compliance](/requirements) for the full go-live process.

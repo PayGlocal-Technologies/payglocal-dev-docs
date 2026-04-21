@@ -1,0 +1,89 @@
+---
+title: "Downloading Your Private Key"
+description: "Create and download your PVT-KEY from the PayGlocal Control Center. This key signs all your outgoing API requests."
+---
+
+## What Is the Private Key?
+
+Your **Private Key (PVT-KEY)** is the signing key you use to authenticate every API request to PayGlocal. It proves the request originates from you and has not been tampered with in transit.
+
+<Warning>
+  PayGlocal **does not store your Private Key** on its servers. You can only download it at the moment of creation. Store it securely — if lost, you must generate a new key and update your integration.
+</Warning>
+
+## Steps to Download
+
+<Steps>
+  <Step title="Log in to the PayGlocal Control Center">
+    Navigate to the correct environment:
+    - **UAT:** `https://gcc.uat.payglocal.in`
+    - **Production:** `https://gcc.prod.payglocal.in`
+  </Step>
+
+  <Step title="Go to Key Management">
+    In the left navigation panel, choose **Key Management**.
+  </Step>
+
+  <Step title="Open API Keys">
+    From the Key Management menu, select **API Keys**.
+  </Step>
+
+  <Step title="Create a New Key">
+    Click **"Create New Key"** to generate a new key pair. PayGlocal creates the key pair and prepares the private key for download.
+  </Step>
+
+  <Step title="Download the Key">
+    Click **"Download Key"**. The private key file will be saved to your computer.
+
+    The downloaded file follows this naming format:
+    ```
+    <kid>_<mid>.pem
+    ```
+
+    **Example:** `884hiurh-8e0b-4907-38nn-fuerikejr89_paygmerchant.pem`
+  </Step>
+</Steps>
+
+## Extracting the Key ID (KID)
+
+Your Private Key file name encodes two important identifiers. You will need both when configuring the sample client code.
+
+| Part of filename | Example | What it is |
+|-----------------|---------|------------|
+| Before `_` | `884hiurh-8e0b-4907-38nn-fuerikejr89` | **Key ID (KID)** — set this as your `PVT-KEY` KID |
+| After `_`, before `.pem` | `paygmerchant` | **Merchant ID (MID)** — your PayGlocal-assigned merchant ID |
+
+For the example filename `884hiurh-8e0b-4907-38nn-fuerikejr89_paygmerchant.pem`:
+- **KID:** `884hiurh-8e0b-4907-38nn-fuerikejr89`
+- **MID:** `paygmerchant`
+
+## Secure Storage Guidelines
+
+<AccordionGroup>
+  <Accordion title="Server-side only">
+    The PVT-KEY must never leave your server. Never embed it in mobile apps, browser JavaScript, or any client-side code.
+  </Accordion>
+  <Accordion title="File system permissions">
+    Restrict read access to the key file to only the application user account that needs it. Use `chmod 600` on Linux/macOS.
+  </Accordion>
+  <Accordion title="Secrets management">
+    Store the key in a secrets manager (AWS Secrets Manager, HashiCorp Vault, GCP Secret Manager) rather than in environment variables or config files in version control.
+  </Accordion>
+  <Accordion title="Key rotation">
+    Rotate your keys periodically. Create a new key in the Control Center and update your configuration before deactivating the old key to ensure zero downtime.
+  </Accordion>
+</AccordionGroup>
+
+## Portfolio Merchant Setup (Parent-Child MID)
+
+If you use a **portfolio merchant** (parent-child MID) setup, you can use the parent's Private Key to sign transactions for child MIDs. To do this, include the following additional header in your requests:
+
+```
+x-gl-kid-mid: "<Parent MID>"
+```
+
+Pass the **child MID** in the Merchant ID field of the request payload.
+
+## Next Step
+
+Once you have your Private Key, download the [PayGlocal Public Certificate](/key-management/public-certificate) to complete your key setup.

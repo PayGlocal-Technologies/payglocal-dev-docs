@@ -1,0 +1,128 @@
+---
+title: "Transaction & Payment Data Fields"
+description: "Complete reference for all request fields in the GPI service — transaction identifiers, card data, billing, shipping, token, and standing instruction fields."
+---
+
+## Transaction Data
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `merchantTxnId` | Alphanumeric | Yes | Your unique transaction reference. Must be unique across all services for a single MID. Can be used in place of GID for Get Status and follow-on requests. |
+| `merchantUniqueId` | Alphanumeric | Recommended | A unique identifier you generate (V4 UUID recommended). Must not start with `gl-`. |
+| `merchantCallbackURL` | URL | Yes | The URL PayGlocal redirects to after payment completion (via HTTP POST). |
+
+---
+
+## Payment Data
+
+### Card Data (`paymentData.cardData`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `number` | Number | Customer's card number |
+| `securityCode` | Number | CVV / CVC / CVV2 |
+| `expiryMonth` | Month | Card expiry month (e.g., `07`) |
+| `expiryYear` | Year | Card expiry year (e.g., `2030`) |
+| `type` | String | Card brand (e.g., `visa`, `mastercard`) |
+| `totalAmount` | Number | Transaction amount (e.g., `4570.50`) |
+| `txnCurrency` | ISO | ISO 4217 currency code (e.g., `INR`, `USD`) |
+
+### Token / AltID Data (`paymentData.tokenData`)
+
+Use `tokenData` instead of `cardData` when sending network tokens or alternative IDs.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `altId` | String | Yes | Set `"true"` if using an AltID instead of a network token |
+| `number` | String | Yes | Network token or AltID number |
+| `expiryMonth` | Month | Yes | Token expiry month |
+| `expiryYear` | Year | Yes | Token expiry year |
+| `cryptogram` | String | Yes | Cryptogram generated for this transaction |
+| `securityCode` | Number | Optional | CVV/CVC/CVV2 |
+| `requestorID` | String | Yes | Token requestor ID assigned by the network |
+| `hashOfFirstSix` | String | Conditional* | SHA-256 hash of first 6 digits of the card |
+| `firstSix` | String | Conditional* | First 6 digits of the card |
+| `lastFour` | String | Yes | Last 4 digits of the card |
+| `cardBrand` | String | Conditional** | Card brand (e.g., `visa`) |
+| `cardCountryCode` | ISO3 | Conditional** | ISO3 country code of the card (default: `IN`) |
+| `cardIssuerName` | String | Conditional** | Card issuing bank name (default: `UNKNOWN`) |
+| `cardType` | String | Conditional** | `DEBIT`, `CREDIT`, `OTHER`, or `UNKNOWN` |
+| `cardCategory` | String | Optional | `PREMIUM`, `CLASSIC`, `BUSINESS`, or `UNKNOWN` |
+
+*Either `firstSix` or `hashOfFirstSix` is required.  
+**Mandatory if neither `firstSix` nor `hashOfFirstSix` is present.
+
+### Authentication Data (`paymentData.authenticationData`)
+
+Used in the Standalone Auth API when sending 3DS authentication results.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `cavv` | String | CAVV value from the payer authentication process |
+| `eci` | Number | ECI value from the payer authentication process |
+
+---
+
+## Billing Data (`paymentData.billingData`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `firstName` | String | Cardholder first name |
+| `lastName` | String | Cardholder last name |
+| `addressStreet1` | String | Address line 1 |
+| `addressStreet2` | String | Address line 2 |
+| `addressCity` | String | City |
+| `addressState` | String | State / District / County |
+| `addressPostalCode` | String | Postal / ZIP code |
+| `addressCountry` | ISO | Country ISO3 code (e.g., `IN`, `USA`) |
+| `emailId` | Email | Customer email address |
+| `callingCode` | String | International dialling code (e.g., `+91`) |
+| `phoneNumber` | String | Phone number without calling code |
+
+---
+
+## Shipping Data (`riskData.shippingData`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `firstName` | Alphanumeric | Recipient first name |
+| `lastName` | Alphanumeric | Recipient last name |
+| `addressStreet1` | Alphanumeric | Address line 1 |
+| `addressStreet2` | Alphanumeric | Address line 2 |
+| `addressCity` | Alphanumeric | City |
+| `addressState` | Alphanumeric | State / District / County |
+| `addressPostalCode` | Alphanumeric | Postal / ZIP code |
+| `addressCountry` | ISO | Country ISO3 code |
+| `emailId` | Email | Recipient email |
+| `callingCode` | String | International dialling code |
+| `phoneNumber` | Numbers | Phone number without calling code |
+
+---
+
+## Standing Instructions Data (`standingInstruction.data`)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | String | Yes | `FIXED` or `VARIABLE` |
+| `amount` | String | Conditional | Fixed debit amount. **Required when `type = FIXED`**; ignored for `VARIABLE` |
+| `maxAmount` | String | Conditional | Maximum debit amount. **Required when `type = VARIABLE`**; ignored for `FIXED` |
+| `numberOfPayments` | String | Yes | Number of payments allowed. Send `'N'` for an open-ended mandate |
+| `frequency` | String | Yes | `ONDEMAND`, `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `HALFYEARLY`, or `YEARLY` |
+| `startDate` | String | Conditional | Auto-debit start date in `yyyyMMdd` format. **Required when Auto Debit is enabled and `type = FIXED`** |
+
+<Note>
+  When **Auto Debit** is enabled for your MID: `type = VARIABLE` and `frequency = ONDEMAND` are not supported.
+</Note>
+
+
+<CardGroup cols={3}>
+  <Card title="Risk Data Fields" icon="shield" href="/api-fields/risk-data-fields">
+    Industry-specific risk data for airlines, hotels, and more.
+  </Card>
+  <Card title="Response Fields" icon="arrow-down-to-line" href="/api-fields/response-fields">
+    Fields returned in GPI and Get Status responses.
+  </Card>
+  <Card title="GPI Service" icon="credit-card" href="/payment-services/gpi-service">
+    See how these fields are used in a live payment initiation.
+  </Card>
+</CardGroup>

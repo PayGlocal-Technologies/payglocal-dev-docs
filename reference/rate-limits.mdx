@@ -1,0 +1,104 @@
+---
+title: "Rate Limits & Retry Guidance"
+description: "API rate limits, retry strategies, and idempotency guidelines for the PayGlocal Merchant Onboarding and Payment APIs."
+---
+
+## Rate Limits
+
+PayGlocal enforces rate limits to ensure platform stability for all clients. Limits apply per MID (Merchant ID) per environment.
+
+<Note>
+  Specific per-endpoint rate limits are configured as part of your merchant contract. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to confirm the limits applicable to your integration.
+</Note>
+
+### General Guidance
+
+| API Area | Typical Limit | Notes |
+|----------|--------------|-------|
+| Merchant Onboarding API | Low throughput expected | Sequential flow — most merchants complete in under 10 API calls |
+| GPI (Payment Initiation) | Per-MID volume limit | Determined by contracted transaction volume |
+| Get Status | Higher than initiation | Polling is common — avoid polling faster than every 5 seconds |
+| Refund | Lower than GPI | One refund per original transaction |
+
+### When You Hit a Rate Limit
+
+PayGlocal returns an **HTTP `429 Too Many Requests`** response. The response may include a `Retry-After` header indicating when you can retry.
+
+---
+
+## Retry Strategy
+
+### Exponential Backoff (Recommended)
+
+For `500 Internal Server Error` and `429 Too Many Requests` responses, use exponential backoff with jitter:
+
+```
+Attempt 1: wait 1s
+Attempt 2: wait 2s
+Attempt 3: wait 4s
+Attempt 4: wait 8s
+Attempt 5: wait 16s (give up or alert)
+```
+
+Add random jitter (±20%) to prevent thundering herd when multiple clients retry simultaneously.
+
+```python
+import time
+import random
+
+def retry_with_backoff(fn, max_attempts=5):
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except ServerError:
+            if attempt == max_attempts - 1:
+                raise
+            wait = (2 ** attempt) + random.uniform(0, 1)
+            time.sleep(wait)
+```
+
+### What to Retry
+
+| HTTP Code | Retry? | Notes |
+|-----------|--------|-------|
+| `400 Bad Request` | No | Fix the request first — retrying will keep failing |
+| `401 Unauthorized` | No | Check your API Key and digest computation |
+| `403 Forbidden` | No | Auth issue or wrong `onboardingId` |
+| `404 Not Found` | No | Resource does not exist |
+| `429 Too Many Requests` | Yes | Respect `Retry-After` header |
+| `500 Internal Server Error` | Yes | With exponential backoff |
+
+---
+
+## Idempotency
+
+### Payment APIs
+
+The `merchantUniqueId` field acts as an idempotency key for the Payment APIs. If you send two GPI requests with the same `merchantUniqueId`, the second request may return the original transaction rather than creating a new one.
+
+**Rule:** Generate a new `merchantUniqueId` for every new transaction. Reuse the same ID only if you are retrying a failed request that you believe did not reach PayGlocal.
+
+### Onboarding API
+
+The `externalOnboardingId` in the Create Onboarding endpoint is the idempotency key for the onboarding flow. A PAN can only have one active onboarding record in the PayGlocal system.
+
+---
+
+## Get Status as a Safety Net
+
+For any payment transaction, if you are unsure whether the GPI request succeeded (e.g., network timeout before you received the response), call Get Status with the `merchantUniqueId` you used:
+
+```
+GET /gl/v1/payments/{merchantUniqueId}/status/
+```
+
+This tells you definitively whether a transaction exists, preventing duplicate charges if you were to create a new GPI request for the same customer intent.
+
+<CardGroup cols={2}>
+  <Card title="Get Status Service" icon="magnifying-glass" href="/payment-services/get-status-service">
+    Idempotent status check — safe to call on every timeout.
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Every request must be signed — review the HMAC guide.
+  </Card>
+</CardGroup>

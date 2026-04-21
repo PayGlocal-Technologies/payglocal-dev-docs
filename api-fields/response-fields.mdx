@@ -1,0 +1,111 @@
+---
+title: "Response Fields"
+description: "Reference for all response fields returned by PayGlocal's GPI, Get Status, Refund, and Standing Instruction services."
+---
+
+## GPI Service Response Fields
+
+| Field | Description |
+|-------|-------------|
+| `gid` | PayGlocal-generated unique transaction ID (always starts with `gl-`) |
+| `status` | Transaction status code (e.g., `CREATED`, `REQUEST_ERROR`) |
+| `message` | Human-readable status message |
+| `timestamp` | ISO 8601 timestamp of the service request |
+| `reasonCode` | PayGlocal reason code (see [Response Codes](/api-fields/response-codes)) |
+| `data.redirectUrl` | URL to redirect the customer's browser to complete payment (GET method) |
+| `data.statusUrl` | URL for the Get Status service call |
+| `data.mandateId` | Mandate ID — only present when Standing Instruction was requested |
+| `errors` | Error details, if any; `null` on success |
+
+---
+
+## Get Status Response Fields
+
+| Field | Description |
+|-------|-------------|
+| `gid` | PayGlocal transaction ID |
+| `status` | Top-level status of the Get Status call |
+| `message` | Human-readable status message |
+| `timestamp` | ISO 8601 timestamp |
+| `reasonCode` | PayGlocal reason code |
+| `data.gid` | GID of the underlying transaction |
+| `data.status` | Detailed transaction status (e.g., `SENT_FOR_CAPTURE`) |
+| `data.Amount` | Transaction amount |
+| `data.Currency` | Transaction currency |
+| `data.merchantTxnId` | Your transaction ID from the original request |
+| `data.reasonCode` | Detailed reason code for the transaction status |
+| `data.detailedMessage` | Detailed status description |
+| `data.transactionCreationTime` | When the transaction was created |
+| `data.siStatus` | Standing Instruction setup status (present when SI was requested) |
+| `data.maskedMandateId` | Masked Mandate ID (present when SI was set up successfully) |
+| `data.siId` | Standing Instruction ID (use in PayGlocal Control Center) |
+| `errors` | Error details, if any |
+
+---
+
+## Refund Service Response Fields
+
+| Field | Description |
+|-------|-------------|
+| `gid` | PayGlocal transaction ID |
+| `status` | Refund status (e.g., `SENT_FOR_REFUND`) |
+| `message` | Human-readable status message |
+| `timestamp` | ISO 8601 timestamp |
+| `reasonCode` | PayGlocal reason code |
+| `data.Amount` | Refund amount |
+| `data.Currency` | Refund currency |
+| `data.merchantTxnId` | Your transaction ID from the refund request |
+| `errors` | Error details, if any |
+
+---
+
+## Webhook Notification — Auto Debit SI Payments
+
+When Auto Debit is enabled, PayGlocal posts this notification to your webhook URL after each automatic debit:
+
+| Field | Description |
+|-------|-------------|
+| `gid` | PayGlocal transaction ID for the auto-debited payment |
+| `status` | `SUCCESS` or `FAILURE` |
+| `type` | Always `STANDING_INSTRUCTION` for SI webhook notifications |
+| `siId` | Standing Instruction reference ID |
+| `timestamp` | ISO 8601 timestamp |
+| `statusUrl` | URL to call Get Status for complete transaction details |
+
+---
+
+## PayGlocal Response Block
+
+All API responses share this top-level structure:
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "...",
+  "message": "...",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "reasonCode": "GL-201-001",
+  "data": { ... },
+  "errors": null
+}
+```
+
+HTTP status codes map to response categories:
+
+| HTTP Code | Category |
+|-----------|---------|
+| `201` | Successful transaction response |
+| `400` | Client-side request error |
+| `501` | Server-side or system error |
+
+<CardGroup cols={3}>
+  <Card title="Transaction & Payment Fields" icon="list" href="/api-fields/transaction-payment-fields">
+    Fields you send in GPI payment requests.
+  </Card>
+  <Card title="Response Codes & Errors" icon="triangle-exclamation" href="/reference/response-codes-and-errors">
+    HTTP codes and GL reason code reference.
+  </Card>
+  <Card title="Response Structure" icon="brackets-curly" href="/reference/response-structure">
+    How success and error envelopes are shaped.
+  </Card>
+</CardGroup>

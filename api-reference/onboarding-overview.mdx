@@ -1,0 +1,103 @@
+---
+title: "Partner Merchant Onboarding API"
+description: "Overview of the PayGlocal Partner Merchant Onboarding API — the sequential call flow, authentication, and quick links to all 10 endpoints."
+icon: "building-columns"
+---
+
+<Note>
+  This API is for **Partners** onboarding their own sub-merchants onto PayGlocal. If you are a merchant looking to accept payments, see the [Merchant Payment APIs](/api-reference/payment/overview) instead.
+</Note>
+
+## What Is the Partner Merchant Onboarding API?
+
+The **Partner Merchant Onboarding API** lets technology partners programmatically onboard sub-merchants onto the PayGlocal platform. It handles the full compliance lifecycle: KYC data collection, document upload, bank account verification, product configuration, and triggered VKYC.
+
+<Note>
+  The interactive API explorer on each endpoint page lets you test requests directly from this portal. Set your `x-api-key` and `x-gl-digest` headers in the authentication panel (top-right of the endpoint page) to make live Sandbox calls.
+</Note>
+
+---
+
+## Call Sequence
+
+The Onboarding API is **sequential and stateful**. Each step enriches the merchant record and PayGlocal validates completeness before the final verification step can be triggered.
+
+```
+Partner System                          PayGlocal API
+      │                                       │
+      │  POST /onboard  ─────────────────────▶│  Creates merchant record
+      │◀────────────────  onboardingId  ───────│
+      │                                       │
+      │  PUT /business-details ──────────────▶│
+      │  PUT /beneficial-owner ──────────────▶│
+      │  PUT /bank-details ──────────────────▶│  Penny drop validation
+      │  PUT /auth-signatory ────────────────▶│
+      │  PUT /docs (repeat per doc) ─────────▶│
+      │  PUT /products ──────────────────────▶│
+      │                                       │
+      │  PUT /verify ────────────────────────▶│  Generates VKYC URL
+      │◀──────────────── redirectUrl ─────────│
+      │                                       │
+      │  GET /status ────────────────────────▶│  Confirm final outcome
+      │◀─────────────────────────────────────│
+```
+
+---
+
+## Endpoint Reference
+
+| Step | Endpoint | Method | Notes |
+|------|----------|--------|-------|
+| 1 | [Create Onboarding](/api-reference/create-onboarding) | POST | Returns `onboardingId` — required for all subsequent calls |
+| 2 | [Update Business Details](/api-reference/update-business-details) | PUT | Cannot update after T&C acknowledgement |
+| 3 | [Add Beneficial Owner](/api-reference/add-beneficial-owner) | PUT | Array replaces existing UBOs — always send all together |
+| 4 | [Update Bank Details](/api-reference/update-bank-details) | PUT | Penny drop verification runs automatically |
+| 5 | [Update Auth Signatory](/api-reference/update-auth-signatory) | PUT | Phone/email used for VKYC — must be accurate |
+| 6 | [Upload Documents](/api-reference/upload-documents) | PUT | One call per document |
+| 7 | [Configure Products](/api-reference/configure-products) | PUT | Select products and configure fee structures |
+| 8 | [Trigger Verification](/api-reference/verify-merchant) | PUT | Returns `redirectUrl` for iFrame VKYC |
+| 9 | [Get Onboarding Status](/api-reference/get-status) | GET | Always confirm server-side after VKYC redirect |
+| — | [Get Business Categories](/api-reference/get-business-categories) | GET | Lookup table for `natureOfBusiness` field |
+
+---
+
+## Authentication
+
+The Onboarding API uses **HmacSHA256 request signing**:
+
+- `x-api-key` — your static API Key
+- `x-gl-digest` — per-request HMAC-SHA256 signature, Base64-encoded
+
+See [Authentication](/authentication) for the full signing specification and multi-language code examples.
+
+---
+
+## Onboarding Status Lifecycle
+
+| Status | Meaning |
+|--------|---------|
+| `INITIATED` | Onboarding record created, details not yet submitted |
+| `IN_PROGRESS` | One or more detail sections submitted |
+| `PENDING_VERIFICATION` | All details submitted, awaiting merchant VKYC |
+| `PENDING_REVIEW` | VKYC complete, under PayGlocal compliance review |
+| `APPROVED` | Merchant fully onboarded and activated |
+| `REJECTED` | Onboarding rejected after review |
+| `RFI` | Request for Information — additional data required |
+
+---
+
+## Key Constraints
+
+- `externalOnboardingId` must be unique per merchant — it cannot be reused.
+- Business details and auth signatory cannot be updated after T&C acknowledgement.
+- Beneficial owner and bank details cannot be updated after verification is complete.
+- Calling `/verify` before all required steps are complete returns `400 Bad Request`.
+
+<CardGroup cols={2}>
+  <Card title="Onboarding Flow Guide" icon="diagram-project" href="/guides/api-flow-overview">
+    Step-by-step walkthrough with state transitions explained.
+  </Card>
+  <Card title="iFrame Verification" icon="browser" href="/guides/iframe-integration">
+    How to embed the VKYC and DigiLocker flow in your product.
+  </Card>
+</CardGroup>

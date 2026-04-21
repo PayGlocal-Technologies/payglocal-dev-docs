@@ -1,0 +1,104 @@
+---
+title: "Payment APIs"
+description: "Overview of PayGlocal's Payment APIs — how authentication works, the GID lifecycle, and quick links to all payment endpoints."
+icon: "credit-card"
+---
+
+## What Are the Payment APIs?
+
+The **Payment APIs** handle the full transaction lifecycle: initiating payments, tracking status, issuing refunds, and managing recurring Standing Instructions. They are separate from the Merchant Onboarding API and use a different authentication mechanism.
+
+<Note>
+  The interactive API explorer on each endpoint page lets you test requests directly. Set your `x-gl-merchantid` and key signing headers in the authentication panel to make live Sandbox calls.
+</Note>
+
+---
+
+## Authentication: Key-Based Signing (RSA/JWE)
+
+<Warning>
+  **The Payment APIs use RSA/JWE key-based signing — not the HmacSHA256 used by the Onboarding API.** These are two different auth systems.
+</Warning>
+
+| API Area | Auth Method | Headers |
+|----------|-------------|---------|
+| Merchant Onboarding API | HmacSHA256 | `x-api-key`, `x-gl-digest` |
+| Payment APIs | RSA + JWE payload encryption | `x-gl-merchantid`, `x-gl-kid` |
+
+For the Payment APIs, you use your **PVT-KEY** to sign requests and **PUBCERT** to encrypt the payload. See [Key Management](/key-management/overview) for setup.
+
+---
+
+## The GID — Central Transaction Identifier
+
+Every Payment API call creates or consumes a **GID** (PayGlocal ID):
+
+- Always starts with `gl-`
+- Returned in every GPI response
+- Used as the path parameter for Get Status, Refund, Capture, and Reversal
+- Your `merchantUniqueId` can be used interchangeably with the GID in most endpoints
+
+```
+GPI (POST /initiate)
+  └── Returns gid: "gl-13bbd3c4-..."
+        │
+        ├── GET /payments/{gid}/status     ← Get Status
+        ├── POST /payments/{gid}/refund    ← Refund
+        ├── POST /payments/{gid}/capture   ← Standalone Capture
+        └── POST /payments/{gid}/auth-reversal  ← Reversal
+```
+
+---
+
+## Endpoint Reference
+
+### Payment Initiation
+
+| Endpoint | Method | When to Use |
+|----------|--------|-------------|
+| [Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect) | POST | Non-PCI merchants — PayGlocal collects card data |
+| [Initiate Payment (PayDirect)](/api-reference/payment/gpi-initiate) | POST | PCI-certified merchants — you collect card data |
+
+### Transaction Management
+
+| Endpoint | Method | When to Use |
+|----------|--------|-------------|
+| [Get Transaction Status](/api-reference/payment/get-status) | GET | After GPI, after callback fails, anytime you need status |
+| [Refund](/api-reference/payment/refund) | POST | For captured payments requiring full or partial refund |
+
+### Auth & Capture (Separate Flow)
+
+| Endpoint | Method | When to Use |
+|----------|--------|-------------|
+| [Standalone Capture](/api-reference/payment/standalone-capture) | POST | Capture a previously authorized payment (initiated with `captureTxn=false`) |
+| [Authorization Reversal](/api-reference/payment/standalone-reversal) | POST | Void an authorization before capture |
+
+### Standing Instructions
+
+| Endpoint | Method | When to Use |
+|----------|--------|-------------|
+| [Subsequent Payment (SI Sale)](/api-reference/standing-instructions/si-subsequent-payment) | POST | Charge a customer using an existing mandate |
+| [Cancel Mandate](/api-reference/standing-instructions/si-cancellation) | PUT | Revoke a mandate to stop future debits |
+| [Get Mandate Status](/api-reference/standing-instructions/si-status) | POST | Check mandate status and payment history |
+
+---
+
+## Two Processing Models
+
+Your MID can be configured for one of two models:
+
+| Model | What happens during GPI redirect | Your action |
+|-------|----------------------------------|-------------|
+| **Auth + Capture** (default) | Full payment processed automatically | Check status after callback |
+| **Auth Only** | 3DS authentication only | Send separate Auth + Capture calls |
+
+Contact PayGlocal merchant support to configure your preferred model.
+
+<CardGroup cols={2}>
+  <Card title="Which integration is right for you?" icon="map" href="/guides/integration-chooser">
+    PayCollect vs PayDirect vs Standalone vs Standing Instructions.
+  </Card>
+  <Card title="Payment Flow Overview" icon="diagram-project" href="/integration/payment-flow">
+    End-to-end sequence diagram for the GPI payment flow.
+  </Card>
+</CardGroup>

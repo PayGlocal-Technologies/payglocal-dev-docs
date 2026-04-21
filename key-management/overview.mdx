@@ -1,0 +1,76 @@
+---
+title: "Key Management Overview"
+description: "PayGlocal uses asymmetric key cryptography for secure API communication. Understand the two keys you need and how they work together."
+---
+
+## Overview
+
+PayGlocal Payment APIs (`/gl/v1/payments/*`) use **asymmetric key cryptography** for authentication. Every request payload is wrapped in an RSA-signed **JWS** (JSON Web Signature) token sent in the `x-gl-token-external` header, and every response includes a signed token you can verify. This ensures request authenticity and response integrity.
+
+<Note>
+  The default scheme is **JWS signing** (authenticity). Some flows (e.g., billpay) additionally
+  require the request body to be encrypted as a **JWE** using PayGlocal's public certificate —
+  your PayGlocal integration lead will confirm whether your MID needs encryption.
+</Note>
+
+## The Two Keys
+
+| Key | Name | Who Owns It | What It Does |
+|-----|------|-------------|--------------|
+| **PVT-KEY** | Your Private Key | You (the merchant/client) | Signs your outgoing requests (JWS) |
+| **PUBCERT** | PayGlocal Public Certificate | PayGlocal | Verifies PayGlocal's response token; encrypts request body when JWE is required |
+
+<Warning>
+  **Your Private Key (PVT-KEY) is never stored by PayGlocal.** You can only download it once — at the moment of creation. If you lose it, you must create a new key pair.
+</Warning>
+
+## How the Keys Work Together
+
+```
+Your Server                                PayGlocal Server
+    │                                             │
+    │  1. Sign payload with PVT-KEY → JWS token   │
+    │     (optionally encrypt with PUBCERT → JWE) │
+    │──────── x-gl-token-external: JWS ──────────▶│
+    │                                             │
+    │◀────────── Response with x-gl-token ────────│
+    │                                             │
+    │  2. Validate x-gl-token with PUBCERT        │
+    │  3. Extract payment status                  │
+```
+
+## Environments
+
+PayGlocal has two separate environments, each requiring their own set of keys:
+
+| Environment | Control Center URL | API Base URL |
+|-------------|-------------------|--------------|
+| **UAT** | `https://gcc.uat.payglocal.in` | `https://api.uat.payglocal.in` |
+| **Production** | `https://gcc.prod.payglocal.in` | `https://api.prod.payglocal.in` |
+
+<Warning>
+  Download your keys from the correct environment. UAT keys will not work in Production and vice versa. Access to the Production environment is only enabled after you have executed the service contract with PayGlocal.
+</Warning>
+
+## Security Standards
+
+PayGlocal uses industry-leading encryption to protect your data:
+
+- **TLS 1.3** for point-to-point transport security
+- **End-to-End Encryption (E2EE)** — the payload is encrypted throughout its entire journey, even through intermediaries
+- **RSA 2,048-bit keys** for resistance against cryptanalytic advances
+- **Zero-trust architecture** for data at rest, in transit, and in use
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Download Your Private Key" icon="key" href="/key-management/private-key">
+    Step-by-step guide to creating and downloading your PVT-KEY from the PayGlocal Control Center.
+  </Card>
+  <Card title="Download the Public Certificate" icon="certificate" href="/key-management/public-certificate">
+    How to obtain PayGlocal's PUBCERT for encrypting requests and validating responses.
+  </Card>
+  <Card title="Construct API Requests" icon="code" href="/key-management/request-construction">
+    Configure the sample client code and start making authenticated API calls.
+  </Card>
+</CardGroup>

@@ -1,0 +1,16 @@
+---
+title: "Standalone Capture"
+description: "Capture an authorized payment to trigger settlement."
+openapi: "POST /gl/v1/payments/{gid}/capture"
+---
+
+## When to Use
+
+Capture an `AUTHORIZED` transaction (i.e., one initiated with `captureTxn=false`). Until captured, the authorization holds funds on the customer's card but does not settle them to you.
+
+## Full vs Partial
+
+- `captureType=F` — full capture of the authorized amount. Omit `paymentData.totalAmount`.
+- `captureType=P` — partial capture. `paymentData.totalAmount` is required and must be ≤ the authorized amount.
+
+Only one capture is allowed per authorization. The remaining authorized amount is released after the first capture.

@@ -1,0 +1,19 @@
+---
+title: "Get Onboarding Status"
+openapi: "GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status"
+---
+
+## When to Use
+
+Retrieves the current onboarding status and all submitted information for a merchant.
+
+<Warning>
+  After the merchant completes the iFrame verification flow, always call this endpoint server-to-server to confirm `vkyc` and `digiLocker` are `SUCCESS` or `PENDING_REVIEW`. Do not rely on the callback redirect alone.
+</Warning>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| `onboardingId` does not exist | `404` |
+| `onboardingId` does not belong to this partner | `403` |

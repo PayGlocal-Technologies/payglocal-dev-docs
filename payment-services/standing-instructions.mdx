@@ -1,0 +1,295 @@
+---
+title: "Standing Instructions"
+description: "Set up recurring payment mandates, initiate subsequent payments, cancel mandates, and check mandate status using PayGlocal's SI APIs."
+---
+
+## Overview
+
+PayGlocal supports **Standing Instructions (SI)** for cards issued outside India. A standing instruction allows you to:
+
+- Set up a recurring payment mandate on the first transaction
+- Debit the customer's card for subsequent payments using a **Mandate ID** — without the customer needing to re-authenticate
+- Optionally enable **Auto Debit**, where PayGlocal automatically initiates subsequent payments at your configured frequency
+
+<Note>
+  Standing Instructions are supported for **international cards only**. The PayCollect flow does not support setting up Standing Instructions for cards.
+</Note>
+
+---
+
+## Three-Step SI Flow
+
+### Step 1 — First Payment (with SI Setup)
+
+```
+Browser                Client/Merchant Server              PayGlocal Server
+   │                          │                                    │
+   │  Initiate first payment  │                                    │
+   │─────────────────────────▶│                                    │
+   │                          │  GPI Request with SI data          │
+   │                          │──────────────────────────────────▶│
+   │                          │  RedirectURL + GID + Mandate ID    │
+   │                          │◀──────────────────────────────────│
+   │  Redirect to PayGlocal   │                                    │
+   │◀─────────────────────────│                                    │
+   │──────────────────────────────────────────────────────────────▶│
+   │                          │                      Payment        │
+   │  Redirect back (POST)    │                      completes      │
+   │◀──────────────────────────────────────────────────────────────│
+```
+
+Include the `standingInstruction.data` block in your [GPI request](/payment-services/gpi-service). The GPI response includes a **Mandate ID**:
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://...",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### Step 2 — Fetch SI ID from Get Status
+
+After the first payment completes, call [Get Status](/payment-services/get-status-service) to retrieve the **Standing Instruction ID**:
+
+```
+Client/Merchant Server          PayGlocal Server
+       │                               │
+       │  GET /status (with GID)       │
+       │──────────────────────────────▶│
+       │  Payment status + SI ID       │
+       │◀──────────────────────────────│
+```
+
+The response includes `maskedMandateId` (for subsequent payments) and `siId` (for managing in the PayGlocal Control Center).
+
+### Step 3 — Subsequent Payments
+
+Use the Mandate ID to trigger recurring transactions without customer involvement:
+
+```
+Client/Merchant Server             PayGlocal Server
+       │                                  │
+       │  POST /si/sale (with Mandate ID) │
+       │─────────────────────────────────▶│
+       │  Payment confirmation            │
+       │◀─────────────────────────────────│
+```
+
+---
+
+## Mandate Types & Frequency
+
+| SI Type | Required Fields | Description |
+|---------|-----------------|-------------|
+| `FIXED` | `amount`, `numberOfPayments`, `frequency` | Each debit is for the same fixed amount |
+| `VARIABLE` | `maxAmount`, `numberOfPayments`, `frequency` | Each debit can vary up to `maxAmount` |
+
+**Frequency options:** `ONDEMAND` · `WEEKLY` · `BIWEEKLY` · `MONTHLY` · `QUARTERLY` · `HALFYEARLY` · `YEARLY`
+
+<Note>
+  When Auto Debit is enabled for your MID: `ONDEMAND` frequency and `VARIABLE` type are not supported.
+</Note>
+
+---
+
+## Subsequent Payment (SI Sale)
+
+### Endpoint
+
+```
+POST /gl/v1/payments/si/sale
+```
+
+### For SI Type = FIXED
+
+The amount is taken from the original GPI request. Do not send an amount.
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### For SI Type = VARIABLE
+
+Amount must be ≤ the `maxAmount` set during mandate creation.
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": { "totalAmount": "89" },
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### Responses
+
+**Success:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Sent for Capture Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "errors": null
+}
+```
+
+**Mandate Not Found / Inactive / Exhausted:**
+```json
+{ "status": "REQUEST_ERROR", "message": "Mandate is not found | Mandate is inactive | Mandate is exhausted" }
+```
+
+<Note>
+  If **Auto Debit** is enabled for your MID, this API is not applicable — PayGlocal initiates subsequent debits automatically.
+</Note>
+
+---
+
+## Auto Debit Webhook Notifications
+
+When Auto Debit is enabled, PayGlocal POSTs to your webhook URL after each automatic debit attempt.
+
+**Success:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+}
+```
+
+**Failure:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "FAILURE",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+}
+```
+
+Always call `statusUrl` to get complete transaction details after receiving a webhook notification.
+
+---
+
+## Cancel a Mandate
+
+### Endpoint
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+### Request
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "action": "REVOKE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### Responses
+
+**Success:** `{ "status": "SUCCESS", "message": "Successfully inactivated mandate" }`
+
+**Already Inactive:** `{ "status": "REQUEST_ERROR", "message": "Mandate was inactive" }`
+
+**Not Found:** `{ "status": "REQUEST_ERROR", "message": "Mandate id not found" }`
+
+<Note>
+  Mandates can also be cancelled through the **PayGlocal Control Center** using the Mandate ID.
+</Note>
+
+---
+
+## Check Mandate Status
+
+### Endpoint
+
+```
+POST /gl/v1/payments/si/status
+```
+
+### Request
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "mandateId": "md_c87fcf0a-a62c-4dae-b001-ee69fee587c3"
+  }
+}
+```
+
+### Response (Active)
+
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "mandateData": {
+      "mandateStatus": "ACTIVE",
+      "mandateCreateDate": "20211204",
+      "maskedMandateId": "md_94fxxxxxx3e15",
+      "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+      "numberOfPaymentsProcessed": "4",
+      "numberOfPaymentsRemaining": "2"
+    }
+  }
+}
+```
+
+### Response (Exhausted)
+
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "mandateData": {
+      "mandateStatus": "EXHAUSTED",
+      "mandateCreateDate": "20211204",
+      "mandateExhaustionDate": "20211209",
+      "numberOfPaymentsProcessed": "6",
+      "numberOfPaymentsRemaining": "0"
+    }
+  }
+}
+```
+
+---
+
+## Mandate Statuses
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Mandate is active and available for subsequent payments |
+| `INACTIVE` | Mandate was revoked via API or Control Center |
+| `EXHAUSTED` | All configured payments have been processed |
+
+<CardGroup cols={2}>
+  <Card title="GPI Service" icon="credit-card" href="/payment-services/gpi-service">
+    Set up the standing instruction in the initial GPI request.
+  </Card>
+  <Card title="Get Status Service" icon="magnifying-glass" href="/payment-services/get-status-service">
+    Retrieve the SI ID and mandate details after the first payment.
+  </Card>
+</CardGroup>

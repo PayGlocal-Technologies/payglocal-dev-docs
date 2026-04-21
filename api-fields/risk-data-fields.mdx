@@ -1,0 +1,175 @@
+---
+title: "Risk Data Fields"
+description: "Reference for risk, customer, and industry-specific data fields required for international card processing and fraud protection."
+---
+
+## Overview
+
+For **international card** transactions, `riskData` is **required**. Missing risk data for foreign-issued cards may result in transaction rejection.
+
+For **RuPay cards**, `ipAddress`, `httpAccept`, and `httpUserAgent` are mandatory.
+
+---
+
+## Customer Information (`riskData.customerData`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ipAddress` | String | Customer's IP address collected by your browser application |
+| `httpAccept` | String | Browser `Accept` header value |
+| `httpUserAgent` | String | Browser User-Agent string |
+| `merchantAssignedCustomerId` | String | Your internal customer identifier |
+| `customerAccountType` | String | `1` = Registered account, `0` = Guest checkout |
+| `customerSuccessOrderCount` | String | Lifetime count of successful orders by this customer |
+| `customerAccountCreationDate` | String | Account creation date in `yyyymmdd` format |
+
+---
+
+## Product / Order Information (`riskData.orderData[]`)
+
+Send as an array — one object per item in the order.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `productDescription` | Alphanumeric | Description of the product |
+| `productSKU` | Alphanumeric | Your SKU for the product |
+| `itemUnitPrice` | Alphanumeric | Unit price of the product |
+| `itemQuantity` | Alphanumeric | Quantity ordered |
+| `productType` | Alphanumeric | Product category (e.g., `Electronics`, `Grocery`, `Utility`) |
+
+---
+
+## Airlines Data (`flightData[]`)
+
+Required for airline and OTA merchants accepting international cards. Send as an array — one object per flight booking.
+
+### Flight Booking Data
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| `agentCode` | String | 20 | Booking agent code |
+| `agentName` | String | 60 | Booking agent name |
+| `refundable` | String | 1 | Is the ticket refundable? `Y` or `N` |
+| `journeyType` | String | 10 | `ONEWAY` or `RETURN` |
+| `electronicTicket` | String | 1 | E-ticket: `Y` or `N` |
+| `reservationDate` | String | 8 | Reservation date in `yyyyMMdd` format |
+| `ticketIssueCity` | String | 60 | City where ticket was booked |
+| `ticketIssueState` | String | 60 | State where ticket was booked |
+| `ticketIssueCountry` | ISO2 | — | Country code where ticket was booked |
+| `ticketIssuePostalCode` | String | 10 | Postal code of ticket issue location |
+| `ticketType` | String | 1 | Delivery method: `1`=email, `2`=phone, `3`=post, `4`=pick_up |
+| `reservationCode` | String | 30 | Booking reservation code (PNR) |
+| `reservationSystem` | String | 20 | Reservation system name (e.g., `SABER`, `SITA`) |
+
+### Flight Leg Data (`flightData[].legData[]`)
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `arrivalDate` | Yes* | String(8) | Arrival date in `yyyyMMdd` format |
+| `arrivalAirportCode` | Yes* | String(3) | IATA airport code |
+| `departureDate` | Yes* | String(8) | Departure date in `yyyyMMdd` format |
+| `departureAirportCode` | Yes* | String(3) | IATA airport code |
+| `carrierCode` | Yes* | String(10) | Airline carrier code |
+| `flightNumber` | Yes* | String(20) | Flight number |
+| `serviceClass` | Yes* | String(20) | Class of service (e.g., `ECONOMY`, `BUSINESS`) |
+| `routeId` | Yes* | String(2) | Route number in the array |
+| `legId` | Yes* | String(2) | Leg number in the array |
+| `carriername` | Recommended# | String(20) | Carrier/airline name |
+
+### Passenger Data (`flightData[].passengerData[]`)
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `firstName` | Yes* | String(60) | Passenger first name |
+| `lastName` | Yes* | String(60) | Passenger last name |
+| `dateOfBirth` | Yes* | String(8) | Date of birth in `yyyyMMdd` |
+| `passportCountry` | Yes* | ISO2 | Passport country code |
+| `title` | Optional | String(6) | `mr`, `mrs`, `miss`, `master` |
+| `type` | Recommended# | String(20) | `SENIOR`, `ADULT`, `MINOR`, `CHILD`, `DEFENCE`, `STUDENT` |
+| `email` | Optional | String(225) | Passenger email |
+| `passportNumber` | Recommended# | String(10) | Passport number |
+| `passportIssueDate` | Recommended# | String(8) | Issue date in `yyyyMMdd` |
+| `passportExpiryDate` | Recommended# | String(8) | Expiry date in `yyyyMMdd` |
+
+*Required for fraud chargeback protection benefits.  
+#Recommended for full fraud chargeback protection benefits.
+
+---
+
+## Accommodation / Lodging Data (`lodgingData`)
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `checkInDate` | Yes* | String(8) | Check-in date in `yyyyMMdd` |
+| `checkOutDate` | Yes* | String(8) | Check-out date in `yyyyMMdd` |
+| `city` | Yes* | String(60) | City of stay |
+| `country` | Yes* | ISO2 | Country code of stay |
+| `lodgingType` | Yes* | String(20) | Type of accommodation (Hotel, Motel, B&B, etc.) |
+| `lodgingName` | Optional | String(200) | Name of the property |
+| `rating` | Yes* | String(1) | Property rating (e.g., `4`) |
+| `cancellationPolicy` | Yes* | String(20) | `CANCELLABLE`, `NON_CANCELLABLE`, or `CANCELLATION_PENALTY` |
+| `bookingPersonFirstName` | Optional | String(60) | First name of booking person |
+| `bookingPersonLastName` | Optional | String(60) | Last name of booking person |
+| `bookingPersonEmailid` | Optional | String(225) | Email of booking person |
+| `bookingPersonCallingCode` | Optional | String(5) | ISD code |
+| `bookingPersonPhoneNumber` | Optional | String(15) | Phone number |
+
+### Rooms (`lodgingData.rooms[]`)
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `numberOfGuests` | Yes* | String(2) | Number of guests in the room |
+| `roomType` | Recommended# | String(20) | Room type (Single, Double, Suite, etc.) |
+| `numberOfNights` | Optional | String(2) | Number of nights booked |
+| `roomCategory` | Optional | String(20) | Room category (Deluxe, Standard, etc.) |
+| `roomPrice` | Optional | String(20) | Room price |
+| `guestFirstName` | Optional | String(60) | Guest first name |
+| `guestLastName` | Optional | String(60) | Guest last name |
+| `guestEmail` | Optional | String(225) | Guest email |
+
+---
+
+## Ground Transport Data
+
+### Train Data (`trainData[]`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ticketNumber` | String(40) | Ticket number |
+| `reservationDate` | String(8) | Reservation date in `yyyyMMdd` |
+| `legData[].trainNumber` | String(20) | Train number |
+| `legData[].departureCity` | String(60) | Departure city |
+| `legData[].departureCountry` | ISO2 | Departure country |
+| `legData[].arrivalCity` | String(60) | Arrival city |
+| `legData[].arrivalCountry` | ISO2 | Arrival country |
+| `legData[].departureDate` | String(8) | ISO 8601 departure date/time with timezone |
+| `legData[].routeId` | String(2) | Route array index |
+| `legData[].legId` | String(2) | Leg array index |
+| `passengerData[].firstName` | String(60) | Passenger first name |
+| `passengerData[].lastName` | String(60) | Passenger last name |
+
+### Bus Data (`busData[]`)
+
+Same structure as Train Data with `busNumber` instead of `trainNumber`.
+
+### Cab Data (`cabData[]`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `legData[].pickupDate` | String(8) | Pickup date/time in ISO 8601 format with timezone |
+| `legData[].routeId` | String(2) | Route array index |
+| `legData[].legId` | String(2) | Leg array index |
+| `passengerData[].firstName` | String(60) | Passenger first name |
+| `passengerData[].lastName` | String(60) | Passenger last name |
+
+<CardGroup cols={3}>
+  <Card title="Transaction & Payment Fields" icon="list" href="/api-fields/transaction-payment-fields">
+    Core payment fields required in every GPI request.
+  </Card>
+  <Card title="Response Fields" icon="arrow-down-to-line" href="/api-fields/response-fields">
+    Fields returned in GPI and Get Status responses.
+  </Card>
+  <Card title="GPI Service" icon="credit-card" href="/payment-services/gpi-service">
+    See how risk data flows into a live payment request.
+  </Card>
+</CardGroup>

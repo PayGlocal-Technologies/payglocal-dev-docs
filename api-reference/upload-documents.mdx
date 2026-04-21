@@ -1,0 +1,25 @@
+---
+title: "Upload Documents"
+openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/docs"
+---
+
+## When to Use
+
+Uploads a single compliance document for the merchant. Call this endpoint **once per document type** required.
+
+<Warning>
+  Documents cannot be uploaded or updated after the merchant's verification step is complete.
+</Warning>
+
+<Note>
+  For Partnerships, LLPs, and Companies, PayGlocal auto-fetches MOA, AOA, COI, and similar corporate documents from government sources where feasible. You only need to upload those manually if the auto-fetch is unsuccessful (the onboarding will enter status `RFI` in that case). See [Merchant Requirements](/guides/merchant-requirements) for what's expected per entity type.
+</Note>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields validation error | `400` |
+| Update attempted after verification step is complete | `400` |
+| `onboardingId` does not exist | `404` |
+| `onboardingId` does not belong to this partner | `403` |

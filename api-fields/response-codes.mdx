@@ -1,0 +1,78 @@
+---
+title: "Response Codes"
+description: "Complete reference of PayGlocal reason codes returned in API responses, organized by HTTP status code."
+---
+
+## Overview
+
+All PayGlocal API responses include a `reasonCode` field. These codes provide precise information about the outcome of a transaction — whether successful, declined, or errored.
+
+---
+
+## HTTP 201 — Transaction Responses
+
+| Reason Code | Detailed Message |
+|-------------|-----------------|
+| `GL-201-000` | Transaction Created Successfully |
+| `GL-201-001` | Sent for capture successfully |
+| `GL-201-002` | Redirected to ACS form |
+| `GL-201-003` | Refund request sent successfully |
+| `GL-201-004` | Transaction partially approved |
+| `GL-201-005` | AVS Failed but issuer approved authorization |
+| `GL-201-006` | CVV Failed |
+| `GL-201-007` | Card expired. Request another card. |
+| `GL-201-008` | Processor Error |
+| `GL-201-009` | Insufficient funds |
+| `GL-201-010` | Lost or stolen card |
+| `GL-201-011` | Issuer down |
+| `GL-201-012` | Unauthorized card or payment on card not allowed by issuer |
+| `GL-201-013` | CVV mismatch |
+| `GL-201-014` | Payment exceeds limit on card |
+| `GL-201-015` | General Decline |
+| `GL-201-016` | Customer is blacklisted by issuer |
+| `GL-201-017` | Payment refused by the issuer |
+| `GL-201-018` | Payment refused by the issuer |
+| `GL-201-019` | Card account is found invalid |
+| `GL-201-020` | Authentication by customer failed |
+| `GL-201-021` | Merchant configuration is incorrect, contact PayGlocal customer support |
+| `GL-201-022` | Declined by Risk system |
+| `GL-201-023` | Payment authentication failure |
+| `GL-201-500` | Declined by System |
+
+---
+
+## HTTP 400 — Client Request Errors
+
+| Reason Code | Detailed Message |
+|-------------|-----------------|
+| `GL-400-001` | Declined by System |
+| `GL-400-002` | Request contains invalid data |
+| `GL-400-003` | Request missing merchantTxnID |
+| `GL-400-004` | Card type not enabled for this MID |
+| `GL-400-006` | Amount mismatch with original transaction |
+| `GL-400-007` | Card type is not valid |
+| `GL-400-999` | Transaction not found |
+
+---
+
+## HTTP 501 — Server / System Errors
+
+| Reason Code | Detailed Message |
+|-------------|-----------------|
+| `GL-501-000` | Declined by System |
+| `GL-501-001` | Declined by System |
+
+---
+
+## Common Decline Actions
+
+| Reason Code | Recommended Action |
+|-------------|-------------------|
+| `GL-201-007` (Card expired) | Ask customer to use another card |
+| `GL-201-009` (Insufficient funds) | Ask customer to use another payment method |
+| `GL-201-010` (Lost/stolen card) | Do not retry; contact issuer if needed |
+| `GL-201-015` (General Decline) | Verify customer identity; ask for another card |
+| `GL-201-022` (Declined by Risk) | Check customer profile; confirm identity |
+| `GL-400-002` (Invalid data) | Fix request field values and retry |
+| `GL-400-004` (Card type not enabled) | Contact PayGlocal to enable the card type for your MID |
+| `GL-501-000` (System error) | Retry after some time |

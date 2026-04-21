@@ -1,0 +1,191 @@
+---
+title: "Merchant Requirements"
+description: "Who you can onboard and what documents you'll need to collect from them."
+icon: "clipboard-check"
+---
+
+Before you start onboarding, know these three axes that determine what you need to collect from a merchant:
+
+1. **Entity type** — drives the core KYC + business document set.
+2. **Business category** — some categories (jewelry, insurance, F&B, travel) need an extra regulatory certificate.
+3. **Products you enable** — enabling cards adds a website due-diligence check.
+
+This page covers all three.
+
+---
+
+## Eligible entity types
+
+PayGlocal onboards the following 6 entity types. Anything else is not eligible.
+
+| Entity type | `entityType` enum value |
+|-------------|-------------------------|
+| Freelancer (Individual) | `INDIVIDUAL` |
+| Sole Proprietor | `PROPRIETOR` |
+| Partnership | `PARTNERSHIP_FIRM` |
+| LLP (Limited Liability Partnership) | `LLP_FIRM` |
+| Private Limited Company | `PVT_LTD_COMPANY` |
+| Public Limited Company | `PUBLIC_LTD_COMPANY` |
+
+Send the enum value in the `entityType` field on [Update Business Details](/api-reference/update-business-details).
+
+---
+
+## Documents by entity type
+
+Click your merchant's entity type to see the exact list.
+
+<Tabs>
+  <Tab title="Freelancer">
+    **Identity & verification**
+    - PAN of the individual
+    - Bank account details (penny-drop verification runs automatically)
+    - DigiLocker identity verification
+    - VKYC of the individual
+
+    **Business**
+    - GST details (where applicable)
+    - Declaration of line of business + projected monthly transaction volume
+  </Tab>
+
+  <Tab title="Sole Proprietor">
+    **Identity & verification**
+    - PAN of the individual
+    - Bank account details (penny-drop verification runs automatically)
+    - DigiLocker identity verification
+    - VKYC of the individual
+
+    **Business**
+    - GST details (where applicable)
+    - Declaration of line of business + projected monthly transaction volume
+    - **Business proof** — any one of:
+      - Import Export Code (IEC)
+      - GST Registration Certificate
+      - Utility Bill
+      - Income Tax Return (ITR)
+      - Udyam Registration Certificate
+      - Shop and Establishment Certificate
+  </Tab>
+
+  <Tab title="Partnership">
+    **Entity**
+    - PAN of the firm
+    - Entity bank account (verified automatically)
+    - GST details (where applicable)
+    - Line of business, website, and projected volume declaration
+    - List of partners with PAN and shareholding details
+    - **Partnership Deed**
+
+    **Authorized Signatory (AS)**
+    - AS must be one of the partners; otherwise, an **Authorization Letter on firm letterhead** appointing the AS is required
+    - KYC on the AS: PAN verification, DigiLocker, VKYC
+  </Tab>
+
+  <Tab title="LLP">
+    **Entity**
+    - PAN of the firm
+    - Entity bank account (verified automatically)
+    - GST details (where applicable)
+    - Line of business, website, and projected volume declaration
+    - List of partners with PAN and shareholding details
+    - **LLP Deed** + **Certificate of Incorporation**
+
+    **Authorized Signatory (AS)**
+    - AS must be one of the partners; otherwise, an **Authorization Letter on firm letterhead** appointing the AS is required
+    - KYC on the AS: PAN verification, DigiLocker, VKYC
+  </Tab>
+
+  <Tab title="Private Limited">
+    **Entity**
+    - PAN of the company
+    - Entity bank account (verified automatically)
+    - GST details (where applicable)
+    - Line of business, website, and projected volume declaration
+    - List of directors and **beneficial owners** (equity holders above 10%) with PAN and shareholding
+    - **MOA**, **AOA**, **COI**
+
+    **Authorized Signatory (AS)**
+    - AS must be one of the directors; otherwise, a **Board Resolution on company letterhead** appointing the AS is required
+    - KYC on the AS: PAN verification, DigiLocker, VKYC
+
+    <Note>
+      Where feasible, PayGlocal auto-fetches MOA, AOA, and COI directly from government sources. You only need to upload these manually if the auto-fetch is unsuccessful.
+    </Note>
+  </Tab>
+
+  <Tab title="Public Limited">
+    **Entity**
+    - PAN of the company
+    - Entity bank account (verified automatically)
+    - GST details (where applicable)
+    - Line of business, website, and projected volume declaration
+    - List of directors and **beneficial owners** (equity holders above 10%) with PAN and shareholding
+    - **MOA**, **AOA**, **COI**
+
+    **Authorized Signatory (AS)**
+    - AS must be one of the directors; otherwise, a **Board Resolution on company letterhead** appointing the AS is required
+    - KYC on the AS: PAN verification, DigiLocker, VKYC
+
+    <Note>
+      Where feasible, PayGlocal auto-fetches MOA, AOA, and COI directly from government sources. You only need to upload these manually if the auto-fetch is unsuccessful.
+    </Note>
+  </Tab>
+</Tabs>
+
+<Note>
+  Document types map to the `merchantDocType` enum on [Upload Documents](/api-reference/upload-documents) — for example, `PARTNERSHIP_DEED`, `LLP_AGREEMENT`, `MOA`, `AOA`, `COI`, `IEC`.
+</Note>
+
+---
+
+## Category-specific compliance
+
+Merchants in certain regulated sectors must provide an additional certificate. This applies **on top of** the entity-type requirements above.
+
+| Business category | Mandatory certificate |
+|-------------------|----------------------|
+| Jewelry | Bureau of Indian Standards / Hallmarking Certificate |
+| Insurance | IRDAI License |
+| Food & Beverages | FSSAI License |
+| International Travel | IATA Certification |
+
+<Warning>
+  If the merchant exports physical goods internationally, **Import Export Code (IEC)** is mandatory regardless of entity type.
+</Warning>
+
+This list is indicative and may be updated based on regulatory developments. When in doubt, contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).
+
+---
+
+## Website due diligence
+
+If the merchant wants to enable the **cards** product, the merchant's website must satisfy the following before the verification step:
+
+- Valid **privacy policy**, **refund policy**, **terms and conditions**, and **shipping policy** pages
+- Clear display of **products sold and their pricing**
+- Merchant's **trade name or registered name** clearly visible
+
+Gaps here will block the compliance review even after VKYC succeeds.
+
+---
+
+## What PayGlocal auto-fetches
+
+For Partnerships, LLPs, and Companies, PayGlocal attempts to auto-fetch the following from government sources:
+
+- Partnership Deed / LLP Deed
+- MOA, AOA, COI
+- Udyam Registration (where available)
+
+If the auto-fetch fails, PayGlocal will flag the onboarding with status `RFI` and request manual upload via [Upload Documents](/api-reference/upload-documents).
+
+---
+
+<CardGroup cols={2}>
+  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
+    End-to-end sequence of all 10 onboarding endpoints.
+  </Card>
+  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+    Embed the DigiLocker / T&C / VKYC flow for your merchants.
+  </Card>
+</CardGroup>

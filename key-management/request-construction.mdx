@@ -1,0 +1,110 @@
+---
+title: "Constructing API Requests"
+description: "Configure the PayGlocal sample client code and understand how to build signed, encrypted API requests."
+---
+
+## Sample Client Code
+
+PayGlocal provides sample client code to handle the cryptographic complexity of signing and encrypting requests. Contact your PayGlocal representative or reach out to [support@payglocal.in](mailto:support@payglocal.in) to request access to the GitHub repository or sample code package.
+
+The client code is available in multiple languages. Once received, follow the configuration steps below.
+
+## Configuration Properties
+
+The sample code uses a properties file with the following attributes:
+
+| Property | Description | Example |
+|----------|-------------|---------|
+| `merchantId` | Your PayGlocal-assigned Merchant ID (MID) | `gldemomerchant` |
+| `privateKeyPath` | File path to your PVT-KEY `.pem` file | `/etc/payglocal/pvt-key.pem` |
+| `publicCertPath` | File path to the PUBCERT `.cert` file | `/etc/payglocal/glocal.cert` |
+| `privateKeyKid` | Key ID extracted from your PVT-KEY filename | `884hiurh-8e0b-4907-38nn-fuerikejr89` |
+| `publicCertKid` | Key ID extracted from the PUBCERT filename | `834hinrh-8r0n-4657-34nn-fnjhjre33uur` |
+| `payloadEncryption` | Whether to encrypt the request body (`true` recommended) | `true` |
+
+## Step-by-Step Configuration
+
+<Steps>
+  <Step title="Set Your Merchant ID">
+    Set `merchantId` to the PayGlocal-provided Merchant ID for your environment (UAT or Production).
+  </Step>
+
+  <Step title="Set Key File Paths">
+    Point `privateKeyPath` and `publicCertPath` to the locations where you have stored the downloaded PVT-KEY and PUBCERT files.
+  </Step>
+
+  <Step title="Extract and Set KIDs">
+    **PVT-KEY KID:** Take the portion of your PVT-KEY filename before the underscore.
+
+    ```
+    Filename:  884hiurh-8e0b-4907-38nn-fuerikejr89_paygmerchant.pem
+    KID:       884hiurh-8e0b-4907-38nn-fuerikejr89
+    ```
+
+    **PUBCERT KID:** Take the portion of the PUBCERT filename before `_glocal.cert`.
+
+    ```
+    Filename:  834hinrh-8r0n-4657-34nn-fnjhjre33uur_glocal.cert
+    KID:       834hinrh-8r0n-4657-34nn-fnjhjre33uur
+    ```
+  </Step>
+
+  <Step title="Enable Payload Encryption">
+    Set `payloadEncryption = true`. When enabled, the client code automatically encrypts the JSON request body in JWE format using the PUBCERT before sending it to PayGlocal.
+
+    PayGlocal **strongly recommends** using payload encryption for all environments.
+  </Step>
+</Steps>
+
+## What the Client Code Does
+
+When `payloadEncryption = true`, the client code performs the following steps for each API call:
+
+```
+1. Serialize the request payload to JSON
+2. Encrypt the JSON using PUBCERT → JWE encrypted token
+3. Build request headers:
+     x-gl-merchantid: <your MID>
+     x-gl-kid:        <PVT-KEY KID>
+4. Sign the encrypted payload with PVT-KEY → include signature in headers
+5. POST the encrypted payload to PayGlocal API endpoint
+```
+
+## API Endpoints
+
+### REST API Base URLs
+
+| Environment | Base URL |
+|-------------|----------|
+| UAT | `https://api.uat.payglocal.in` |
+| Production | `https://api.prod.payglocal.in` |
+
+### PayGlocal Control Center (GCC) URLs
+
+| Environment | URL |
+|-------------|-----|
+| UAT | `https://gcc.uat.payglocal.in` |
+| Production | `https://gcc.prod.payglocal.in` |
+
+## Portfolio Merchant (Parent-Child MID)
+
+For clients with a parent-child MID setup, you can use the **parent's keys** to sign transactions for child MIDs. Add the following header to all child MID transactions:
+
+```http
+x-gl-kid-mid: <Parent MID>
+```
+
+Pass the **child MID** in the `merchantId` field of the request payload.
+
+## Next Steps
+
+With your client code configured, proceed to integrate the payment services:
+
+<CardGroup cols={2}>
+  <Card title="GPI Service" icon="credit-card" href="/payment-services/gpi-service">
+    Initiate payments through the PayGlocal Payment Initiation service.
+  </Card>
+  <Card title="Integration Flow" icon="diagram-project" href="/integration/payment-flow">
+    Understand the end-to-end payment flow before writing your first request.
+  </Card>
+</CardGroup>

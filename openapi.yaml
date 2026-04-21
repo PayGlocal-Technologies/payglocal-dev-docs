@@ -1,0 +1,1984 @@
+openapi: "3.0.3"
+info:
+  title: PayGlocal API
+  description: |
+    PayGlocal REST API covering merchant onboarding, payment initiation, refunds,
+    capture, reversal, and standing-instruction (subscription) flows.
+  version: "2.0"
+  contact:
+    name: PayGlocal Support
+    email: merchant.support@payglocal.in
+    url: https://payglocal.in
+
+servers:
+  - url: https://api.onboard.payglocal.in
+    description: Onboarding — Production
+  - url: https://api.onboard.uat.payglocal.in
+    description: Onboarding — Sandbox
+  - url: https://api.payglocal.in
+    description: Payments — Production
+  - url: https://api.uat.payglocal.in
+    description: Payments — Sandbox
+
+security:
+  - ApiKeyAuth: []
+    DigestAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Static API Key downloaded from the PayGlocal partner dashboard.
+    DigestAuth:
+      type: apiKey
+      in: header
+      name: x-gl-digest
+      description: |
+        Per-request HmacSHA256 signature, Base64-encoded.
+        - For GET requests: sign the full request URL.
+        - For POST/PUT requests: sign the exact raw request body.
+    JwsTokenAuth:
+      type: apiKey
+      in: header
+      name: x-gl-token-external
+      description: |
+        RSA-signed JWS (JSON Web Signature) token carrying the request payload.
+        - Header: `{ "alg": "RS256", "kid": "<merchant-key-id>", "iss": "<merchant-id>", "x-gl-enc": "false", "is-digested": "true" }`
+        - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
+        - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
+        Used by all `/gl/v1/payments/*` endpoints.
+
+  schemas:
+    Address:
+      type: object
+      properties:
+        streetAddress1:
+          type: string
+          description: Primary street line.
+        streetAddress2:
+          type: string
+          description: Secondary street line (suite, floor, etc.).
+        zipcode:
+          type: string
+          description: PIN code.
+        stateCode:
+          type: string
+          description: Two-letter state code (e.g., MH, KA, DL).
+          example: MH
+        city:
+          type: string
+          description: City name.
+        state:
+          type: string
+          description: Full state name.
+          example: Maharashtra
+
+    MerchantInfo:
+      type: object
+      properties:
+        onboardingId:
+          type: string
+          description: PayGlocal-generated onboarding ID.
+          example: pg_onboard_abc123
+        partnerOnboardingId:
+          type: string
+          description: Partner's external onboarding ID.
+          example: partner-merchant-001
+        onboardingStatus:
+          type: string
+          description: Current onboarding lifecycle status.
+          enum:
+            - INITIATED
+            - IN_PROGRESS
+            - PENDING_VERIFICATION
+            - PENDING_REVIEW
+            - APPROVED
+            - REJECTED
+            - RFI
+        businessDetails:
+          type: object
+          properties:
+            entityType:
+              type: string
+            gstNumber:
+              type: string
+            natureOfBusiness:
+              type: string
+            registeredName:
+              type: string
+            tradeName:
+              type: string
+            iec:
+              type: string
+            businessMonthlySize:
+              type: string
+            websiteUrl:
+              type: string
+            purposeCode:
+              type: string
+            businessRegisteredAddress:
+              $ref: "#/components/schemas/Address"
+            businessOperatingAddress:
+              $ref: "#/components/schemas/Address"
+        directorDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              designation:
+                type: string
+              name:
+                type: string
+              pan:
+                type: string
+        beneficialOwnerDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              designation:
+                type: string
+              name:
+                type: string
+              pan:
+                type: string
+              percentageOwnership:
+                type: number
+        authorisedSignatoryDetails:
+          type: object
+          properties:
+            authSignatoryName:
+              type: string
+            authSignatoryPan:
+              type: string
+            contact:
+              type: object
+              properties:
+                phone:
+                  type: string
+                email:
+                  type: string
+        settlementDetails:
+          type: object
+          properties:
+            bankAccountNumber:
+              type: string
+            bankIfscCode:
+              type: string
+            accountHolderName:
+              type: string
+            accountType:
+              type: string
+              enum: [CURRENT, SAVINGS]
+
+    ChecklistStatus:
+      type: object
+      properties:
+        businessDetails:
+          type: string
+          enum: [PENDING, COMPLETE]
+        beneficialOwners:
+          type: string
+          enum: [PENDING, COMPLETE]
+        bankDetails:
+          type: string
+          enum: [PENDING, COMPLETE]
+        authorisedSignatory:
+          type: string
+          enum: [PENDING, COMPLETE]
+        vkyc:
+          type: string
+          enum: [PENDING, SUCCESS, PENDING_REVIEW, FAILED]
+        digiLocker:
+          type: string
+          enum: [PENDING, SUCCESS, PENDING_REVIEW, FAILED]
+        tncAcknowledged:
+          type: string
+          enum: [PENDING, COMPLETE]
+        documents:
+          type: string
+          enum: [PENDING, COMPLETE]
+        products:
+          type: string
+          enum: [PENDING, COMPLETE]
+        documentsToBeUploaded:
+          type: array
+          items:
+            type: string
+
+    CommonSuccessResponse:
+      type: object
+      properties:
+        gid:
+          type: string
+          description: PayGlocal global transaction ID.
+          example: gl_9c2645ed09edb22e
+        timestamp:
+          type: string
+          description: Response timestamp (DD/MM/YYYY HH:MM:SS).
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          description: Empty string on success.
+          example: ""
+        data:
+          type: object
+          properties:
+            merchantInfo:
+              $ref: "#/components/schemas/MerchantInfo"
+            merchantOnboardingCheckListStatus:
+              $ref: "#/components/schemas/ChecklistStatus"
+
+    # ---------- Payment & Standing Instruction schemas ----------
+
+    Card:
+      type: object
+      description: Raw card data. Required when initiating a card transaction with `paymentType=CARD`.
+      properties:
+        number:
+          type: string
+          description: Primary Account Number (PAN). Digits only.
+          example: "4111111111111111"
+        expiryMonth:
+          type: string
+          description: Two-digit expiry month.
+          example: "12"
+        expiryYear:
+          type: string
+          description: Four-digit expiry year.
+          example: "2030"
+        securityCode:
+          type: string
+          description: CVV / CVC.
+          example: "123"
+        type:
+          type: string
+          description: Card network (derived by PayGlocal if omitted).
+          example: VISA
+
+    Billing:
+      type: object
+      description: Billing address + contact details of the payer.
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        emailId:
+          type: string
+          format: email
+          example: john.doe@example.com
+        callingCode:
+          type: string
+          example: "+91"
+        phoneNumber:
+          type: string
+          example: "9999999999"
+        addressStreet1:
+          type: string
+          example: 221B Baker Street
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+          example: Bengaluru
+        addressState:
+          type: string
+          example: Karnataka
+        addressStateCode:
+          type: string
+          example: KA
+        addressPostalCode:
+          type: string
+          example: "560001"
+        addressCountry:
+          type: string
+          description: ISO 3166-1 alpha-3 country code.
+          example: IND
+
+    Authentication:
+      type: object
+      description: 3DS / payer authentication preference.
+      properties:
+        type:
+          type: string
+          description: Authentication mode.
+          enum:
+            - "3DS"
+            - "NO_THREE_DS"
+          example: "3DS"
+
+    Payment:
+      type: object
+      description: Payment instrument + amount details for a transaction.
+      required:
+        - totalAmount
+        - txnCurrency
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a string (preserves decimal precision).
+          example: "100.00"
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code.
+          example: INR
+        cardData:
+          $ref: "#/components/schemas/Card"
+        billingData:
+          $ref: "#/components/schemas/Billing"
+        authenticationData:
+          $ref: "#/components/schemas/Authentication"
+
+    Customer:
+      type: object
+      description: Payer identity for risk evaluation.
+      properties:
+        merchantAssignedCustomerId:
+          type: string
+          example: cust_12345
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        callingCode:
+          type: string
+        mobileNumber:
+          type: string
+
+    Shipping:
+      type: object
+      description: Shipping address for physical-goods orders.
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        addressStreet1:
+          type: string
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+        addressState:
+          type: string
+        addressPostalCode:
+          type: string
+        addressCountry:
+          type: string
+          example: IND
+
+    RiskItem:
+      type: object
+      description: Single line-item in the cart for risk analytics.
+      properties:
+        itemId:
+          type: string
+        itemName:
+          type: string
+        itemQuantity:
+          type: integer
+        itemPrice:
+          type: string
+        itemCategory:
+          type: string
+
+    Risk:
+      type: object
+      description: Risk & analytics payload forwarded to fraud engines.
+      properties:
+        customerData:
+          $ref: "#/components/schemas/Customer"
+        shippingData:
+          $ref: "#/components/schemas/Shipping"
+        orderData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskItem"
+
+    SIData:
+      type: object
+      description: Standing-instruction (subscription) configuration.
+      properties:
+        numberOfPayments:
+          type: integer
+          description: Total number of scheduled payments in the series.
+          example: 12
+        frequency:
+          type: string
+          description: How often the SI debits.
+          enum:
+            - DAILY
+            - WEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALF_YEARLY
+            - YEARLY
+          example: MONTHLY
+        type:
+          type: string
+          description: Fixed or variable amount per debit.
+          enum:
+            - FIXED
+            - VARIABLE
+          example: FIXED
+        startDate:
+          type: string
+          description: First debit date (YYYY-MM-DD).
+          example: "2026-05-01"
+        endDate:
+          type: string
+          description: Last debit date (YYYY-MM-DD).
+          example: "2027-04-01"
+        maxAmount:
+          type: string
+          description: Required when `type=VARIABLE`. Upper cap per debit.
+          example: "5000.00"
+
+    StandingInstruction:
+      type: object
+      description: SI metadata attached to an `/initiate` request or used for SI operations.
+      properties:
+        data:
+          $ref: "#/components/schemas/SIData"
+        action:
+          type: string
+          description: SI lifecycle action.
+          enum:
+            - REVOKE
+            - PAUSE
+            - RESUME
+        mandateId:
+          type: string
+          description: PayGlocal-issued mandate identifier.
+        schedulerId:
+          type: string
+        scheduledId:
+          type: string
+
+    ExternalStatus:
+      type: string
+      description: Transaction lifecycle status returned by status/response APIs.
+      enum:
+        - CREATED
+        - INPROGRESS
+        - STEP_UP
+        - SENT_FOR_CAPTURE
+        - AUTHORIZED
+        - REFUND_STARTED
+        - SENT_FOR_REFUND
+        - CAPTURE_STARTED
+        - AUTH_REVERSAL_STARTED
+        - REVERSED
+        - CUSTOMER_CANCELLED
+        - ABANDONED
+        - EXPIRED
+        - PRE_PAYNOW_ABANDONED
+        - ISSUER_DECLINE
+        - SYSTEM_ERROR
+        - REQUEST_ERROR
+        - CONFIG_ERROR
+        - RULE_CONFIG_ERROR
+        - SYSTEM_DECLINED
+        - GENERAL_DECLINE
+        - NOT_FOUND
+        - AUTHENTICATION_TIMEOUT
+        - SUCCESS
+        - MARKED_AS_FRAUD
+        - ALTPAY_DECLINE
+        - PENDING
+        - AUTHENTICATION_FAILED
+        - REFUND_VOIDED
+        - AUTHORIZED_PENDING_CAPTURE
+
+    TransactionRequest:
+      type: object
+      description: |
+        Unified request body for payment initiation, capture, refund, reversal, and SI operations.
+        Most fields are optional — which fields are required depends on the operation. See each
+        endpoint's `required:` list for operation-specific rules.
+
+        **Note:** `required:` lists are best-effort and derived from current integration examples —
+        validate against your integration spec or contact your PayGlocal implementation lead.
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
+          example: order_1712345678
+        merchantUniqueId:
+          type: string
+          description: Merchant's secondary unique reference.
+        refundType:
+          type: string
+          description: Full or partial refund indicator (used on refund calls).
+          enum:
+            - F
+            - P
+          example: F
+        refundAction:
+          type: string
+          description: Refund lifecycle action.
+        captureType:
+          type: string
+          description: Full or partial capture indicator (used on capture calls).
+          enum:
+            - F
+            - P
+          example: F
+        captureTxn:
+          type: boolean
+          description: If true on `/initiate`, the transaction is auto-captured post-auth.
+        paymentData:
+          $ref: "#/components/schemas/Payment"
+        riskData:
+          $ref: "#/components/schemas/Risk"
+        standingInstruction:
+          $ref: "#/components/schemas/StandingInstruction"
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: URL PayGlocal redirects to after payment completion.
+        merchantCustomPayload:
+          type: object
+          additionalProperties:
+            type: string
+          description: Opaque merchant metadata echoed back in callbacks.
+        dcc_indicator:
+          type: boolean
+          description: Set true to enable Dynamic Currency Conversion.
+        dccReferenceGid:
+          type: string
+          description: PayGlocal DCC quote reference (when `dcc_indicator=true`).
+
+    ApiResponse:
+      type: object
+      description: Standard PayGlocal response envelope (`GlocalApiResponse`).
+      properties:
+        gid:
+          type: string
+          description: PayGlocal global transaction ID.
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: High-level status of this API response.
+          example: SUCCESS
+        message:
+          type: string
+          description: Human-readable message.
+        timestamp:
+          type: string
+          description: Response timestamp (DD/MM/YYYY HH:MM:SS).
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          description: Empty on success; populated on failure.
+          example: ""
+        data:
+          type: object
+          description: Operation-specific payload. Shape varies by endpoint.
+          additionalProperties: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Field-level validation errors (populated on 4xx).
+
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Name of the field that failed validation.
+          example: panNumber
+        message:
+          type: string
+          description: Human-readable error message.
+          example: Required field is missing
+
+    CommonErrorResponse:
+      type: object
+      properties:
+        gid:
+          type: string
+          example: gl_9c2645ed09edb22e
+        timestamp:
+          type: string
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          example: VALIDATION_ERROR
+        data:
+          type: object
+        errors:
+          type: object
+        errorDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+
+  responses:
+    BadRequest:
+      description: Validation error — missing or invalid fields.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorResponse"
+    Unauthorized:
+      description: Authentication failed — invalid API key or digest.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorResponse"
+    Forbidden:
+      description: The onboardingId does not belong to the authenticated partner.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorResponse"
+    NotFound:
+      description: The specified onboardingId does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CommonErrorResponse"
+
+paths:
+  /gcc/v2/partner/merchant/onboard:
+    post:
+      operationId: createOnboarding
+      summary: Create Onboarding
+      description: |
+        Creates a new merchant onboarding record. This is always the first API call in the
+        onboarding sequence. The `onboardingId` returned is required for all subsequent calls.
+      tags:
+        - Merchant Onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - externalOnboardingId
+                - panNumber
+              properties:
+                externalOnboardingId:
+                  type: string
+                  description: Partner's unique identifier for this merchant. Must be unique per merchant.
+                  example: partner-merchant-001
+                panNumber:
+                  type: string
+                  description: PAN of the business entity. Valid types — P (Individual), C (Company), T (Trust), F (Firm).
+                  example: ABCDE1234F
+            example:
+              externalOnboardingId: partner-merchant-001
+              panNumber: ABCDE1234F
+      responses:
+        "201":
+          description: Merchant onboarding record created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  merchantInfo:
+                    onboardingId: pg_onboard_abc123
+                    partnerOnboardingId: partner-merchant-001
+                    onboardingStatus: INITIATED
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/business-details:
+    put:
+      operationId: updateBusinessDetails
+      summary: Update Business Details
+      description: |
+        Submits or updates business information for a merchant. Cannot be updated after
+        T&C is acknowledged by the merchant.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: PayGlocal-generated onboarding ID returned by Create Onboarding.
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entityType
+                - natureOfBusiness
+                - expectedMonthlyVolume
+                - websiteUrl
+                - purposeCode
+                - address
+              properties:
+                entityType:
+                  type: string
+                  description: Legal constitution of the business.
+                  enum:
+                    - INDIVIDUAL
+                    - PVT_LTD_COMPANY
+                    - PUBLIC_LTD_COMPANY
+                    - PROPRIETOR
+                    - PARTNERSHIP_FIRM
+                    - LLP_FIRM
+                  example: PVT_LTD_COMPANY
+                gstNumber:
+                  type: string
+                  description: GST registration number.
+                  example: 27AAPFU0939F1ZV
+                natureOfBusiness:
+                  type: string
+                  description: Subcategory code from the Get Business Categories API.
+                  example: BUS.IT_SERVICES
+                tradeName:
+                  type: string
+                  description: Trade name or brand name.
+                  example: Acme Payments
+                iec:
+                  type: string
+                  description: Importer Exporter Code (preferred for GOODS businesses).
+                websiteUrl:
+                  type: string
+                  description: Merchant website or app store URL.
+                  example: https://acmepayments.com
+                purposeCode:
+                  type: string
+                  description: Primary purpose code for merchant transactions.
+                  example: P0802
+                expectedMonthlyVolume:
+                  type: object
+                  required:
+                    - amount
+                    - currency
+                  properties:
+                    amount:
+                      type: string
+                      description: Expected monthly transaction value (whole numbers only).
+                      example: "50000"
+                    currency:
+                      type: string
+                      description: Currency of the expected volume.
+                      enum: [USD]
+                      example: USD
+                address:
+                  type: object
+                  required:
+                    - isOperatingSameAsRegistered
+                    - businessRegisteredAddress
+                  properties:
+                    isOperatingSameAsRegistered:
+                      type: boolean
+                      description: If true, operating address is same as registered address.
+                    businessRegisteredAddress:
+                      allOf:
+                        - $ref: "#/components/schemas/Address"
+                        - type: object
+                          required:
+                            - streetAddress1
+                            - streetAddress2
+                            - zipcode
+                            - stateCode
+                            - city
+                            - state
+                    businessOperatingAddress:
+                      $ref: "#/components/schemas/Address"
+            example:
+              entityType: PVT_LTD_COMPANY
+              gstNumber: 27AAPFU0939F1ZV
+              natureOfBusiness: BUS.IT_SERVICES
+              tradeName: Acme Payments
+              websiteUrl: https://acmepayments.com
+              purposeCode: P0802
+              expectedMonthlyVolume:
+                amount: "50000"
+                currency: USD
+              address:
+                isOperatingSameAsRegistered: true
+                businessRegisteredAddress:
+                  streetAddress1: 501 Commerce Street
+                  streetAddress2: Floor 3
+                  zipcode: "400051"
+                  stateCode: MH
+                  city: Mumbai
+                  state: Maharashtra
+      responses:
+        "201":
+          description: Business details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/beneficial-owner:
+    put:
+      operationId: updateBeneficialOwner
+      summary: Add / Update Beneficial Owner
+      description: |
+        Submits or replaces the complete list of Ultimate Beneficial Owners (UBOs).
+        The array completely replaces the existing list — always send all UBOs together.
+        Cannot be updated after the verification step is complete.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - pan
+                  - percentageOwnership
+                properties:
+                  designation:
+                    type: string
+                    description: Job title or role of the beneficial owner.
+                    example: Director
+                  name:
+                    type: string
+                    description: Full legal name of the beneficial owner.
+                    example: Ravi Kumar
+                  pan:
+                    type: string
+                    description: Personal PAN (type P) of the beneficial owner.
+                    example: ABCPK1234R
+                  percentageOwnership:
+                    type: number
+                    minimum: 10
+                    maximum: 100
+                    description: Ownership percentage (range 10–100).
+                    example: 60
+            example:
+              - designation: Director
+                name: Ravi Kumar
+                pan: ABCPK1234R
+                percentageOwnership: 60
+              - designation: Co-Founder
+                name: Priya Sharma
+                pan: DEFPS5678R
+                percentageOwnership: 40
+      responses:
+        "200":
+          description: Beneficial owner details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/bank-details:
+    put:
+      operationId: updateBankDetails
+      summary: Update Bank Details
+      description: |
+        Submits or updates the settlement bank account. PayGlocal performs a penny drop
+        verification to confirm the account is active. Cannot be updated after verification
+        step is complete.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bankAccountNumber
+                - bankIfscCode
+                - accountType
+              properties:
+                bankAccountNumber:
+                  type: string
+                  description: Bank account number for settlement.
+                  example: "123456789012"
+                bankIfscCode:
+                  type: string
+                  description: 11-character IFSC code of the bank branch.
+                  example: HDFC0001234
+                accountType:
+                  type: string
+                  description: Type of bank account.
+                  enum: [CURRENT, SAVINGS]
+                  example: CURRENT
+            example:
+              bankAccountNumber: "123456789012"
+              bankIfscCode: HDFC0001234
+              accountType: CURRENT
+      responses:
+        "200":
+          description: Bank details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory:
+    put:
+      operationId: updateAuthSignatory
+      summary: Update Authorised Signatory
+      description: |
+        Submits the authorised signatory details. The phone and email are used for
+        VKYC, DigiLocker, and T&C acknowledgement. Cannot be updated after T&C is acknowledged.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - authSignatoryName
+                - authSignatoryPan
+                - contact
+              properties:
+                authSignatoryName:
+                  type: string
+                  description: Full legal name of the authorised signatory.
+                  example: Ananya Mehta
+                authSignatoryPan:
+                  type: string
+                  description: PAN of the authorised signatory.
+                  example: ABCPM1234R
+                contact:
+                  type: object
+                  required:
+                    - phone
+                    - email
+                  properties:
+                    phone:
+                      type: string
+                      description: Contact phone number for official communication.
+                      example: "+919876543210"
+                    email:
+                      type: string
+                      format: email
+                      description: Email address for official communication.
+                      example: ananya.mehta@acmepayments.com
+            example:
+              authSignatoryName: Ananya Mehta
+              authSignatoryPan: ABCPM1234R
+              contact:
+                phone: "+919876543210"
+                email: ananya.mehta@acmepayments.com
+      responses:
+        "200":
+          description: Authorised signatory details updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/docs:
+    put:
+      operationId: uploadDocuments
+      summary: Upload Documents
+      description: |
+        Uploads a single compliance document. Call once per document type.
+        Cannot be updated after verification step is complete.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - merchantDocType
+                - url
+              properties:
+                merchantDocType:
+                  type: string
+                  description: Document type identifier.
+                  enum:
+                    - IEC
+                    - LOB_DOCUMENT
+                    - MOA_DOCUMENT
+                    - AOA_DOCUMENT
+                    - COI_DOCUMENT
+                    - OPERATING_ADDRESS_PROOF
+                    - LLP_AGREEMENT
+                    - PARTNERSHIP_DEED
+                    - UDYAM
+                    - PAN
+                    - BUSINESS
+                    - ADDRESS
+                    - ACCOUNT
+                    - AUTH_SIGNATORY
+                    - BO
+                    - DIRECTOR
+                    - MOA
+                    - AOA
+                    - COI
+                    - BR
+                    - LLP
+                  example: COI_DOCUMENT
+                url:
+                  type: string
+                  format: uri
+                  description: Publicly accessible URL of the document file. Must be reachable by PayGlocal servers at submission time.
+                  example: https://your-storage.com/documents/coi.pdf
+                fileName:
+                  type: string
+                  description: Optional human-readable file name. Used only for display in the PayGlocal dashboard.
+                  example: certificate_of_incorporation.pdf
+            example:
+              merchantDocType: COI_DOCUMENT
+              url: https://your-storage.com/documents/coi.pdf
+              fileName: certificate_of_incorporation.pdf
+      responses:
+        "200":
+          description: Document uploaded successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/products:
+    put:
+      operationId: configureProducts
+      summary: Configure Products and Fees
+      description: |
+        Configures which payment products to enable for the merchant and sets fee structures.
+        All card networks must be included when enabling INTERNATIONAL_CARDS_AND_ALT_PAYS.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - products
+                - productFees
+              properties:
+                products:
+                  type: array
+                  description: List of payment products to enable.
+                  items:
+                    type: string
+                    enum:
+                      - GLOBAL_FUND_TRANSFER
+                      - INTERNATIONAL_CARDS_AND_ALT_PAYS
+                      - DOMESTIC_CARDS_UPI_AND_INB
+                  example:
+                    - GLOBAL_FUND_TRANSFER
+                    - INTERNATIONAL_CARDS_AND_ALT_PAYS
+                    - DOMESTIC_CARDS_UPI_AND_INB
+                productFees:
+                  type: object
+                  description: Fee configuration keyed by product name.
+                  properties:
+                    GLOBAL_FUND_TRANSFER:
+                      type: object
+                      required: [feeType, fee]
+                      properties:
+                        feeType:
+                          type: string
+                          enum: [FIXED, PERCENTAGE]
+                        fee:
+                          type: number
+                    INTERNATIONAL_CARDS_AND_ALT_PAYS:
+                      type: array
+                      description: Per-card-network fee entries. All networks must be present.
+                      items:
+                        type: object
+                        required: [cardNetwork, feeType, fee]
+                        properties:
+                          cardNetwork:
+                            type: string
+                            enum:
+                              - AMERICAN_EXPRESS
+                              - DINERS
+                              - DISCOVER
+                              - OTHER_DEBIT_CARDS
+                              - OTHER_CREDIT_CARDS
+                          feeType:
+                            type: string
+                            enum: [FIXED, PERCENTAGE]
+                          fee:
+                            type: number
+                    DOMESTIC_CARDS_UPI_AND_INB:
+                      type: object
+                      required: [feeType, feeRate]
+                      properties:
+                        feeType:
+                          type: string
+                          enum: [FIXED, PERCENTAGE]
+                        feeRate:
+                          type: number
+                          description: Rate up to 2 decimal places.
+            example:
+              products:
+                - GLOBAL_FUND_TRANSFER
+                - INTERNATIONAL_CARDS_AND_ALT_PAYS
+                - DOMESTIC_CARDS_UPI_AND_INB
+              productFees:
+                GLOBAL_FUND_TRANSFER:
+                  feeType: PERCENTAGE
+                  fee: 1.2
+                INTERNATIONAL_CARDS_AND_ALT_PAYS:
+                  - cardNetwork: AMERICAN_EXPRESS
+                    feeType: FIXED
+                    fee: 5
+                  - cardNetwork: DINERS
+                    feeType: PERCENTAGE
+                    fee: 2.99
+                  - cardNetwork: DISCOVER
+                    feeType: PERCENTAGE
+                    fee: 2.99
+                  - cardNetwork: OTHER_DEBIT_CARDS
+                    feeType: PERCENTAGE
+                    fee: 2.75
+                  - cardNetwork: OTHER_CREDIT_CARDS
+                    feeType: PERCENTAGE
+                    fee: 2.75
+                DOMESTIC_CARDS_UPI_AND_INB:
+                  feeType: FIXED
+                  feeRate: 3
+      responses:
+        "200":
+          description: Products and fees configured successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/verify:
+    put:
+      operationId: verifyMerchant
+      summary: Verify Merchant
+      description: |
+        Generates a unique verification session URL for the merchant to complete
+        T&C acknowledgement, DigiLocker verification, and VKYC.
+        All prior onboarding steps must be complete before calling this endpoint.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  description: |
+                    HTTPS URL to redirect the merchant to after verification completes.
+                    Domain must be whitelisted with PayGlocal (see iFrame Integration guide).
+                  example: https://onboarding.yourcompany.com/verification-complete
+            example:
+              callbackUrl: https://onboarding.yourcompany.com/verification-complete
+      responses:
+        "200":
+          description: Verification session URL generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    example: gl_9c2645ed09edb22e
+                  timestamp:
+                    type: string
+                    example: "10/01/2026 15:00:00"
+                  reasonCode:
+                    type: string
+                    example: ""
+                  data:
+                    type: object
+                    properties:
+                      redirectUrl:
+                        type: string
+                        format: uri
+                        description: Session URL to embed in the iFrame. Single-use and time-limited — do not cache.
+                        example: https://verify.payglocal.in/session/auth_123abc456def
+              example:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  redirectUrl: https://verify.payglocal.in/session/auth_123abc456def
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/{onboardingId}/status:
+    get:
+      operationId: getOnboardingStatus
+      summary: Get Onboarding Status
+      description: |
+        Retrieves the current onboarding status and all submitted information for a merchant.
+        Always call this endpoint server-to-server after the merchant completes the
+        iFrame verification flow to confirm final status.
+      tags:
+        - Merchant Onboarding
+      parameters:
+        - name: onboardingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: pg_onboard_abc123
+      responses:
+        "200":
+          description: Onboarding status retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonSuccessResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  merchantInfo:
+                    onboardingId: pg_onboard_abc123
+                    partnerOnboardingId: partner-merchant-001
+                    onboardingStatus: PENDING_REVIEW
+                  merchantOnboardingCheckListStatus:
+                    businessDetails: COMPLETE
+                    beneficialOwners: COMPLETE
+                    bankDetails: COMPLETE
+                    authorisedSignatory: COMPLETE
+                    vkyc: PENDING_REVIEW
+                    digiLocker: SUCCESS
+                    tncAcknowledged: COMPLETE
+                    documents: COMPLETE
+                    products: COMPLETE
+                    documentsToBeUploaded: []
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gcc/v2/partner/merchant/onboard/business-category:
+    get:
+      operationId: getBusinessCategories
+      summary: Get Business Categories
+      description: |
+        Returns the complete list of supported business category codes and subcategory codes.
+        Use subcategory codes (e.g., BUS.IT_SERVICES) as the value for the natureOfBusiness
+        field in Update Business Details.
+      tags:
+        - Reference Data
+      responses:
+        "200":
+          description: Business categories retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    example: gl_9c2645ed09edb22e
+                  timestamp:
+                    type: string
+                    example: "10/01/2026 15:00:00"
+                  reasonCode:
+                    type: string
+                    example: ""
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            categoryCode:
+                              type: string
+                              description: Top-level category code.
+                              example: AGRI
+                            categoryName:
+                              type: string
+                              description: Human-readable category name.
+                              example: Agricultural Services
+                            subcategories:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  categoryCode:
+                                    type: string
+                                    description: Subcategory code — use this as natureOfBusiness.
+                                    example: AGRI.VET
+                                  categoryName:
+                                    type: string
+                                    example: Veterinary Services
+              example:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  categories:
+                    - categoryCode: AGRI
+                      categoryName: Agricultural Services
+                      subcategories:
+                        - categoryCode: AGRI.VET
+                          categoryName: Veterinary Services
+                        - categoryCode: AGRI.COOP
+                          categoryName: Agricultural Cooperatives
+                    - categoryCode: BUS
+                      categoryName: Business Services
+                      subcategories:
+                        - categoryCode: BUS.IT_SERVICES
+                          categoryName: IT & Programming Services
+                        - categoryCode: BUS.CONSULTING
+                          categoryName: Consulting & Management
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ======================== Payment APIs ========================
+
+  /gl/v1/payments/initiate:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: initiatePayDirectPayment
+      summary: Initiate PayDirect Transaction
+      description: |
+        Starts a card-on-file / raw-card payment flow (PayDirect). Call this once you've
+        collected card details from the customer. PayGlocal returns a `gid` plus a
+        redirect/step-up URL when 3DS is required.
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - merchantTxnId
+                    - paymentData
+              example:
+                merchantTxnId: order_1712345678
+                captureTxn: true
+                paymentData:
+                  totalAmount: "100.00"
+                  txnCurrency: INR
+                  cardData:
+                    number: "4111111111111111"
+                    expiryMonth: "12"
+                    expiryYear: "2030"
+                    securityCode: "123"
+                  billingData:
+                    firstName: John
+                    lastName: Doe
+                    emailId: john.doe@example.com
+                    addressCountry: IND
+                  authenticationData:
+                    type: "3DS"
+                merchantCallbackURL: https://merchant.example.com/callback
+      responses:
+        "200":
+          description: Transaction initiated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: INPROGRESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  redirectUrl: https://payments.payglocal.in/step-up/abc123
+                  status: INPROGRESS
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /gl/v1/payments/initiate/paycollect:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: initiatePayCollect
+      summary: Initiate PayCollect Transaction
+      description: |
+        Starts a hosted payment-page flow (PayCollect). PayGlocal returns a redirect URL
+        to its hosted checkout where the customer supplies payment details.
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - merchantTxnId
+                    - paymentData
+              example:
+                merchantTxnId: order_1712345678
+                paymentData:
+                  totalAmount: "100.00"
+                  txnCurrency: INR
+                  billingData:
+                    firstName: John
+                    lastName: Doe
+                    emailId: john.doe@example.com
+                    addressCountry: IND
+                merchantCallbackURL: https://merchant.example.com/callback
+      responses:
+        "200":
+          description: Transaction initiated; redirect the customer to the hosted page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: INPROGRESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  redirectUrl: https://payments.payglocal.in/checkout/abc123
+                  status: INPROGRESS
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /gl/v1/payments/{id}/status:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    get:
+      operationId: getTransactionStatus
+      summary: Get Transaction Status
+      description: |
+        Returns the current lifecycle status of a transaction. Polls safely — PayGlocal
+        will also post async updates to your `merchantCallbackURL` on terminal transitions.
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: PayGlocal `gid` or merchant transaction ID.
+          example: gl_9c2645ed09edb22e
+      responses:
+        "200":
+          description: Status retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  merchantTxnId: order_1712345678
+                  status: SENT_FOR_CAPTURE
+                  statusDescription: Sent for Capture
+                  amount: "100.00"
+                  currency: INR
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gl/v1/payments/{gid}/refund:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: refundTransaction
+      summary: Refund Transaction
+      description: |
+        Initiates a full or partial refund against a captured transaction.
+        - `refundType=F` for a full refund (omit `totalAmount`).
+        - `refundType=P` for a partial refund (`totalAmount` required).
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: PayGlocal `gid` of the original transaction.
+          example: gl_9c2645ed09edb22e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - refundType
+              example:
+                refundType: P
+                paymentData:
+                  totalAmount: "25.00"
+                  txnCurrency: INR
+      responses:
+        "200":
+          description: Refund accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_refund_abcdef123
+                status: SENT_FOR_REFUND
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_refund_abcdef123
+                  originalGid: gl_9c2645ed09edb22e
+                  status: SENT_FOR_REFUND
+                  refundAmount: "25.00"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gl/v1/payments/{gid}/capture:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: captureTransaction
+      summary: Capture Authorized Transaction
+      description: |
+        Captures an authorized-only transaction (i.e., one initiated with `captureTxn=false`).
+        - `captureType=F` for full capture (omit `totalAmount`).
+        - `captureType=P` for partial capture (`totalAmount` required).
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: PayGlocal `gid` of the authorized transaction.
+          example: gl_9c2645ed09edb22e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - captureType
+              example:
+                captureType: F
+      responses:
+        "200":
+          description: Capture accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: SENT_FOR_CAPTURE
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  status: SENT_FOR_CAPTURE
+                  capturedAmount: "100.00"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /gl/v1/payments/{gid}/auth-reversal:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: reverseAuthorization
+      summary: Reverse Authorized Transaction
+      description: |
+        Voids an authorization-only transaction before it's captured. Full reversal only —
+        no partial. Not valid against captured transactions (use Refund instead).
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: PayGlocal `gid` of the authorized transaction.
+          example: gl_9c2645ed09edb22e
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+            example: {}
+      responses:
+        "200":
+          description: Authorization reversed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: REVERSED
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  status: REVERSED
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ==================== Standing Instruction APIs ====================
+
+  /gl/v1/payments/si/sale:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: siSubsequentSale
+      summary: SI Subsequent Payment
+      description: |
+        Triggers a subsequent debit against an active standing-instruction mandate.
+        Use `FIXED` for pre-agreed recurring amounts, `VARIABLE` for variable amounts
+        (subject to the mandate's `maxAmount` cap).
+      tags:
+        - Standing Instructions
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - merchantTxnId
+                    - standingInstruction
+                    - paymentData
+              example:
+                merchantTxnId: si_sub_1712345678
+                standingInstruction:
+                  mandateId: mandate_abc123
+                  data:
+                    type: FIXED
+                paymentData:
+                  totalAmount: "499.00"
+                  txnCurrency: INR
+      responses:
+        "200":
+          description: Subsequent SI debit accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_sub_abcdef
+                status: INPROGRESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_si_sub_abcdef
+                  mandateId: mandate_abc123
+                  status: INPROGRESS
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /gl/v1/payments/si/status:
+    servers:
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: getSiStatus
+      summary: SI Status
+      description: Returns current status and schedule for a standing-instruction mandate.
+      tags:
+        - Standing Instructions
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mandateId
+              properties:
+                mandateId:
+                  type: string
+                  description: PayGlocal-issued mandate identifier.
+                  example: mandate_abc123
+            example:
+              mandateId: mandate_abc123
+      responses:
+        "200":
+          description: Mandate status retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_status_001
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  mandateId: mandate_abc123
+                  mandateStatus: ACTIVE
+                  nextDebitDate: "2026-05-01"
+                  completedPayments: 3
+                  totalPayments: 12
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      operationId: revokeSiMandate
+      summary: SI Cancellation
+      description: |
+        Cancels (revokes) an active standing-instruction mandate. Future scheduled debits
+        will not be attempted.
+      tags:
+        - Standing Instructions
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mandateId
+                - action
+              properties:
+                mandateId:
+                  type: string
+                  example: mandate_abc123
+                action:
+                  type: string
+                  enum:
+                    - REVOKE
+                  example: REVOKE
+            example:
+              mandateId: mandate_abc123
+              action: REVOKE
+      responses:
+        "200":
+          description: Mandate revoked.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_revoke_001
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  mandateId: mandate_abc123
+                  mandateStatus: REVOKED
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+tags:
+  - name: Merchant Onboarding
+    description: Endpoints to create and manage merchant onboarding records.
+  - name: Reference Data
+    description: Lookup endpoints for static reference data (categories, codes).
+  - name: Payment
+    description: Payment initiation, refund, capture, reversal, and status endpoints.
+  - name: Standing Instructions
+    description: Subscription / recurring-payment mandate operations.

@@ -1,0 +1,153 @@
+---
+title: "Quickstart"
+description: "Get a merchant onboarding request created on PayGlocal in under 10 minutes."
+---
+
+This guide walks you through the essential steps to go from zero to your first successful API call against the PayGlocal Merchant Onboarding API.
+
+## Prerequisites
+
+- A PayGlocal partner account (contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to get set up)
+- Your **API Key** and **API Secret** downloaded from the partner dashboard
+- `curl` or any HTTP client
+
+---
+
+<Steps>
+  <Step title="Point to the Sandbox environment">
+    All development and testing must be done against the Sandbox base URL:
+
+    ```
+    https://api.onboard.uat.payglocal.in
+    ```
+
+    When you are ready to go live, swap this for the Production URL:
+
+    ```
+    https://api.onboard.payglocal.in
+    ```
+
+    <Note>
+      The Sandbox environment is functionally identical to Production. No real KYC checks or transactions are executed.
+    </Note>
+  </Step>
+
+  <Step title="Download your API credentials">
+    Log in to your PayGlocal partner dashboard and navigate to **Settings → API Keys**. Download:
+
+    - **API Key** — a static identifier sent in the `x-api-key` header on every request
+    - **API Secret** — used as the HMAC signing key; never exposed in requests
+
+    Store both values securely (e.g., in a secrets manager). You will use them to generate the `x-gl-digest` header. See [Authentication](/authentication) for the full signing specification.
+  </Step>
+
+  <Step title="Generate your authentication digest">
+    Every request must include two headers: `x-api-key` and `x-gl-digest`.
+
+    For a POST request, the digest is computed over the **raw request body** using HmacSHA256 with your API Secret, then Base64-encoded.
+
+    Here is an example for the Create Onboarding request body `{"externalOnboardingId":"partner-123","panNumber":"ABCDE1234F"}`:
+
+    <CodeGroup>
+      ```bash curl (compute digest)
+      BODY='{"externalOnboardingId":"partner-123","panNumber":"ABCDE1234F"}'
+      DIGEST=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "YOUR_API_SECRET" -binary | base64)
+      echo $DIGEST
+      ```
+
+      ```python Python
+      import hmac, hashlib, base64
+
+      body = '{"externalOnboardingId":"partner-123","panNumber":"ABCDE1234F"}'
+      secret = b"YOUR_API_SECRET"
+      digest = base64.b64encode(
+          hmac.new(secret, body.encode(), hashlib.sha256).digest()
+      ).decode()
+      print(digest)
+      ```
+
+      ```javascript Node.js
+      const crypto = require("crypto");
+
+      const body = JSON.stringify({ externalOnboardingId: "partner-123", panNumber: "ABCDE1234F" });
+      const digest = crypto
+        .createHmac("sha256", "YOUR_API_SECRET")
+        .update(body)
+        .digest("base64");
+      console.log(digest);
+      ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Make your first API call — Create Onboarding">
+    Call `POST /gcc/v2/partner/merchant/onboard` to register a new merchant onboarding request. This is always the first step before submitting any business details.
+
+    ```bash
+    curl -X POST https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "x-gl-digest: YOUR_COMPUTED_DIGEST" \
+      -d '{
+        "externalOnboardingId": "partner-123",
+        "panNumber": "ABCDE1234F"
+      }'
+    ```
+
+    A successful response looks like this (HTTP 201):
+
+    ```json
+    {
+      "gid": "gl_9c2645ed09edb22e",
+      "timestamp": "10/01/2026 15:00:00",
+      "reasonCode": "",
+      "data": {
+        "merchantInfo": {
+          "onboardingId": "pg_onboard_abc123",
+          "partnerOnboardingId": "partner-123",
+          "onboardingStatus": "INITIATED",
+          "businessDetails": {}
+        }
+      }
+    }
+    ```
+
+    <Tip>
+      Save the `data.merchantInfo.onboardingId` value — it is the `{onboardingId}` path parameter required by all subsequent API calls for this merchant.
+    </Tip>
+  </Step>
+
+  <Step title="Complete the onboarding flow">
+    With the `onboardingId` in hand, proceed through the remaining steps in order:
+
+    | Step | Endpoint | Guide |
+    |------|----------|-------|
+    | 1. Submit business details | `PUT .../business-details` | [Update Business Details](/api-reference/update-business-details) |
+    | 2. Add beneficial owners | `PUT .../beneficial-owner` | [Add Beneficial Owner](/api-reference/add-beneficial-owner) |
+    | 3. Add bank account | `PUT .../bank-details` | [Update Bank Details](/api-reference/update-bank-details) |
+    | 4. Add authorised signatory | `PUT .../auth-signatory` | [Update Authorised Signatory](/api-reference/update-auth-signatory) |
+    | 5. Upload documents | `PUT .../docs` | [Upload Documents](/api-reference/upload-documents) |
+    | 6. Configure products & fees | `PUT .../products` | [Configure Products](/api-reference/configure-products) |
+    | 7. Trigger verification | `PUT .../verify` | [Verify Merchant](/api-reference/verify-merchant) |
+
+    See the [API Flow Overview](/guides/api-flow-overview) for an end-to-end visual walkthrough of the onboarding sequence.
+  </Step>
+</Steps>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication Deep Dive" icon="lock" href="/authentication">
+    Understand HmacSHA256 digest generation for all request types
+  </Card>
+  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+    Embed the VKYC and DigiLocker flow inside your platform
+  </Card>
+  <Card title="Partner Requirements" icon="clipboard-check" href="/requirements">
+    Compliance obligations before going live
+  </Card>
+  <Card title="Response Structure" icon="code" href="/reference/response-structure">
+    Understand success and error response formats
+  </Card>
+</CardGroup>

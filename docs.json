@@ -1,0 +1,192 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "sequoia",
+  "name": "PayGlocal Developers",
+  "colors": {
+    "primary": "#1A6FE8",
+    "light": "#4A90E8",
+    "dark": "#1A6FE8"
+  },
+  "favicon": "/logo/favicon.svg",
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
+  },
+  "font": {
+    "headings": { "family": "Outfit" },
+    "body": { "family": "Outfit" }
+  },
+  "background": {
+    "decoration": "grid"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "guides/integration-chooser",
+              "requirements",
+              "getting-started/gcc-dashboard",
+              "getting-started/payglocal-identifiers"
+            ]
+          },
+          {
+            "group": "Security Setup",
+            "pages": [
+              "key-management/overview",
+              "key-management/private-key",
+              "key-management/public-certificate",
+              "key-management/request-construction",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Partner: Merchant Onboarding",
+            "pages": [
+              "guides/api-flow-overview",
+              "guides/merchant-requirements",
+              "guides/iframe-integration",
+              "guides/webhooks"
+            ]
+          },
+          {
+            "group": "Merchant: Accept Payments",
+            "pages": [
+              "integration/payment-flow",
+              "payment-services/gpi-service",
+              "payment-services/get-status-service",
+              "payment-services/refund-service",
+              "payment-services/standalone-services",
+              "payment-services/standing-instructions"
+            ]
+          },
+          {
+            "group": "Merchant: Payment Links (No-Code)",
+            "pages": [
+              "no-code/payment-links-overview",
+              "no-code/payment-link-generation",
+              "no-code/payment-link-management"
+            ]
+          },
+          {
+            "group": "Merchant: E-commerce Plugins",
+            "pages": [
+              "plugins/overview",
+              "plugins/shopify",
+              "plugins/woocommerce",
+              "plugins/magento",
+              "plugins/opencart",
+              "plugins/wix"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "api-fields/transaction-payment-fields",
+              "api-fields/risk-data-fields",
+              "api-fields/response-fields",
+              "reference/response-codes-and-errors",
+              "reference/response-structure",
+              "reference/business-categories",
+              "reference/state-codes",
+              "reference/rate-limits",
+              "reference/test-cards",
+              "reference/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Partner APIs: Merchant Onboarding",
+            "pages": [
+              "api-reference/onboarding-overview",
+              "api-reference/create-onboarding",
+              "api-reference/update-business-details",
+              "api-reference/add-beneficial-owner",
+              "api-reference/update-bank-details",
+              "api-reference/update-auth-signatory",
+              "api-reference/upload-documents",
+              "api-reference/configure-products",
+              "api-reference/verify-merchant",
+              "api-reference/get-status",
+              "api-reference/get-business-categories"
+            ]
+          },
+          {
+            "group": "Merchant APIs: Payments",
+            "pages": [
+              "api-reference/payment/overview",
+              "api-reference/payment/gpi-paycollect",
+              "api-reference/payment/gpi-initiate",
+              "api-reference/payment/get-status",
+              "api-reference/payment/refund"
+            ]
+          },
+          {
+            "group": "Merchant APIs: Auth & Capture",
+            "pages": [
+              "api-reference/payment/standalone-capture",
+              "api-reference/payment/standalone-reversal"
+            ]
+          },
+          {
+            "group": "Merchant APIs: Standing Instructions",
+            "pages": [
+              "api-reference/standing-instructions/si-subsequent-payment",
+              "api-reference/standing-instructions/si-cancellation",
+              "api-reference/standing-instructions/si-status"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog/index"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "api": {
+    "openapi": "openapi.yaml",
+    "playground": {
+      "mode": "simple"
+    },
+    "examples": {
+      "languages": ["bash", "python", "java", "node"]
+    }
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:merchant.support@payglocal.in"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://merchant.payglocal.in"
+    }
+  },
+  "footer": {
+    "socials": {
+      "website": "https://payglocal.in"
+    }
+  }
+}

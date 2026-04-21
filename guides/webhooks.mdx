@@ -1,0 +1,163 @@
+---
+title: "Webhooks & Callbacks"
+description: "How PayGlocal notifies your server of payment events — callback URL redirects, Auto Debit webhook notifications, and iFrame postMessage events."
+---
+
+## Overview
+
+PayGlocal uses two notification mechanisms:
+
+| Channel | When | What |
+|---------|------|------|
+| **HTTP Callback (POST)** | After every payment attempt | Customer's browser is redirected to your `merchantCallbackURL` with an `x-gl-token` post parameter |
+| **Webhook (POST)** | After each Auto Debit SI payment | Server-to-server notification to your configured webhook URL |
+| **iFrame postMessage** | During VKYC / verification flow | Browser-side events from the embedded iFrame |
+
+---
+
+## HTTP Callback — Payment Completion
+
+When a customer completes (or fails) a payment on the PayGlocal page, PayGlocal redirects their browser back to your `merchantCallbackURL` using **HTTP POST**.
+
+### The `x-gl-token` Parameter
+
+PayGlocal sends a signed JWT as the `x-gl-token` POST parameter.
+
+**Token structure:**
+
+```
+Header:
+{
+  "issued-by": "GLOCAL",
+  "is-digested": false,
+  "alg": "RS256",
+  "kid": "GLOCAL-KID"
+}
+
+Payload:
+{
+  "status": "SENT_FOR_CAPTURE",
+  "gid": "gl-883qjfn9-6d9r-44dk-o99e-bf17e403c931",
+  "merchantUniqueId": "KJBFOUBEW9939",
+  "iat": 1422779638
+}
+```
+
+### Validating the Callback
+
+<Warning>
+  **Always validate the `x-gl-token` signature before trusting the payment status.** An unvalidated callback is a security risk.
+</Warning>
+
+```
+1. Receive POST request at your merchantCallbackURL
+2. Extract the x-gl-token parameter
+3. Verify the JWT signature using PayGlocal's PUBCERT
+4. If valid → extract status from token payload
+5. If invalid → do NOT use the status; call Get Status API instead
+```
+
+If token validation fails for any reason, call the [Get Status API](/payment-services/get-status-service) using the `gid` from the original GPI response to get the authoritative transaction status.
+
+### Callback URL Requirements
+
+- Must accept **HTTP POST** requests
+- Must be publicly accessible (not localhost)
+- Should respond with HTTP `200` within 10 seconds
+- Should not require authentication (the `x-gl-token` itself is the authentication)
+
+---
+
+## Auto Debit Webhook — Standing Instructions
+
+When **Auto Debit** is enabled for your MID, PayGlocal automatically initiates subsequent recurring payments and notifies you via webhook after each attempt.
+
+Configure your webhook URL through your PayGlocal representative.
+
+### Webhook Payload
+
+**Successful payment:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/gl-13bbd3c4.../status"
+}
+```
+
+**Failed payment:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "FAILURE",
+  "type": "STANDING_INSTRUCTION",
+  "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/gl-13bbd3c4.../status"
+}
+```
+
+### Handling Webhook Notifications
+
+1. Acknowledge receipt with HTTP `200` immediately.
+2. Call the `statusUrl` server-side to get complete transaction details.
+3. Update your subscription/billing records based on the full status response.
+4. For `FAILURE` status, implement your retry or customer notification logic.
+
+<Note>
+  Always call `statusUrl` for complete details — the webhook payload intentionally contains minimal data to keep the notification lightweight.
+</Note>
+
+---
+
+## iFrame postMessage Events
+
+When you embed the PayGlocal verification iFrame for merchant VKYC and T&C, the iFrame communicates status back to your parent page using the browser's `postMessage` API.
+
+### Listening for Events
+
+```javascript
+window.addEventListener('message', function(event) {
+  // Always verify the origin
+  if (event.origin !== 'https://gcc.prod.payglocal.in') return;
+
+  const { type, status, onboardingId } = event.data;
+
+  switch (type) {
+    case 'VKYC_COMPLETE':
+      // Customer completed video KYC
+      break;
+    case 'DIGILOCKER_COMPLETE':
+      // Customer completed DigiLocker document verification
+      break;
+    case 'TNC_ACKNOWLEDGED':
+      // Customer acknowledged T&Cs
+      break;
+    case 'ONBOARDING_COMPLETE':
+      // Full verification flow complete — call GET /status server-side
+      fetchOnboardingStatus(onboardingId);
+      break;
+  }
+});
+```
+
+<Warning>
+  After receiving any `postMessage` event, always perform a **server-side GET /status call** to confirm the outcome. Never rely solely on the browser-side postMessage event.
+</Warning>
+
+See [iFrame Integration](/guides/iframe-integration) for the full embedding guide and sandbox test credentials.
+
+---
+
+## Security Best Practices
+
+| Practice | Why |
+|----------|-----|
+| Validate `x-gl-token` signature on every callback | Prevents spoofed callbacks from triggering fraudulent order fulfillment |
+| Verify postMessage `event.origin` | Prevents malicious iFrames from triggering actions |
+| Call Get Status / statusUrl server-side | Ground truth always comes from the API, not the notification |
+| Use HTTPS for your callback URL | Prevents `x-gl-token` interception in transit |
+| Respond to webhooks within 10 seconds | Prevents PayGlocal from marking the delivery as failed |

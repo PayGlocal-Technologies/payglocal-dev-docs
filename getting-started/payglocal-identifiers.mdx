@@ -1,0 +1,30 @@
+---
+title: "PayGlocal Identifiers"
+description: "GID and MUID — the two identifiers you use to track PayGlocal transactions."
+icon: "fingerprint"
+---
+
+Identifiers let you track and reconcile every transaction in PayGlocal's system. Two identifiers matter:
+
+## GID — PayGlocal ID
+
+Every PayGlocal transaction is assigned a **GID** the moment it is initiated. The GID:
+
+- Always starts with `gl_`.
+- Is returned in the response of the transaction-initiation call.
+- Is a **service-level identifier** — use it as the reference when you call follow-on endpoints like refund, capture, or status check.
+- Is echoed back on every API response — use it as the primary key when debugging or tracing a request through PayGlocal's systems.
+
+<Note>
+  If a support ticket involves a specific transaction, always include the GID. It is the fastest way for PayGlocal to locate the transaction.
+</Note>
+
+## MUID — Merchant Unique ID
+
+The **MUID** is your own identifier for a transaction. You generate and supply it on the initiate call. The MUID:
+
+- Must be **unique across transactions** for a given merchant.
+- Is under your control — PayGlocal does not validate its format.
+- Is recommended to be a **UUIDv4** or another high-entropy string to avoid collisions.
+
+Use the MUID to tie a PayGlocal transaction back to the corresponding order, invoice, or entity in your own system.

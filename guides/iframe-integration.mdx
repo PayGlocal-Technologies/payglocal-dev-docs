@@ -1,0 +1,200 @@
+---
+title: "iFrame Integration"
+description: "Embed the PayGlocal Verification Suite — VKYC, DigiLocker, and T&C acknowledgement — directly inside your partner dashboard."
+---
+
+Partners can embed the PayGlocal Verification Suite directly into their existing dashboard so merchants can complete identity verification without leaving the partner platform.
+
+The verification suite covers:
+- **VKYC** — Video-based KYC using the merchant's live camera
+- **DigiLocker** — Government document verification via DigiLocker
+- **T&C Acknowledgement** — Merchant accepts PayGlocal terms and conditions
+
+---
+
+## Step 1: Domain Whitelisting (Action Required)
+
+<Warning>
+  Your iFrame **will not render** until your domain is whitelisted by PayGlocal. This step must be completed before testing the iFrame in any environment.
+</Warning>
+
+PayGlocal uses a strict **Content Security Policy (CSP)** with `frame-ancestors` directives to prevent Clickjacking attacks. Browsers will display a `frame-ancestors violation` console error and block the iFrame until your domain is authorized.
+
+**To request whitelisting**, contact your assigned PayGlocal Account Manager with:
+
+| Field | Value |
+|-------|-------|
+| **Partner Name** | Your legal entity name |
+| **Environment** | Sandbox, Production, or both |
+| **Domain URLs** | Exact URLs where the iFrame will be hosted (e.g., `https://onboarding.yourcompany.com`) |
+
+Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
+
+---
+
+## Step 2: Integration Workflow
+
+<Steps>
+  <Step title="Initialize — Generate the verification session URL">
+    Before rendering the iFrame, call the [Verify Merchant API](/api-reference/verify-merchant) to generate a unique, time-limited session URL for the merchant.
+
+    ```bash
+    curl -X PUT https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/{onboardingId}/verify \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: YOUR_API_KEY" \
+      -H "x-gl-digest: YOUR_DIGEST" \
+      -d '{"callbackUrl": "https://your-domain.com/onboarding-success"}'
+    ```
+
+    Response:
+
+    ```json
+    {
+      "gid": "gl_9c2645ed09edb22e",
+      "timestamp": "10/01/2026 15:00:00",
+      "reasonCode": "",
+      "data": {
+        "redirectUrl": "https://verify.payglocal.in/session/auth_123abc..."
+      }
+    }
+    ```
+
+    Save the `data.redirectUrl` value — this is the `src` for your iFrame.
+
+    <Note>
+      The `callbackUrl` is where PayGlocal redirects the iFrame after the merchant completes verification. It must be a full HTTPS URL on your whitelisted domain.
+    </Note>
+  </Step>
+
+  <Step title="Embed — Load the redirectUrl in an iFrame">
+    Inject the `redirectUrl` as the `src` of an iFrame on your page. The `allow` attributes below are **mandatory** — without them, the browser will block camera and microphone access during VKYC.
+
+    ```html
+    <div id="pg-iframe-wrapper" style="width: 100%; max-width: 1000px; height: 800px; margin: auto;">
+      <iframe
+        id="payglocal-onboarding-ui"
+        src="INSERT_REDIRECT_URL_HERE"
+        width="100%"
+        height="700px"
+        allow="camera; microphone; geolocation"
+        frameborder="0"
+        style="border: 1px solid #e0e0e0; border-radius: 8px;">
+      </iframe>
+    </div>
+    ```
+
+    ```javascript
+    // Dynamically set the src after fetching the redirectUrl from your backend
+    const iframe = document.getElementById("payglocal-onboarding-ui");
+    iframe.src = redirectUrl; // value returned by the Verify Merchant API
+    ```
+  </Step>
+
+  <Step title="Handle Callback — Listen for completion">
+    PayGlocal signals completion in two ways:
+
+    **Option A — postMessage (recommended for real-time UX)**
+
+    Listen for `message` events from the iFrame. PayGlocal posts a message when the merchant finishes the flow.
+
+    ```javascript
+    window.addEventListener("message", function(event) {
+      // Always validate the origin to prevent spoofed messages
+      if (event.origin !== "https://verify.payglocal.in") return;
+
+      if (event.data.status === "COMPLETED") {
+        console.log("Merchant has finished the verification flow.");
+        // Update your UI, e.g., show a success screen or redirect the parent window
+      }
+    }, false);
+    ```
+
+    **Option B — callbackUrl redirect**
+
+    After the merchant finishes, PayGlocal also redirects the iFrame to the `callbackUrl` you provided. Your page at that URL can render a completion screen.
+
+    <Warning>
+      After the iFrame callback, **always perform a server-to-server status check** by calling `GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status` to confirm that `vkyc` and `digiLocker` statuses are `SUCCESS` or `PENDING_REVIEW`. Do not rely on the callback redirect alone to confirm completion.
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+## Technical Requirements and Best Practices
+
+<Warning>
+  The parent page hosting the iFrame **must be served over HTTPS**. Modern browsers block camera and microphone access on insecure (HTTP) origins, which will break VKYC.
+</Warning>
+
+| Requirement | Detail |
+|-------------|--------|
+| **HTTPS** | Parent page must use HTTPS. HTTP origins will block camera/microphone access. |
+| **Minimum height** | Set the iFrame container to at least **700px** height to prevent internal scrollbars during the VKYC video call. |
+| **Permissions Policy header** | Ensure your server does not send a `Permissions-Policy: camera=()` or similar header that conflicts with iFrame permissions. |
+| **Origin validation** | Always check `event.origin === "https://verify.payglocal.in"` before processing postMessage events. |
+| **Server-side confirmation** | After callback, always call `GET /status` server-to-server to confirm the final merchant state. |
+| **Responsive design** | The verification suite is mobile-responsive. Your container should be flexible-width with a fixed minimum height. |
+
+---
+
+## Complete Frontend Example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Merchant Verification</title>
+  <style>
+    #pg-iframe-wrapper {
+      width: 100%;
+      max-width: 1000px;
+      height: 800px;
+      margin: 0 auto;
+    }
+    #payglocal-onboarding-ui {
+      width: 100%;
+      height: 700px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="pg-iframe-wrapper">
+    <iframe
+      id="payglocal-onboarding-ui"
+      allow="camera; microphone; geolocation"
+      frameborder="0">
+    </iframe>
+  </div>
+
+  <script>
+    // Step 1: Fetch the redirectUrl from your backend (which calls the PayGlocal Verify API)
+    fetch("/api/get-verification-url?onboardingId=YOUR_ONBOARDING_ID")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("payglocal-onboarding-ui").src = data.redirectUrl;
+      });
+
+    // Step 2: Listen for completion signal from PayGlocal
+    window.addEventListener("message", function(event) {
+      if (event.origin !== "https://verify.payglocal.in") return;
+
+      if (event.data.status === "COMPLETED") {
+        // Step 3: Trigger a server-side status check before updating UI
+        fetch("/api/check-onboarding-status?onboardingId=YOUR_ONBOARDING_ID")
+          .then(res => res.json())
+          .then(status => {
+            if (status.vkyc === "SUCCESS" || status.vkyc === "PENDING_REVIEW") {
+              console.log("Verification complete. Redirecting...");
+              window.location.href = "/onboarding-success";
+            }
+          });
+      }
+    }, false);
+  </script>
+</body>
+</html>
+```

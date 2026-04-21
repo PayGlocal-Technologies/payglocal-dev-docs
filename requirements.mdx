@@ -1,0 +1,99 @@
+---
+title: "Requirements from Partner"
+description: "Compliance obligations every partner must fulfill before using the PayGlocal Merchant Onboarding API."
+---
+
+As a regulated payment aggregator, PayGlocal operates under master directions issued by the Reserve Bank of India (RBI). To remain compliant, **all partners must meet the following six requirements** before — and during — their integration.
+
+<Warning>
+  Failure to meet these requirements may result in suspension of API access. These obligations are non-negotiable and subject to regular audit by PayGlocal's compliance team.
+</Warning>
+
+---
+
+## 1. Merchant Disclosure
+
+Partners must display a clear and prominent disclosure to every merchant informing them that their onboarding is being processed on the **PayGlocal platform**.
+
+This disclosure must be placed at an appropriate point in the partner's onboarding flow — before the merchant submits any personal or business information. The wording and placement must be approved as part of the compliance review (see Requirement 2).
+
+<Warning>
+  Embedding the onboarding flow without this disclosure is a compliance violation. PayGlocal may reject or suspend the integration if this requirement is not met.
+</Warning>
+
+---
+
+## 2. Compliance Review of the Flow
+
+The complete merchant onboarding user flow — including all screens, disclosures, and data collection steps — must be **submitted to PayGlocal for compliance review** before the integration goes live.
+
+Submit your flow screens or prototype to your assigned PayGlocal Account Manager. PayGlocal will review for adherence to regulatory requirements and provide written approval.
+
+---
+
+## 3. Partner Due Diligence Form
+
+A **partner due diligence form** must be submitted to PayGlocal as part of the partner onboarding process. This form covers your organization's business details, compliance posture, and technical capabilities.
+
+Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to receive the due diligence form.
+
+---
+
+## 4. End-to-End Flow Acceptance
+
+Once the integration is technically complete, partners must undergo a **full end-to-end acceptance test** with PayGlocal before going live in Production.
+
+This involves:
+- Demonstrating the complete onboarding flow in the Sandbox environment
+- Confirming all API calls function correctly
+- Receiving written go-live approval from PayGlocal
+
+Do not point to the Production environment until this acceptance is signed off.
+
+---
+
+## 5. Unique Merchant Identity in Partner System
+
+Every entity that is onboarded via the PayGlocal API must have a **unique identity within the partner's own system**. The `externalOnboardingId` sent in the Create Onboarding request must be a stable, unique identifier for that merchant in your platform.
+
+<Warning>
+  Do not reuse `externalOnboardingId` values across different merchants or onboarding attempts. Duplicate IDs will result in errors and may flag the integration for audit.
+</Warning>
+
+---
+
+## 6. No Validation-Only Usage
+
+Partners **must not use the PayGlocal API for data validation purposes** without a genuine intent to onboard the merchant. The API is designed for active onboarding flows only.
+
+PayGlocal monitors infrastructure-level metrics comparing onboarding initiations against completions. A persistently high initiation-to-completion gap will trigger an audit.
+
+<Warning>
+  Using the API solely to validate PAN numbers, business details, or other merchant data — without completing the onboarding — is a breach of the partner agreement and subject to access revocation.
+</Warning>
+
+---
+
+## Summary Checklist
+
+| # | Requirement | Who Completes It |
+|---|-------------|-----------------|
+| 1 | Merchant disclosure shown in partner UI | Partner |
+| 2 | Onboarding flow submitted for compliance review | Partner → PayGlocal |
+| 3 | Partner due diligence form submitted | Partner → PayGlocal |
+| 4 | End-to-end acceptance test passed | Partner + PayGlocal |
+| 5 | Unique `externalOnboardingId` per merchant | Partner |
+| 6 | API used for genuine onboarding only | Partner |
+
+---
+
+For questions about any of these requirements, contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Ready to build? Make your first API call in minutes.
+  </Card>
+  <Card title="Key Management" icon="key" href="/key-management/overview">
+    Set up request signing before your first API call.
+  </Card>
+</CardGroup>

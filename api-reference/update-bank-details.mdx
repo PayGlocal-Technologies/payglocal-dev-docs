@@ -1,0 +1,22 @@
+---
+title: "Update Bank Details"
+openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/bank-details"
+---
+
+## When to Use
+
+Submits or updates the settlement bank account. PayGlocal performs a **penny drop verification** to confirm the account is active and the IFSC is valid.
+
+<Warning>
+  Bank details cannot be updated after the merchant's verification step is complete. If the penny drop fails, prompt the merchant to re-enter their bank details.
+</Warning>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400` |
+| Penny drop verification fails | `400` |
+| Update attempted after verification step is complete | `400` |
+| `onboardingId` does not exist | `404` |
+| `onboardingId` does not belong to this partner | `403` |

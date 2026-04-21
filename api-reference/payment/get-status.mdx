@@ -1,0 +1,28 @@
+---
+title: "Get Transaction Status"
+description: "Query the current status of a GPI payment or Refund using the GID or merchantUniqueId."
+openapi: "GET /gl/v1/payments/{id}/status"
+---
+
+## When to Use
+
+Poll this endpoint to check the current lifecycle state of a transaction. The `{id}` path parameter accepts either the PayGlocal `gid` (e.g., `gl-13bbd3c4...`) or your `merchantUniqueId` from the original request.
+
+PayGlocal also posts async updates to your `merchantCallbackURL` on terminal transitions — polling is a safety net, not a substitute.
+
+## Transaction Status Values
+
+| Status | Final? | Description |
+|--------|--------|-------------|
+| `CREATED` | No | Transaction created, awaiting redirect |
+| `INPROGRESS` | No | Customer on PayGlocal payment page |
+| `AUTHORIZED` | No | Authorized by issuer |
+| `SENT_FOR_CAPTURE` | Yes | Payment captured — settlement in progress |
+| `ABANDONED` | Yes | Customer closed/timed out payment |
+| `ISSUER_DECLINE` | Yes | Declined by card issuer |
+| `CUSTOMER_CANCELLED` | Yes | Customer cancelled on PayGlocal page |
+| `AUTHENTICATION_TIMEOUT` | Yes | 3DS authentication timed out |
+| `GENERAL_DECLINE` | Yes | Declined by risk system |
+| `REQUEST_ERROR` | Yes | Fix request fields and retry |
+| `SYSTEM_ERROR` | Yes | Retry after some time |
+| `CONFIG_ERROR` | Yes | Contact PayGlocal support |

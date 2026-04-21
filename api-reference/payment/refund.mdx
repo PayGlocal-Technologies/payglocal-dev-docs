@@ -1,0 +1,16 @@
+---
+title: "Refund"
+description: "Initiate a full or partial refund for a successfully captured transaction."
+openapi: "POST /gl/v1/payments/{gid}/refund"
+---
+
+## When to Use
+
+Refund all or part of a captured transaction. If the transaction is still in `AUTHORIZED` state (not yet captured), use [Auth Reversal](/api-reference/payment/standalone-reversal) instead.
+
+## Full vs Partial
+
+- `refundType=F` — full refund. Omit `paymentData.totalAmount`.
+- `refundType=P` — partial refund. `paymentData.totalAmount` is required and must be ≤ the captured amount.
+
+Multiple partial refunds are allowed as long as the cumulative refunded amount does not exceed the original capture.

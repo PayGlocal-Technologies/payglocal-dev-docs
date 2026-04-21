@@ -1,0 +1,188 @@
+---
+title: "Response Codes & Errors"
+description: "Complete reference for PayGlocal reason codes, HTTP error codes, and how to handle each scenario."
+---
+
+## HTTP Error Codes (Onboarding API)
+
+| HTTP Code | Status | Description |
+|-----------|--------|-------------|
+| `400` | Bad Request | Request body or parameters failed validation. Check `errorDetails` array for field-level details. |
+| `401` | Unauthorized | Authentication failed. The `x-api-key` or `x-gl-digest` header is missing, invalid, or the digest does not match. |
+| `403` | Forbidden | The `onboardingId` exists but does not belong to the authenticated partner. |
+| `404` | Not Found | The `onboardingId` does not exist. |
+| `500` | Internal Server Error | Unexpected server error. Retry with exponential backoff. Contact support with the `gid` if it persists. |
+
+---
+
+## Common Error Scenarios by Endpoint (Onboarding API)
+
+### All Endpoints
+
+| Scenario | Code |
+|----------|------|
+| `onboardingId` does not exist | `404` |
+| `onboardingId` belongs to another partner | `403` |
+| Invalid or missing `x-api-key` | `401` |
+| Invalid or missing `x-gl-digest` | `401` |
+
+### Create Onboarding
+
+| Scenario | Code |
+|----------|------|
+| `externalOnboardingId` or `panNumber` missing | `400` |
+| Invalid field format | `400` |
+| PAN type not one of `P`, `C`, `T`, `F` | `400` |
+| PAN already exists in PayGlocal | `400` |
+| PAN does not exist (invalid PAN) | `400` |
+
+### Update Business Details
+
+| Scenario | Code |
+|----------|------|
+| Required fields missing | `400` |
+| Update attempted after T&C acknowledged | `400` |
+
+### Add / Update Beneficial Owner
+
+| Scenario | Code |
+|----------|------|
+| Required fields missing | `400` |
+| PAN is not a personal PAN (type `P`) | `400` |
+| Update attempted after verification complete | `400` |
+
+### Update Bank Details
+
+| Scenario | Code |
+|----------|------|
+| Required fields missing | `400` |
+| Penny drop verification fails | `400` |
+| Update attempted after verification complete | `400` |
+
+### Update Authorised Signatory
+
+| Scenario | Code |
+|----------|------|
+| PAN validation failed | `400` |
+| Update attempted after T&C acknowledged | `400` |
+
+### Trigger Verification
+
+| Scenario | Code |
+|----------|------|
+| Called before all onboarding steps are complete | `400` |
+
+---
+
+## Error Response Structure
+
+All error responses follow this structure:
+
+```json
+{
+  "gid": "gl_9c2645ed09edb22e",
+  "timestamp": "10/01/2026 15:00:00",
+  "reasonCode": "VALIDATION_ERROR",
+  "data": {},
+  "errors": {},
+  "errorDetails": [
+    {
+      "field": "panNumber",
+      "message": "Required field is missing"
+    }
+  ]
+}
+```
+
+Always inspect `errorDetails` for field-level context on `400` errors.
+
+---
+
+## PayGlocal Reason Codes (Payment APIs)
+
+### HTTP 201 — Transaction Responses
+
+| Reason Code | Message |
+|-------------|---------|
+| `GL-201-000` | Transaction Created Successfully |
+| `GL-201-001` | Sent for capture successfully |
+| `GL-201-002` | Redirected to ACS form |
+| `GL-201-003` | Refund request sent successfully |
+| `GL-201-004` | Transaction partially approved |
+| `GL-201-005` | AVS Failed but issuer approved authorization |
+| `GL-201-006` | CVV Failed |
+| `GL-201-007` | Card expired. Request another card. |
+| `GL-201-008` | Processor Error |
+| `GL-201-009` | Insufficient funds |
+| `GL-201-010` | Lost or stolen card |
+| `GL-201-011` | Issuer down |
+| `GL-201-012` | Unauthorized card or payment not allowed by issuer |
+| `GL-201-013` | CVV mismatch |
+| `GL-201-014` | Payment exceeds limit on card |
+| `GL-201-015` | General Decline |
+| `GL-201-016` | Customer is blacklisted by issuer |
+| `GL-201-017` | Payment refused by the issuer |
+| `GL-201-018` | Payment refused by the issuer |
+| `GL-201-019` | Card account is found invalid |
+| `GL-201-020` | Authentication by customer failed |
+| `GL-201-021` | Merchant configuration incorrect — contact PayGlocal support |
+| `GL-201-022` | Declined by Risk system |
+| `GL-201-023` | Payment authentication failure |
+| `GL-201-500` | Declined by System |
+
+### HTTP 400 — Client Request Errors
+
+| Reason Code | Message |
+|-------------|---------|
+| `GL-400-001` | Declined by System |
+| `GL-400-002` | Request contains invalid data |
+| `GL-400-003` | Request missing merchantTxnID |
+| `GL-400-004` | Card type not enabled for this MID |
+| `GL-400-006` | Amount mismatch with original transaction |
+| `GL-400-007` | Card type is not valid |
+| `GL-400-999` | Transaction not found |
+
+### HTTP 501 — Server / System Errors
+
+| Reason Code | Message |
+|-------------|---------|
+| `GL-501-000` | Declined by System |
+| `GL-501-001` | Declined by System |
+
+---
+
+## Authentication Error Checklist (401)
+
+If you receive a `401 Unauthorized`:
+
+1. The `x-api-key` header must match your API Key exactly.
+2. The digest must be computed using the **API Secret**, not the API Key.
+3. For POST/PUT: digest over the **exact raw request body** byte-for-byte.
+4. For GET: digest over the **full request URL** including protocol and path.
+5. Output must be **Base64-encoded** — not hex.
+
+See [Authentication](/authentication) for code examples.
+
+---
+
+## Common Decline Actions
+
+| Code | Message | Recommended Action |
+|------|---------|-------------------|
+| `GL-201-007` | Card expired | Ask customer to use another card |
+| `GL-201-009` | Insufficient funds | Ask for another payment method |
+| `GL-201-010` | Lost/stolen card | Do not retry |
+| `GL-201-015` | General Decline | Verify customer identity; ask for another card |
+| `GL-201-022` | Declined by Risk | Check customer profile; confirm identity |
+| `GL-400-002` | Invalid data | Fix request field values and retry |
+| `GL-400-004` | Card type not enabled | Contact PayGlocal to enable for your MID |
+| `GL-501-000` | System error | Retry with exponential backoff |
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Fix 401 errors — full HMAC signing reference.
+  </Card>
+  <Card title="Get Status Service" icon="magnifying-glass" href="/payment-services/get-status-service">
+    Full list of transaction status values and what to do for each.
+  </Card>
+</CardGroup>

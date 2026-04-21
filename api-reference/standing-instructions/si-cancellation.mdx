@@ -1,0 +1,21 @@
+---
+title: "Cancel Standing Instruction"
+description: "Revoke an active mandate to prevent future recurring debits."
+openapi: "PUT /gl/v1/payments/si/status"
+---
+
+## When to Use
+
+Revoke an active standing-instruction mandate. Future scheduled debits will not be attempted. Once revoked, the mandate cannot be reactivated — a new mandate must be created via `/initiate`.
+
+## Common Failure Responses
+
+**Already inactive:**
+```json
+{ "status": "REQUEST_ERROR", "message": "Mandate was inactive" }
+```
+
+**Not found:**
+```json
+{ "status": "REQUEST_ERROR", "message": "Mandate id not found" }
+```

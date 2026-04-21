@@ -1,0 +1,91 @@
+---
+title: "Changelog"
+description: "What's new in the PayGlocal APIs — version history, breaking changes, and enhancements."
+icon: "clock-rotate-left"
+---
+
+## How to Use This Changelog
+
+- **Breaking** changes require integration updates before upgrading.
+- **Non-breaking** changes are backwards-compatible additions or improvements.
+- All dates refer to when the change became available in Production.
+
+---
+
+## API v2 — Current
+
+### April 2024
+
+<AccordionGroup>
+  <Accordion title="Capture and Reversal API HTTP method update (v1.8.6)">
+    **Non-breaking**
+
+    The HTTP method for the standalone Capture and Auth Reversal endpoints has been updated. Ensure your integration uses the correct HTTP methods:
+
+    - `POST /gl/v1/payments/{gid}/capture`
+    - `POST /gl/v1/payments/{gid}/auth-reversal`
+  </Accordion>
+</AccordionGroup>
+
+### September 2023
+
+<AccordionGroup>
+  <Accordion title="AltID processing support (v1.8.5)">
+    **Non-breaking**
+
+    The `tokenData` block now supports Alternative IDs (`altId: "true"`) as an alternative to network tokens. See [Transaction & Payment Fields](/api-fields/transaction-payment-fields#token--altid-data-paymentdatatokendata) for the full field reference.
+  </Accordion>
+</AccordionGroup>
+
+### April 2023
+
+<AccordionGroup>
+  <Accordion title="Multiple flight booking support (v1.8.4)">
+    **Non-breaking**
+
+    The `flightData` field now accepts an array of flight objects, enabling multi-leg and multi-flight booking data for airlines and OTA merchants. See [Risk Data Fields](/api-fields/risk-data-fields#airlines-data-flightdata) for the updated structure.
+  </Accordion>
+</AccordionGroup>
+
+### November 2022
+
+<AccordionGroup>
+  <Accordion title="Standalone Auth, Capture, and Reversal APIs (v1.8.0)">
+    **New feature**
+
+    Three new standalone payment APIs are now available for merchants configured for authentication-only GPI processing:
+
+    - `POST /gl/v1/payments/auth` — Authorization
+    - `POST /gl/v1/payments/{gid}/capture` — Capture
+    - `POST /gl/v1/payments/{gid}/auth-reversal` — Reversal
+
+    Contact PayGlocal merchant support to configure your MID for authentication-only processing.
+
+    See [Standalone Auth, Capture & Reversal](/payment-services/standalone-services).
+  </Accordion>
+</AccordionGroup>
+
+### April 2022
+
+<AccordionGroup>
+  <Accordion title="Auto Debit for Standing Instructions (v1.7.2)">
+    **New feature**
+
+    PayGlocal can now automatically initiate subsequent SI payments on your behalf (Auto Debit). When enabled:
+    - No API call from you is needed for subsequent payments
+    - PayGlocal sends webhook notifications to your callback URL after each debit
+    - Supported for `FIXED` type SI with non-`ONDEMAND` frequency
+
+    Contact your PayGlocal representative to enable Auto Debit for your MID.
+
+    See [Standing Instructions](/payment-services/standing-instructions#auto-debit-webhook-notifications).
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Merchant Onboarding API — v2
+
+The Partner Merchant Onboarding API (v2) is the current version. It provides the full 9-step onboarding flow with VKYC, DigiLocker, and T&C verification.
+
+For older integration questions, contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).

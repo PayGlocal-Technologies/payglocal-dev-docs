@@ -1,0 +1,127 @@
+---
+title: "Which Integration Is Right for You?"
+description: "Compare PayCollect, PayDirect, Standalone Auth/Capture, and Standing Instructions to choose the right PayGlocal integration for your use case."
+icon: "map"
+---
+
+## Start Here
+
+PayGlocal offers four integration patterns. The right one depends on your PCI DSS certification status, whether you need recurring billing, and how much control you want over the checkout experience.
+
+---
+
+## Quick Comparison
+
+| | PayCollect | PayDirect | Standalone Auth/Capture | Standing Instructions |
+|--|-----------|-----------|------------------------|----------------------|
+| **PCI DSS required?** | No | Yes | Yes | Yes |
+| **Who collects card data?** | PayGlocal (hosted page) | You | You | You (first payment only) |
+| **Recurring payments?** | No | No | No | Yes |
+| **International cards?** | Yes | Yes | Yes | Yes (cards issued outside India) |
+| **Alternative payment methods?** | Yes (iDeal, Sofort, wallets, etc.) | No | No | No |
+| **Effort to integrate** | Low | Medium | High | Medium + first payment |
+
+---
+
+## Decision Guide
+
+```
+Do you want to accept card payments?
+│
+├─ Are you PCI DSS certified?
+│   │
+│   ├─ NO → PayCollect
+│   │        PayGlocal hosts the payment page.
+│   │        You send minimal data; PayGlocal collects card details.
+│   │
+│   └─ YES → Do you need recurring / subscription billing?
+│             │
+│             ├─ YES → Standing Instructions
+│             │         Set up a mandate on the first payment,
+│             │         then debit via Mandate ID.
+│             │
+│             └─ NO → Do you need to auth now and capture later?
+│                       │
+│                       ├─ YES → Standalone Auth + Capture
+│                       │         Separate auth, capture, and reversal calls.
+│                       │
+│                       └─ NO → PayDirect
+│                                Full payment in a single GPI call.
+```
+
+---
+
+## PayCollect — Hosted Checkout
+
+**Best for:** Non-PCI merchants, quick integrations, merchants wanting alternative payment methods.
+
+You send a minimal GPI request with amount and currency. PayGlocal presents a hosted page where the customer enters card details or selects an alternative payment method (iDeal, Sofort, Trustly, giropay, wallets, BNPL).
+
+**Endpoint:** `POST /gl/v1/payments/initiate/paycollect`
+
+**Limitations:**
+- Cannot set up Standing Instructions for cards
+- Less control over checkout UI
+
+<Card title="GPI Service — PayCollect" icon="credit-card" href="/payment-services/gpi-service#paycollect-flow--for-non-pci-dss-certified-entities">
+  Minimum required payload and full documentation.
+</Card>
+
+---
+
+## PayDirect — Custom Checkout
+
+**Best for:** PCI DSS certified merchants who want full control over the checkout experience and need to process international cards with risk data.
+
+You collect card details on your own page and send them directly in the GPI request. PayGlocal handles 3DS authentication, routing, and risk assessment.
+
+**Endpoint:** `POST /gl/v1/payments/initiate`
+
+**Requirements:**
+- PCI DSS compliance
+- Must send `riskData` for international card transactions
+
+<Card title="GPI Service — PayDirect" icon="credit-card" href="/payment-services/gpi-service#paydirect-flow--for-pci-dss-certified-entities">
+  Minimum required payload and full documentation.
+</Card>
+
+---
+
+## Standalone Auth & Capture
+
+**Best for:** Merchants who need to pre-authorize a payment and capture it later (e.g., hotels, car rentals, split-shipment e-commerce).
+
+Your MID must be configured for **authentication-only** GPI processing. GPI handles 3DS authentication; you then call separate Auth, Capture, and optionally Reversal endpoints.
+
+**Endpoints:**
+- `POST /gl/v1/payments/auth`
+- `POST /gl/v1/payments/{gid}/capture`
+- `POST /gl/v1/payments/{gid}/auth-reversal`
+
+<Note>
+  Contact PayGlocal merchant support to configure your MID for authentication-only processing before using this flow.
+</Note>
+
+<Card title="Standalone Auth, Capture & Reversal" icon="shield-check" href="/payment-services/standalone-services">
+  Full documentation for all three endpoints.
+</Card>
+
+---
+
+## Standing Instructions — Recurring Billing
+
+**Best for:** Subscription services, EMI plans, any use case requiring recurring charges to international cards without the customer re-authenticating each time.
+
+Set up a mandate during the first payment (via GPI with `standingInstruction` data). PayGlocal returns a Mandate ID. Use that Mandate ID to charge the customer in future billing cycles — or enable Auto Debit for fully automated recurring charges.
+
+**Supported for:** International cards only.
+
+<Card title="Standing Instructions" icon="rotate" href="/payment-services/standing-instructions">
+  Full setup flow, mandate management, and Auto Debit guide.
+</Card>
+
+---
+
+## Not Sure?
+
+Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) — the PayGlocal team can advise on the right integration pattern for your business model.

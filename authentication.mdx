@@ -1,0 +1,314 @@
+---
+title: "Authentication"
+description: "Authentication for the Merchant Onboarding APIs. Every request is signed with HmacSHA256 and sent via x-api-key + x-gl-digest headers."
+---
+
+<Note>
+  This page covers authentication for the **Merchant Onboarding** APIs (`/gcc/v2/partner/merchant/*`).
+  The **Payment APIs** (`/gl/v1/payments/*`) use a different scheme — an RSA-signed JWS token sent in
+  the `x-gl-token-external` header. See [Key Management → Overview](/key-management/overview).
+</Note>
+
+## Overview
+
+The Merchant Onboarding APIs use a two-header authentication scheme:
+
+| Header | Description |
+|--------|-------------|
+| `x-api-key` | Your static API Key, downloaded from the partner dashboard |
+| `x-gl-digest` | A per-request HMAC-SHA256 signature, Base64-encoded |
+
+Both headers are **required on every request**. Requests missing either header will be rejected.
+
+---
+
+## Credentials
+
+Log in to the PayGlocal partner dashboard and navigate to **Settings → API Keys** to download your:
+
+- **API Key** — a static, non-secret identifier. Safe to store in environment variables.
+- **API Secret** — the signing key used to generate the digest. Treat this like a password. Never expose it in client-side code, logs, or version control.
+
+<Warning>
+  If your API Secret is compromised, rotate it immediately from the dashboard. PayGlocal supports multiple simultaneous active keys to allow zero-downtime rotation.
+</Warning>
+
+---
+
+## Digest Generation
+
+### Algorithm
+
+```
+digest = Base64( HmacSHA256( signingInput, API_SECRET ) )
+```
+
+### Signing Input Rules
+
+| HTTP Method | Signing Input |
+|-------------|---------------|
+| `GET` | The **full request URL** (including path and query string) |
+| `POST` | The **exact raw request body** (JSON string) |
+| `PUT` | The **exact raw request body** (JSON string) |
+
+<Warning>
+  For POST and PUT requests, compute the digest over the **exact same byte sequence** you send as the body. Any difference in whitespace, field ordering, or encoding will produce a mismatched digest and a `401 Unauthorized`.
+</Warning>
+
+---
+
+## Code Examples — POST / PUT Requests
+
+<CodeGroup>
+```bash curl
+#!/bin/bash
+API_KEY="your_api_key"
+API_SECRET="your_api_secret"
+
+BODY='{"externalOnboardingId":"partner-001","panNumber":"ABCDE1234F"}'
+DIGEST=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | base64)
+
+curl -X POST https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: $API_KEY" \
+  -H "x-gl-digest: $DIGEST" \
+  -d "$BODY"
+```
+
+```python Python
+import hmac, hashlib, base64, json, requests
+
+API_KEY = "your_api_key"
+API_SECRET = "your_api_secret"
+BASE_URL = "https://api.onboard.uat.payglocal.in"
+
+def build_headers(body_str: str) -> dict:
+    digest = base64.b64encode(
+        hmac.new(
+            API_SECRET.encode(),
+            body_str.encode(),
+            hashlib.sha256
+        ).digest()
+    ).decode()
+    return {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "x-gl-digest": digest,
+    }
+
+payload = {"externalOnboardingId": "partner-001", "panNumber": "ABCDE1234F"}
+# Use compact separators — the digest must match the exact bytes sent
+body_str = json.dumps(payload, separators=(",", ":"))
+
+response = requests.post(
+    f"{BASE_URL}/gcc/v2/partner/merchant/onboard",
+    headers=build_headers(body_str),
+    data=body_str,
+)
+print(response.json())
+```
+
+```java Java
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.net.http.*;
+import java.net.URI;
+
+public class PayGlocalAuth {
+    static final String API_KEY    = "your_api_key";
+    static final String API_SECRET = "your_api_secret";
+    static final String BASE_URL   = "https://api.onboard.uat.payglocal.in";
+
+    static String computeDigest(String input) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(API_SECRET.getBytes("UTF-8"), "HmacSHA256"));
+        return Base64.getEncoder().encodeToString(mac.doFinal(input.getBytes("UTF-8")));
+    }
+
+    public static void main(String[] args) throws Exception {
+        String body   = "{\"externalOnboardingId\":\"partner-001\",\"panNumber\":\"ABCDE1234F\"}";
+        String digest = computeDigest(body);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/gcc/v2/partner/merchant/onboard"))
+            .header("Content-Type", "application/json")
+            .header("x-api-key",    API_KEY)
+            .header("x-gl-digest",  digest)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+            .send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+    }
+}
+```
+
+```javascript Node.js
+const crypto = require("crypto");
+const https  = require("https");
+
+const API_KEY    = "your_api_key";
+const API_SECRET = "your_api_secret";
+
+function computeDigest(input) {
+  return crypto.createHmac("sha256", API_SECRET).update(input).digest("base64");
+}
+
+const payload = { externalOnboardingId: "partner-001", panNumber: "ABCDE1234F" };
+const body    = JSON.stringify(payload);
+const digest  = computeDigest(body);
+
+const options = {
+  hostname: "api.onboard.uat.payglocal.in",
+  path:     "/gcc/v2/partner/merchant/onboard",
+  method:   "POST",
+  headers: {
+    "Content-Type":  "application/json",
+    "x-api-key":     API_KEY,
+    "x-gl-digest":   digest,
+    "Content-Length": Buffer.byteLength(body),
+  },
+};
+
+const req = https.request(options, (res) => {
+  let data = "";
+  res.on("data", (chunk) => (data += chunk));
+  res.on("end", () => console.log(JSON.parse(data)));
+});
+req.write(body);
+req.end();
+```
+</CodeGroup>
+
+---
+
+## Code Examples — GET Requests
+
+<CodeGroup>
+```bash curl
+#!/bin/bash
+API_KEY="your_api_key"
+API_SECRET="your_api_secret"
+
+URL="https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status"
+DIGEST=$(echo -n "$URL" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | base64)
+
+curl -X GET "$URL" \
+  -H "x-api-key: $API_KEY" \
+  -H "x-gl-digest: $DIGEST"
+```
+
+```python Python
+import hmac, hashlib, base64, requests
+
+API_KEY    = "your_api_key"
+API_SECRET = "your_api_secret"
+
+def get_headers(url: str) -> dict:
+    digest = base64.b64encode(
+        hmac.new(API_SECRET.encode(), url.encode(), hashlib.sha256).digest()
+    ).decode()
+    return {"x-api-key": API_KEY, "x-gl-digest": digest}
+
+url      = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status"
+response = requests.get(url, headers=get_headers(url))
+print(response.json())
+```
+
+```java Java
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.net.http.*;
+import java.net.URI;
+
+public class PayGlocalGet {
+    static final String API_KEY    = "your_api_key";
+    static final String API_SECRET = "your_api_secret";
+
+    static String computeDigest(String input) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(API_SECRET.getBytes("UTF-8"), "HmacSHA256"));
+        return Base64.getEncoder().encodeToString(mac.doFinal(input.getBytes("UTF-8")));
+    }
+
+    public static void main(String[] args) throws Exception {
+        String url    = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
+        String digest = computeDigest(url);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("x-api-key",   API_KEY)
+            .header("x-gl-digest", digest)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+            .send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+    }
+}
+```
+
+```javascript Node.js
+const crypto = require("crypto");
+const https  = require("https");
+
+const API_KEY    = "your_api_key";
+const API_SECRET = "your_api_secret";
+
+const url    = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
+const digest = crypto.createHmac("sha256", API_SECRET).update(url).digest("base64");
+
+const reqUrl = new URL(url);
+const options = {
+  hostname: reqUrl.hostname,
+  path:     reqUrl.pathname,
+  method:   "GET",
+  headers: { "x-api-key": API_KEY, "x-gl-digest": digest },
+};
+
+https.request(options, (res) => {
+  let data = "";
+  res.on("data", (c) => (data += c));
+  res.on("end", () => console.log(JSON.parse(data)));
+}).end();
+```
+</CodeGroup>
+
+---
+
+## Common Mistakes
+
+| Mistake | Result |
+|---------|--------|
+| Using the API Key (not the Secret) as the HMAC key | `401 Unauthorized` |
+| Computing digest over parsed/re-serialized JSON instead of the raw body | `401 Unauthorized` |
+| Using the body for GET request digest instead of the full URL | `401 Unauthorized` |
+| Not Base64-encoding the HMAC output | `401 Unauthorized` |
+| Sending the digest as hex instead of Base64 | `401 Unauthorized` |
+
+---
+
+## Key Management
+
+- Keys can be rotated from the partner dashboard at any time.
+- PayGlocal supports **multiple simultaneous active keys** — activate the new key before deactivating the old one for zero-downtime rotation.
+- Key expiration policies are configured in accordance with RBI regulations.
+
+<CardGroup cols={2}>
+  <Card title="Key Management" icon="key" href="/key-management/overview">
+    Set up RSA-signed JWS tokens for the Payment APIs.
+  </Card>
+  <Card title="Create Onboarding" icon="building-columns" href="/api-reference/create-onboarding">
+    Your first authenticated API call.
+  </Card>
+  <Card title="Sandbox Testing" icon="flask" href="/guides/testing">
+    Test your auth setup with Sandbox credentials.
+  </Card>
+  <Card title="FAQ — 401 Errors" icon="circle-question" href="/reference/faq#authentication">
+    Diagnose and fix authentication failures.
+  </Card>
+</CardGroup>

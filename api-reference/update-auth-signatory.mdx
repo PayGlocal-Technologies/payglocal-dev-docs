@@ -1,0 +1,22 @@
+---
+title: "Update Authorised Signatory"
+openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory"
+---
+
+## When to Use
+
+Submits the authorised signatory details. The signatory's phone and email are used to conduct VKYC, DigiLocker verification, and T&C acknowledgement — so accuracy is critical.
+
+<Warning>
+  Authorised signatory details cannot be updated after the merchant has acknowledged the Terms & Conditions.
+</Warning>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields validation error | `400` |
+| PAN validation failed | `400` |
+| Update attempted after T&C is acknowledged | `400` |
+| `onboardingId` does not exist | `404` |
+| `onboardingId` does not belong to this partner | `403` |

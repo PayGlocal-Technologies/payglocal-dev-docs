@@ -1,0 +1,132 @@
+---
+title: "Error Codes"
+description: "HTTP status codes returned by the PayGlocal Merchant Onboarding API and the scenarios that trigger them."
+---
+
+## HTTP Error Codes
+
+| HTTP Code | Status Text | Description |
+|-----------|-------------|-------------|
+| `400` | Bad Request | The request body or parameters failed validation. Check the `errorDetails` array in the response for field-level details. |
+| `401` | Unauthorized | Authentication failed. The `x-api-key` or `x-gl-digest` header is missing, invalid, or the digest does not match the request. |
+| `403` | Forbidden | The specified `onboardingId` exists but does not belong to the authenticated partner. |
+| `404` | Not Found | The specified `onboardingId` does not exist in the PayGlocal system. |
+| `500` | Internal Server Error | An unexpected error occurred on the PayGlocal servers. Retry with exponential backoff. If the issue persists, contact support with the `gid` from the response. |
+
+---
+
+## Common Error Scenarios by Endpoint
+
+### All Endpoints
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| `onboardingId` does not exist in the system | `404 Not Found` |
+| `onboardingId` does not belong to the authenticated partner | `403 Forbidden` |
+| Invalid or missing `x-api-key` header | `401 Unauthorized` |
+| Invalid or missing `x-gl-digest` header | `401 Unauthorized` |
+
+### Create Onboarding (`POST /onboard`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| `externalOnboardingId` or `panNumber` is missing or empty | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| PAN type is not one of `P`, `C`, `T`, `F` | `400 Bad Request` |
+| PAN already exists in the PayGlocal system | `400 Bad Request` |
+| PAN does not exist (invalid PAN) | `400 Bad Request` |
+
+### Update Business Details (`PUT /business-details`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| Update attempted after T&C is acknowledged | `400 Bad Request` |
+
+### Add / Update Beneficial Owner (`PUT /beneficial-owner`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| PAN provided is not a personal PAN (type `P`) | `400 Bad Request` |
+| PAN does not exist | `400 Bad Request` |
+| Update attempted after verification step is complete | `400 Bad Request` |
+
+### Update Bank Details (`PUT /bank-details`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields missing or empty | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| Penny drop verification fails | `400 Bad Request` |
+| Update attempted after verification step is complete | `400 Bad Request` |
+
+### Update Authorised Signatory (`PUT /auth-signatory`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields validation error | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| PAN validation failed | `400 Bad Request` |
+| Update attempted after T&C is acknowledged | `400 Bad Request` |
+
+### Upload Documents (`PUT /docs`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required fields validation error | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+| Update attempted after verification step is complete | `400 Bad Request` |
+
+### Configure Products and Fees (`PUT /products`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing required fields | `400 Bad Request` |
+| Invalid field format | `400 Bad Request` |
+
+### Verify Merchant (`PUT /verify`)
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Called before all onboarding information is captured | `400 Bad Request` |
+
+---
+
+## Error Response Structure
+
+All error responses follow the [Common Error Response Structure](/reference/response-structure#common-error-response):
+
+```json
+{
+  "gid": "gl_9c2645ed09edb22e",
+  "timestamp": "10/01/2026 15:00:00",
+  "reasonCode": "VALIDATION_ERROR",
+  "data": {},
+  "errors": {},
+  "errorDetails": [
+    {
+      "field": "panNumber",
+      "message": "Required field is missing"
+    }
+  ]
+}
+```
+
+Always inspect the `errorDetails` array for field-level context on `400 Bad Request` errors. Each entry identifies the exact field that failed validation.
+
+---
+
+## Authentication Errors
+
+If you receive a `401 Unauthorized`, check the following:
+
+1. The `x-api-key` header matches the API Key from your dashboard exactly.
+2. The digest is computed using the **API Secret**, not the API Key.
+3. For POST/PUT: the digest was computed over the **exact raw request body** byte-for-byte.
+4. For GET: the digest was computed over the **full request URL** including the protocol and path.
+5. The output is **Base64-encoded** — not hex.
+
+See [Authentication](/authentication) for code examples and the full signing specification.

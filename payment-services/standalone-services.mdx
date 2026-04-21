@@ -1,0 +1,171 @@
+---
+title: "Standalone Auth, Capture & Reversal"
+description: "Use PayGlocal's standalone Authorization, Capture, and Reversal APIs when your MID is configured for authentication-only GPI processing."
+---
+
+## Overview
+
+PayGlocal offers three standalone API services for merchants who need fine-grained control over the payment lifecycle:
+
+| Service | Purpose |
+|---------|---------|
+| **Authorization** | Request a payment authorization from the issuer |
+| **Capture** | Capture an authorized payment to trigger settlement |
+| **Reversal** | Reverse (void) an authorized payment before capture |
+
+<Note>
+  These APIs are available **only when your MID is configured for authentication-only processing** through the GPI service. In this model, GPI handles 3DS authentication, and you manage authorization and capture separately. Contact PayGlocal merchant support to configure this on your account.
+</Note>
+
+---
+
+## Authorization
+
+Request a standalone authorization through PayGlocal after completing 3DS authentication via GPI.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/auth
+```
+
+### Request
+
+For countries requiring authentication before authorization, include the `authenticationData` block with the ECI and CAVV values received from the authentication process.
+
+```json
+{
+  "paymentData": {
+    "totalAmount": "100",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "4242424242424242",
+      "expiryMonth": "05",
+      "expiryYear": "2026",
+      "securityCode": "173"
+    },
+    "authenticationData": {
+      "eci": "5",
+      "cavv": "<cavv-from-authentication>"
+    }
+  },
+  "billingData": {
+    "firstName": "TestFirstName",
+    "lastName": "TestLastName",
+    "addressStreet1": "Test123 Avenue",
+    "addressStreet2": "nytest",
+    "addressCity": "Test City",
+    "addressState": "New York",
+    "addressStateCode": "NY",
+    "addressPostalCode": "98109",
+    "addressCountry": "US",
+    "emailId": "example@gmail.com"
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "AUTHORIZED",
+  "message": "Authorization Successful",
+  "timestamp": "2021-04-12T07:47:18Z"
+}
+```
+
+**Store the GID** — you will use it in the Capture or Reversal request.
+
+---
+
+## Capture
+
+Capture a previously authorized payment to trigger settlement. You must capture within the authorization window allowed by the card network (typically 7 days).
+
+### Endpoint
+
+```
+POST /gl/v1/payments/{gid}/capture
+```
+
+`{gid}` = the GID returned in the Authorization response.
+
+### Request
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "100.00"
+  },
+  "captureType": "F"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `merchantTxnId` | String | Yes | Your unique reference for this capture |
+| `paymentData.totalAmount` | String | Yes | Amount to capture |
+| `captureType` | String | Yes | `F` = Full capture, `P` = Partial capture |
+
+---
+
+## Reversal (Auth Reversal)
+
+Reverse an authorized payment that has not yet been captured. Only full reversals are supported.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/{gid}/auth-reversal
+```
+
+`{gid}` = the GID returned in the Authorization response.
+
+### Request
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07"
+}
+```
+
+---
+
+## When to Use Each Service
+
+```
+GPI Service (Auth Only mode)
+       │
+       ├──▶ Authorization API ──▶ AUTHORIZED
+       │                               │
+       │                    ┌──────────┴──────────┐
+       │                    ▼                     ▼
+       │             Capture API           Reversal API
+       │          (ship goods)         (cancel the order)
+       │                    │
+       │                    ▼
+       │           SENT_FOR_CAPTURE
+       │              (settled)
+```
+
+| Scenario | Use |
+|----------|-----|
+| Customer completes payment, you are ready to ship | Capture |
+| Order cancelled after authorization but before shipment | Reversal |
+| Already captured and customer requests refund | [Refund Service](/payment-services/refund-service) |
+
+<CardGroup cols={3}>
+  <Card title="GPI Service" icon="credit-card" href="/payment-services/gpi-service">
+    Required prerequisite — handles 3DS and auth-only mode configuration.
+  </Card>
+  <Card title="Get Status" icon="magnifying-glass" href="/payment-services/get-status-service">
+    Poll transaction status after authorization or capture.
+  </Card>
+  <Card title="Refund Service" icon="rotate-left" href="/payment-services/refund-service">
+    Issue refunds on already-captured transactions.
+  </Card>
+</CardGroup>

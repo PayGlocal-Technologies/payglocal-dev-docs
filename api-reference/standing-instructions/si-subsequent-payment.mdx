@@ -1,0 +1,24 @@
+---
+title: "SI Subsequent Payment"
+description: "Initiate a subsequent recurring payment using an existing active mandate."
+openapi: "POST /gl/v1/payments/si/sale"
+---
+
+## When to Use
+
+Trigger a subsequent debit against an active standing-instruction mandate. The mandate is created during the initial `/initiate` call; this endpoint debits against it.
+
+## FIXED vs VARIABLE
+
+- **`type=FIXED`** — the debit amount is fixed to the amount supplied at mandate creation. Do not include `paymentData.totalAmount`.
+- **`type=VARIABLE`** — the debit amount is variable but must be ≤ the `maxAmount` set when the mandate was created. `paymentData.totalAmount` is required.
+
+## Common Failure Responses
+
+```json
+{ "status": "REQUEST_ERROR", "message": "Mandate is not found | Mandate is inactive | Mandate is exhausted" }
+```
+
+<Note>
+  If **Auto Debit** is enabled at the MID level, PayGlocal initiates subsequent payments automatically — this API is not applicable.
+</Note>

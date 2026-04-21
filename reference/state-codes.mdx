@@ -1,0 +1,83 @@
+---
+title: "State & UT Codes"
+description: "Standard two-letter codes for all Indian states and Union Territories, used in address fields across the Merchant Onboarding API."
+---
+
+Use these codes in the `stateCode` field within `businessRegisteredAddress` and `businessOperatingAddress` in the [Update Business Details](/api-reference/update-business-details) API.
+
+## States
+
+| State | Code |
+|-------|------|
+| Andhra Pradesh | `AP` |
+| Arunachal Pradesh | `AR` |
+| Assam | `AS` |
+| Bihar | `BR` |
+| Chhattisgarh | `CG` |
+| Goa | `GA` |
+| Gujarat | `GJ` |
+| Haryana | `HR` |
+| Himachal Pradesh | `HP` |
+| Jharkhand | `JH` |
+| Karnataka | `KA` |
+| Kerala | `KL` |
+| Madhya Pradesh | `MP` |
+| Maharashtra | `MH` |
+| Manipur | `MN` |
+| Meghalaya | `ML` |
+| Mizoram | `MZ` |
+| Nagaland | `NL` |
+| Odisha | `OD` |
+| Punjab | `PB` |
+| Rajasthan | `RJ` |
+| Sikkim | `SK` |
+| Tamil Nadu | `TN` |
+| Telangana | `TS` |
+| Tripura | `TR` |
+| Uttar Pradesh | `UP` |
+| Uttarakhand | `UK` |
+| West Bengal | `WB` |
+
+## Union Territories
+
+| Union Territory | Code |
+|----------------|------|
+| Andaman & Nicobar Islands | `AN` |
+| Chandigarh | `CH` |
+| Dadra & Nagar Haveli and Daman & Diu | `DD` |
+| Delhi (NCT) | `DL` |
+| Jammu & Kashmir | `JK` |
+| Ladakh | `LA` |
+| Lakshadweep | `LD` |
+| Puducherry | `PY` |
+
+## Usage Example
+
+When submitting the registered address of a Mumbai-based business:
+
+```json
+{
+  "address": {
+    "isOperatingSameAsRegistered": true,
+    "businessRegisteredAddress": {
+      "streetAddress1": "501 Commerce Street",
+      "streetAddress2": "Floor 3",
+      "zipcode": "400051",
+      "stateCode": "MH",
+      "city": "Mumbai",
+      "state": "Maharashtra"
+    }
+  }
+}
+```
+
+Note that both `stateCode` (`MH`) and the full `state` name (`Maharashtra`) are required fields.
+
+<CardGroup cols={2}>
+  <Card title="Create Onboarding" icon="building-columns" href="/api-reference/create-onboarding">
+    State codes are required when submitting business address details.
+  </Card>
+  <Card title="Update Business Details" icon="pen-to-square" href="/api-reference/update-business-details">
+    Update address fields with the correct state code.
+  </Card>
+</CardGroup>

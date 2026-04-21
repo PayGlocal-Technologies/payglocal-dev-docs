@@ -1,0 +1,94 @@
+---
+title: "Downloading the PayGlocal Public Certificate"
+description: "Obtain PayGlocal's PUBCERT to encrypt your request payloads and validate responses from PayGlocal."
+---
+
+## What Is the Public Certificate?
+
+PayGlocal's **Public Certificate (PUBCERT)** serves two purposes in your integration:
+
+1. **Encrypts your request payload** before sending it to PayGlocal's servers (JWE format)
+2. **Validates the `x-gl-token`** returned by PayGlocal in payment callbacks — ensuring the response genuinely came from PayGlocal and has not been tampered with
+
+## Steps to Download
+
+<Steps>
+  <Step title="Log in to the PayGlocal Control Center">
+    Navigate to the correct environment:
+    - **UAT:** `https://gcc.uat.payglocal.in`
+    - **Production:** `https://gcc.prod.payglocal.in`
+  </Step>
+
+  <Step title="Go to Key Management">
+    In the left navigation panel, choose **Key Management**.
+  </Step>
+
+  <Step title="Open the Manage Keys Section">
+    Select **Manage Keys** from the Key Management menu.
+  </Step>
+
+  <Step title="Download the Certificate">
+    Download PayGlocal's Public Certificate. The file follows this naming format:
+    ```
+    <kid>_glocal.cert
+    ```
+
+    **Example:** `834hinrh-8r0n-4657-34nn-fnjhjre33uur_glocal.cert`
+  </Step>
+</Steps>
+
+## Extracting the Certificate Key ID (KID)
+
+Similar to your Private Key, the certificate filename encodes the Key ID (KID). Extract the part before `_glocal.cert`:
+
+| Filename part | Example | What it is |
+|--------------|---------|------------|
+| Before `_glocal.cert` | `834hinrh-8r0n-4657-34nn-fnjhjre33uur` | **Certificate KID** — configure this in your client code as the PUBCERT KID |
+
+For `834hinrh-8r0n-4657-34nn-fnjhjre33uur_glocal.cert`:
+- **Certificate KID:** `834hinrh-8r0n-4657-34nn-fnjhjre33uur`
+
+## How PUBCERT Is Used in the Integration
+
+### Request Encryption
+
+When payload encryption is enabled in your client configuration, the sample client code automatically encrypts the GPI request body using the PUBCERT in **JWE (JSON Web Encryption)** format before sending it to PayGlocal.
+
+PayGlocal **strongly recommends** enabling payload encryption.
+
+### Response Validation
+
+When PayGlocal redirects the customer back to your callback URL, it sends an `x-gl-token` parameter. Before reading the payment status from this token, you must:
+
+1. Verify the token's signature using the PUBCERT
+2. Only proceed to extract the payment status if validation succeeds
+
+If token validation fails, do not trust the payment status from the callback. Instead, make a [Get Status](/payment-services/get-status-service) API call using the GID returned in the original GPI response.
+
+### Token Structure
+
+The `x-gl-token` is a JWT with the following structure:
+
+**Header**
+```json
+{
+  "issued-by": "GLOCAL",
+  "is-digested": false,
+  "alg": "RS256",
+  "kid": "GLOCAL-KID"
+}
+```
+
+**Payload**
+```json
+{
+  "status": "SENT_FOR_CAPTURE",
+  "gid": "gl-883qjfn9-6d9r-44dk-o99e-bf17e403c931",
+  "merchantUniqueId": "KJBFOUBEW9939",
+  "iat": 1422779638
+}
+```
+
+## Next Step
+
+With both keys in hand, proceed to [Constructing API Requests](/key-management/request-construction) to configure the sample client code and start making calls.

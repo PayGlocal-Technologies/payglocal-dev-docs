@@ -1,0 +1,46 @@
+---
+title: "Magento"
+description: "Install the PayGlocal module on your Magento (Adobe Commerce) store."
+icon: "magento"
+---
+
+## Prerequisites
+
+- A Magento 2.x / Adobe Commerce store with admin access.
+- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
+- The PayGlocal module archive — contact your PayGlocal account manager to obtain the latest build.
+
+## Install
+
+<Steps>
+  <Step title="Download the module">
+    Obtain the latest `payglocal-magento.zip` from your PayGlocal account manager.
+  </Step>
+  <Step title="Extract into app/code">
+    Unzip into `app/code/PayGlocal/Payment/` on your Magento server.
+  </Step>
+  <Step title="Enable the module">
+    Run:
+
+    ```bash
+    php bin/magento module:enable PayGlocal_Payment
+    php bin/magento setup:upgrade
+    php bin/magento setup:di:compile
+    php bin/magento cache:flush
+    ```
+  </Step>
+  <Step title="Configure">
+    In the Magento admin, go to **Stores → Configuration → Sales → Payment Methods → PayGlocal**. Enter your API Key and RSA keys.
+  </Step>
+  <Step title="Enable">
+    Set **Enabled** to **Yes** and save the configuration.
+  </Step>
+</Steps>
+
+## Test
+
+Place a test order with the [test cards](/reference/test-cards) to verify checkout.
+
+<Note>
+  Detailed screenshot walkthrough is published on the merchant help centre.
+</Note>

@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Node (guard)
+node_modules/
+*.log
+
+# Local tool state
+.claude/
+.playwright-mcp/
+
+# Legacy config
+mint.json.bak

@@ -1,0 +1,13 @@
+---
+title: "Auth Reversal"
+description: "Reverse (void) an authorized payment before it is captured."
+openapi: "POST /gl/v1/payments/{gid}/auth-reversal"
+---
+
+## When to Use
+
+Void an `AUTHORIZED` transaction that has not yet been captured. This releases the hold on the customer's card.
+
+<Note>
+  Only **full reversals** are supported. If the payment has already been captured, use the [Refund](/api-reference/payment/refund) service instead.
+</Note>

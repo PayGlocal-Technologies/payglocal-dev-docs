@@ -1,0 +1,124 @@
+---
+title: "API Flow Overview"
+description: "Understand the complete merchant onboarding sequence before writing a single line of code."
+---
+
+## Onboarding Lifecycle
+
+Merchant onboarding on PayGlocal is a **sequential, stateful process**. Each API call enriches the merchant record, and PayGlocal validates completeness before allowing the final verification step.
+
+```
+Partner System                          PayGlocal API
+      │                                       │
+      │  POST /onboard  ─────────────────────▶│  Creates merchant record
+      │◀───────────────  onboardingId  ───────│  Returns onboardingId
+      │                                       │
+      │  PUT /business-details ──────────────▶│  Stores business info
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /beneficial-owner ──────────────▶│  Stores UBOs
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /bank-details ──────────────────▶│  Penny drop validation
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /auth-signatory ────────────────▶│  Stores signatory details
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /docs (repeat per doc) ─────────▶│  Uploads compliance docs
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /products ──────────────────────▶│  Configures products & fees
+      │◀─────────────────────────────────────│  200 OK
+      │                                       │
+      │  PUT /verify ────────────────────────▶│  Generates verification URL
+      │◀──────────────── redirectUrl ─────────│  Merchant completes VKYC
+      │                                       │
+      │  GET /status ────────────────────────▶│  Confirm final status
+      │◀─────────────────────────────────────│  SUCCESS / PENDING_REVIEW
+```
+
+## Step-by-Step Breakdown
+
+<Steps>
+  <Step title="Create Onboarding Record">
+    `POST /gcc/v2/partner/merchant/onboard`
+
+    Initiate the onboarding with the merchant's PAN and your internal `externalOnboardingId`. This is the entry point — all subsequent calls reference the `onboardingId` returned here.
+
+    **Key output:** `onboardingId` (a PayGlocal-generated ID for this merchant's onboarding session)
+  </Step>
+
+  <Step title="Submit Business Details">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/business-details`
+
+    Provide entity type, GST number, nature of business (from the [Business Categories](/reference/business-categories) reference), website URL, expected monthly transaction volume, and registered/operating address.
+
+    Use the [State Codes](/reference/state-codes) reference for `stateCode` fields.
+  </Step>
+
+  <Step title="Add Beneficial Owners">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/beneficial-owner`
+
+    Submit all Ultimate Beneficial Owners (UBOs) holding ≥10% ownership. The array in the request **completely replaces** the existing beneficial owner list — always send all UBOs together.
+  </Step>
+
+  <Step title="Add Bank Details">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/bank-details`
+
+    Submit the settlement bank account. PayGlocal performs a **penny drop verification** to confirm the account is active and the IFSC code is valid. The account must be either CURRENT or SAVINGS type.
+  </Step>
+
+  <Step title="Add Authorised Signatory">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory`
+
+    Submit the details of the individual authorized to sign on behalf of the business. This person's phone and email are used during VKYC and DigiLocker verification, so accuracy is critical.
+  </Step>
+
+  <Step title="Upload Documents">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/docs`
+
+    Upload each required compliance document as a separate API call. The `merchantDocType` field specifies the document category (e.g., `PAN`, `COI_DOCUMENT`, `OPERATING_ADDRESS_PROOF`). See the [Upload Documents](/api-reference/upload-documents) reference for the full list.
+  </Step>
+
+  <Step title="Configure Products and Fees">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/products`
+
+    Specify which payment products to enable for the merchant (`GLOBAL_FUND_TRANSFER`, `INTERNATIONAL_CARDS_AND_ALT_PAYS`, `DOMESTIC_CARDS_UPI_AND_INB`) and configure per-product fee structures.
+  </Step>
+
+  <Step title="Trigger Merchant Verification">
+    `PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/verify`
+
+    Generates a unique `redirectUrl` for the merchant to complete VKYC, DigiLocker document verification, and T&C acknowledgement. Embed this URL in an iFrame — see the [iFrame Integration](/guides/iframe-integration) guide.
+
+    This step can only be triggered once all prior steps are complete.
+  </Step>
+
+  <Step title="Confirm Final Status">
+    `GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status`
+
+    After the merchant completes the verification flow and is redirected to your `callbackUrl`, always perform a server-to-server status check to confirm the VKYC and DigiLocker statuses are `SUCCESS` or `PENDING_REVIEW`.
+
+    Never rely solely on the callback URL redirect to determine completion.
+  </Step>
+</Steps>
+
+## State Transitions
+
+| `onboardingStatus` | Meaning |
+|---|---|
+| `INITIATED` | Onboarding record created, details not yet submitted |
+| `IN_PROGRESS` | One or more detail sections submitted |
+| `PENDING_VERIFICATION` | All details submitted, awaiting merchant VKYC |
+| `PENDING_REVIEW` | VKYC complete, under PayGlocal compliance review |
+| `APPROVED` | Merchant fully onboarded and activated |
+| `REJECTED` | Onboarding rejected after review |
+| `RFI` | Request for Information — additional data required |
+
+## Important Constraints
+
+- **Business details and authorised signatory** cannot be updated after the merchant has acknowledged the T&C.
+- **Beneficial owner and bank details** cannot be updated after the verification step is complete.
+- Attempting to call `/verify` before all required steps are complete returns `400 Bad Request`.
+- The `externalOnboardingId` must be unique per merchant in your system — it cannot be reused.

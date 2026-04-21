@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 48" fill="none">
+  <!-- Hexagon icon (pointy top/bottom) -->
+  <polygon points="22,4 38.6,13.5 38.6,33.5 22,43 5.4,33.5 5.4,13.5" fill="#4A90E8"/>
+  <!-- G shape cutout in white: large arc (C shape) + horizontal midbar -->
+  <path d="M29.1,16.9 A10,10 0 1,0 32,24 L22,24"
+        stroke="white" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- PayGlocal wordmark (white for dark backgrounds) -->
+  <text x="50" y="33"
+        font-family="'Outfit', -apple-system, BlinkMacSystemFont, Arial, sans-serif"
+        font-weight="700"
+        font-size="23"
+        fill="white">PayGlocal</text>
+  <!-- TM superscript -->
+  <text x="192" y="18"
+        font-family="Arial, sans-serif"
+        font-size="9"
+        fill="white">™</text>
+</svg>

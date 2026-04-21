@@ -1,0 +1,134 @@
+---
+title: "Payment Initiation Flow"
+description: "Understand the end-to-end flow for initiating a payment through PayGlocal, from checkout to settlement."
+---
+
+## Overview
+
+PayGlocal's payment flow involves both **server-side** and **browser-side** components. Your server communicates with PayGlocal's API to create the transaction, and your customer's browser is redirected to PayGlocal's hosted payment page to complete authentication and authorization.
+
+## Flow Diagram
+
+```
+Browser                  Client/Merchant Server         PayGlocal Server
+   │                             │                              │
+   │  1. Customer starts payment  │                              │
+   │─────────────────────────────▶│                              │
+   │                             │  2. GPI API Request           │
+   │                             │─────────────────────────────▶│
+   │                             │  3. RedirectURL + GID         │
+   │                             │◀─────────────────────────────│
+   │  4. PayGlocal URL           │                              │
+   │◀─────────────────────────────│                              │
+   │  5. Redirect (GET)          │                              │
+   │────────────────────────────────────────────────────────────▶│
+   │                             │                  Payment      │
+   │                             │                  completes    │
+   │  6. Redirect back (POST)    │                  or fails     │
+   │◀────────────────────────────────────────────────────────────│
+   │                             │                              │
+```
+
+## Step-by-Step
+
+<Steps>
+  <Step title="Customer Initiates Payment">
+    The customer initiates a payment on your checkout page. Your frontend sends the payment details to your server.
+  </Step>
+
+  <Step title="Your Server Calls GPI">
+    Your server sends a **GPI (Payment Initiation) API request** to PayGlocal. This request includes transaction details, card data (PayDirect) or minimal data (PayCollect), and optional risk/shipping/billing data.
+
+    See [GPI Service](/payment-services/gpi-service) for full request details.
+  </Step>
+
+  <Step title="PayGlocal Returns a Redirect URL and GID">
+    PayGlocal responds with:
+    - **`redirectUrl`** — the URL to redirect your customer's browser to
+    - **`gid`** — a unique PayGlocal transaction identifier (always starts with `gl-`)
+
+    **Store the GID.** You will need it to query the transaction status if the callback fails.
+
+    ```json
+    {
+      "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+      "status": "CREATED",
+      "message": "Transaction Created Successfully",
+      "data": {
+        "redirectUrl": "https://api.prod.payglocal.in/gl/v1/payments/redirect?x-gl-token=...",
+        "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Provide the URL to the Browser">
+    Your server returns the `redirectUrl` to your frontend browser application.
+  </Step>
+
+  <Step title="Browser Redirects to PayGlocal (GET)">
+    Your browser application redirects the customer to the `redirectUrl` using an **HTTP GET** method.
+
+    <Warning>
+      **Do not use HTTP POST** to redirect to the PayGlocal URL. Only GET is supported for this step.
+    </Warning>
+
+    On the PayGlocal-hosted page, the customer completes their payment (authentication, card entry, 3DS, etc.).
+  </Step>
+
+  <Step title="PayGlocal Redirects Back to Your Callback URL (POST)">
+    After the payment completes (success or failure), PayGlocal redirects the customer's browser back to the `merchantCallbackURL` you specified in the GPI request using an **HTTP POST**.
+
+    PayGlocal sends a cryptographic token in the POST parameter: `x-gl-token`.
+
+    **Your server must:**
+    1. Validate the `x-gl-token` signature using PayGlocal's PUBCERT
+    2. Extract the payment status from the validated token payload
+    3. Render the appropriate payment success/failure page to the customer
+
+    If token validation fails, call the [Get Status API](/payment-services/get-status-service) using the GID.
+  </Step>
+</Steps>
+
+## PayGlocal Transaction Identifiers
+
+### GID (PayGlocal ID)
+
+Each GPI service call creates a unique **GID** — your primary handle for tracking and reconciling transactions.
+
+- Always starts with `gl-`
+- Example: `gl-066b5ac7-c674-4b62-945d-88ac9644fa29`
+- Use in follow-on API requests (Get Status, Refund)
+
+### Merchant Unique ID
+
+You can send your own transaction reference (`merchantUniqueId`) in the GPI request. This identifier:
+
+- Must be unique across all services for your MID
+- Must **not** start with `gl-`
+- Can be used in place of the GID for Get Status and follow-on requests
+- PayGlocal recommends V4 UUIDs or another high-entropy random string
+
+## Two Processing Models
+
+You can configure your MID for either of these models:
+
+| Model | What Happens During Redirect | Your Action After |
+|-------|------------------------------|-------------------|
+| **Authenticate + Authorize + Capture** | PayGlocal completes the full payment during the redirect flow | Ship goods on `SENT_FOR_CAPTURE` |
+| **Authenticate Only** | PayGlocal completes authentication only | You send separate Auth and Capture API calls |
+
+Contact PayGlocal merchant support to configure your preferred model.
+
+## Standing Instructions
+
+To set up a recurring payment mandate alongside the first payment, include the `standingInstruction` data block in your GPI request. See [Standing Instructions Flow](/integration/standing-instructions-flow) for the complete setup.
+
+## Error Handling
+
+| GPI Response Status | Meaning | Action |
+|--------------------|---------|--------|
+| `CREATED` | Transaction created — redirect customer | Proceed with redirect |
+| `REQUEST_ERROR` | Payload has field-level issues | Fix request fields and retry |
+| `SYSTEM_ERROR` | PayGlocal system issue | Retry after some time |
+| `CONFIG_ERROR` | MID not configured correctly | Contact PayGlocal support |

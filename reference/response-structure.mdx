@@ -1,0 +1,182 @@
+---
+title: "Response Structure"
+description: "All PayGlocal API responses follow a consistent envelope structure. Learn to parse both success and error responses."
+---
+
+## Common Success Response
+
+All successful API responses return a JSON object with the following top-level fields:
+
+```json
+{
+  "gid": "gl_9c2645ed09edb22e",
+  "timestamp": "10/01/2026 15:00:00",
+  "reasonCode": "",
+  "data": {
+    "merchantInfo": {
+      "onboardingId": "pg_onboard_abc123",
+      "partnerOnboardingId": "partner-merchant-001",
+      "onboardingStatus": "IN_PROGRESS",
+      "businessDetails": {
+        "entityType": "PVT_LTD_COMPANY",
+        "gstNumber": "27AAPFU0939F1ZV",
+        "natureOfBusiness": "BUS.IT_SERVICES",
+        "registeredName": "Acme Payments Pvt Ltd",
+        "tradeName": "Acme Payments",
+        "iec": "",
+        "businessMonthlySize": "50000",
+        "websiteUrl": "https://acmepayments.com",
+        "purposeCode": "P0802",
+        "businessRegisteredAddress": {
+          "streetAddress1": "501 Commerce Street",
+          "streetAddress2": "Floor 3",
+          "zipcode": "400051",
+          "stateCode": "MH",
+          "city": "Mumbai",
+          "state": "Maharashtra"
+        },
+        "businessOperatingAddress": {
+          "streetAddress1": "",
+          "streetAddress2": "",
+          "zipcode": "",
+          "stateCode": "",
+          "city": "",
+          "state": ""
+        }
+      },
+      "directorDetails": [
+        {
+          "designation": "Director",
+          "name": "Ravi Kumar",
+          "pan": "ABCPK1234R"
+        }
+      ],
+      "beneficialOwnerDetails": [
+        {
+          "designation": "Director",
+          "name": "Ravi Kumar",
+          "pan": "ABCPK1234R",
+          "percentageOwnership": 60
+        }
+      ],
+      "authorisedSignatoryDetails": {
+        "authSignatoryName": "Ananya Mehta",
+        "authSignatoryPan": "ABCPM1234R",
+        "contact": {
+          "phone": "+919876543210",
+          "email": "ananya.mehta@acmepayments.com"
+        }
+      },
+      "settlementDetails": {
+        "bankAccountNumber": "123456789012",
+        "bankIfscCode": "HDFC0001234",
+        "accountHolderName": "Acme Payments Pvt Ltd",
+        "accountType": "CURRENT"
+      }
+    },
+    "merchantOnboardingCheckListStatus": {
+      "businessDetails": "COMPLETE",
+      "beneficialOwners": "COMPLETE",
+      "bankDetails": "COMPLETE",
+      "authorisedSignatory": "COMPLETE",
+      "vkyc": "PENDING",
+      "digiLocker": "PENDING",
+      "tncAcknowledged": "PENDING",
+      "documents": "COMPLETE",
+      "products": "COMPLETE",
+      "documentsToBeUploaded": []
+    }
+  }
+}
+```
+
+### Top-Level Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `gid` | string | PayGlocal global transaction identifier. Unique per API response. Use this when contacting support. |
+| `timestamp` | string | Server timestamp of the response in `DD/MM/YYYY HH:MM:SS` format. |
+| `reasonCode` | string | Empty string on success. Populated with an error code on failure. |
+| `data` | object | The response payload. Contains `merchantInfo` and `merchantOnboardingCheckListStatus`. |
+
+### `merchantInfo` Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `onboardingId` | string | PayGlocal-generated unique identifier for this onboarding session. |
+| `partnerOnboardingId` | string | The `externalOnboardingId` submitted by the partner at creation. |
+| `onboardingStatus` | string | Current lifecycle status of the onboarding. See [API Flow Overview](/guides/api-flow-overview#state-transitions). |
+
+### `merchantOnboardingCheckListStatus` Fields
+
+| Field | Possible Values | Description |
+|-------|-----------------|-------------|
+| `businessDetails` | `PENDING`, `COMPLETE` | Business information submission status |
+| `beneficialOwners` | `PENDING`, `COMPLETE` | Beneficial owner submission status |
+| `bankDetails` | `PENDING`, `COMPLETE` | Bank details and penny drop status |
+| `authorisedSignatory` | `PENDING`, `COMPLETE` | Authorised signatory submission status |
+| `vkyc` | `PENDING`, `SUCCESS`, `PENDING_REVIEW`, `FAILED` | Video KYC outcome |
+| `digiLocker` | `PENDING`, `SUCCESS`, `PENDING_REVIEW`, `FAILED` | DigiLocker verification outcome |
+| `tncAcknowledged` | `PENDING`, `COMPLETE` | T&C acknowledgement status |
+| `documents` | `PENDING`, `COMPLETE` | Document upload status |
+| `products` | `PENDING`, `COMPLETE` | Product and fee configuration status |
+| `documentsToBeUploaded` | array of strings | Document types still required (empty when all uploaded) |
+
+---
+
+## Common Error Response
+
+All error responses follow this structure:
+
+```json
+{
+  "gid": "gl_9c2645ed09edb22e",
+  "timestamp": "10/01/2026 15:00:00",
+  "reasonCode": "VALIDATION_ERROR",
+  "data": {},
+  "errors": {},
+  "errorDetails": [
+    {
+      "field": "externalOnboardingId",
+      "message": "Required field is missing"
+    },
+    {
+      "field": "panNumber",
+      "message": "Required field is missing"
+    }
+  ]
+}
+```
+
+### Error Response Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `gid` | string | PayGlocal transaction ID. Provide this to support when reporting issues. |
+| `timestamp` | string | Server timestamp of the error response. |
+| `reasonCode` | string | Machine-readable error category (e.g., `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`). |
+| `data` | object | Empty object `{}` on error responses. |
+| `errors` | object | High-level error object. May contain additional context. |
+| `errorDetails` | array | Array of field-level error objects. Each entry contains `field` (the problematic field name) and `message` (human-readable description of the issue). |
+
+### Using `errorDetails` for Debugging
+
+The `errorDetails` array provides field-level granularity. Iterate over it to surface validation messages to merchants:
+
+```python
+for error in response["errorDetails"]:
+    print(f"Field '{error['field']}': {error['message']}")
+# Field 'externalOnboardingId': Required field is missing
+# Field 'panNumber': Required field is missing
+```
+
+For the full list of HTTP error codes and common scenarios, see [Response Codes & Errors](/reference/response-codes-and-errors).
+
+<CardGroup cols={2}>
+  <Card title="Response Codes & Errors" icon="triangle-exclamation" href="/reference/response-codes-and-errors">
+    Full list of HTTP codes, GL reason codes, and recommended actions.
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    How to generate the x-gl-digest header required on every request.
+  </Card>
+</CardGroup>

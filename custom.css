@@ -98,3 +98,24 @@ table tbody tr:hover {
   font-size: 0.78rem;
   letter-spacing: 0.02em;
 }
+
+/* ── UPI 7-step infographic (api-reference/payment/upi) ─────── */
+
+.upi-seven-step-flow-wrap {
+  margin: 3rem 0 3.75rem;
+  padding: clamp(1.75rem, 4vw, 3rem) clamp(1.25rem, 3vw, 2.75rem);
+  background: #f6f9fc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.upi-seven-step-flow-wrap img {
+  display: block;
+  width: 100%;
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  height: auto;
+  border-radius: 10px;
+}

@@ -1,0 +1,73 @@
+---
+title: "CodeDrop"
+description: "Embed the PayCollect hosted form directly into your page — choose Modal, Drawer, or Inline display."
+icon: "square-code"
+---
+
+## PayGlocal CodeDrop
+
+Don't want a full-page redirect to PayCollect? **CodeDrop** embeds the hosted payment form inside your own page — choose how it appears.
+
+---
+
+## Choose Payment Method
+
+Select how you want to display the payment form.
+
+<CardGroup cols={3}>
+  <Card title="Modal" icon="square" color="#1A6FE8">
+    **Opens a focus dialog above the page.** The customer's attention is locked on the payment without losing context of where they were.
+  </Card>
+  <Card title="Drawer" icon="sidebar" color="#10B981">
+    **Slides in from the side without leaving the page.** Good when your checkout flow stays partly visible behind the drawer.
+  </Card>
+  <Card title="Inline" icon="window" color="#F59E0B">
+    **Embeds the payment form directly in the page layout.** Best for fully bespoke checkout layouts where the form is part of the page.
+  </Card>
+</CardGroup>
+
+---
+
+## How It Works
+
+CodeDrop is a thin JavaScript wrapper around the PayCollect hosted page. You initialize it with the payment details, pick a display mode, and call `launch()` — PayGlocal handles the rest (3DS, payment method selection, capture).
+
+```javascript
+const cd = new PayGlocalCodeDrop({
+  merchantId:    "YOUR_MID",
+  merchantTxnId: "23AEE8CB6B62EE2AF07",
+  totalAmount:   "89",
+  txnCurrency:   "INR",
+  display:       "modal",   // or "drawer" or "inline"
+  callbackURL:   "https://www.yoursite.com/callback"
+});
+
+cd.launch();
+```
+
+<Note>
+  CodeDrop is a presentation mode of [PayCollect](/merchant/paycollect/overview) — not a separate integration. PCI requirements, supported payment methods, and the underlying API are identical.
+</Note>
+
+---
+
+## When to Use Which Mode
+
+| Mode | Best when |
+|------|-----------|
+| **Modal** | You want a clean payment moment without scrolling away. Most common choice. |
+| **Drawer** | The customer should still see context (cart, summary) while paying. |
+| **Inline** | You want the payment form to feel part of your own page, no overlay. |
+
+---
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+    A different embedding approach — used for the merchant verification (VKYC/DigiLocker) suite.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
+    Configure webhook callbacks for CodeDrop transactions.
+  </Card>
+</CardGroup>

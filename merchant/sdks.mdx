@@ -1,0 +1,71 @@
+---
+title: "SDKs & Libraries"
+description: "Production-ready PayGlocal SDKs in 4 languages — identical functionality with language-specific optimizations."
+icon: "box"
+---
+
+## SDKs & Libraries
+
+Production-ready SDKs for your favorite programming languages. Start integrating in minutes with comprehensive features and excellent documentation.
+
+<Note>
+  All SDKs provide **identical functionality** with language-specific optimizations.
+</Note>
+
+---
+
+## Available SDKs
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js" color="#10B981">
+    For JavaScript / TypeScript backends. Promise-based API with full TypeScript types.
+
+    Built-in JWE/JWS encryption, request signing, and status helpers.
+  </Card>
+  <Card title="Python" icon="python" color="#1A6FE8">
+    For Python services and scripts. Sync and async support.
+
+    Built-in JWE/JWS encryption, key management helpers, and webhook validators.
+  </Card>
+  <Card title="Java" icon="java" color="#F59E0B">
+    For JVM-based services. Maven and Gradle support.
+
+    Built-in JWE/JWS encryption, request signing, and Spring-friendly configurations.
+  </Card>
+  <Card title="Bash / cURL" icon="terminal" color="#8B5CF6">
+    For shell scripts and direct API testing. Reference scripts in our sample repo.
+
+    Includes openssl-based encryption + signing helpers.
+  </Card>
+</CardGroup>
+
+<Note>
+  SDK source code and language-specific quickstarts are distributed via the PayGlocal sample-client GitHub repository. Contact your PayGlocal representative or [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) for repository access.
+</Note>
+
+---
+
+## What All SDKs Provide
+
+| Capability | Description |
+|------------|-------------|
+| **JWE encryption** | Encrypts request payloads using PayGlocal's public certificate |
+| **JWS signing** | Signs every request with your private key |
+| **Header construction** | Adds `x-gl-token-external`, `x-gl-merchantid`, `x-gl-kid` |
+| **Endpoint routing** | UAT vs Production via single config flag |
+| **Response decoding** | Decodes `x-gl-token` callbacks and verifies signatures |
+| **Status helpers** | Wraps GET Status, Refund, Capture, Reversal, SI APIs |
+| **Webhook verification** | Validates incoming webhook signatures |
+
+---
+
+## Ready to Get Started?
+
+<CardGroup cols={2}>
+  <Card title="View Documentation" icon="book" href="/merchant/paycollect/overview">
+    Browse the integration guides to learn how PayGlocal APIs work end-to-end.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/payment/overview">
+    Field-by-field endpoint reference with an interactive playground.
+  </Card>
+</CardGroup>

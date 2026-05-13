@@ -1,0 +1,83 @@
+---
+title: "Which Integration Is Right for You?"
+description: "Pick between PayCollect (hosted, no PCI burden) and PayDirect (direct, full UI control) — the two ways to integrate PayGlocal payments."
+icon: "map"
+---
+
+## Choose Your Integration Path
+
+Select the solution that best matches your business requirements.
+
+<CardGroup cols={2}>
+  <Card title="PayCollect" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+    **PayGlocal collects card details.** Hosted payment page with zero PCI compliance burden.
+
+    - Hosted secure payment page
+    - Quick 5-minute integration
+    - Built-in 3DS authentication
+    - No PCI DSS compliance required
+  </Card>
+  <Card title="PayDirect" icon="code" color="#F59E0B" href="/merchant/paydirect/overview">
+    **You collect card details.** Custom-built payment integration with full UI control.
+
+    - Custom UI integration
+    - Full control over UX
+    - Advanced payment flows
+    - PCI DSS Level 1 required
+  </Card>
+</CardGroup>
+
+---
+
+## Quick Comparison
+
+|                                  | PayCollect              | PayDirect                  |
+|----------------------------------|-------------------------|----------------------------|
+| **PCI DSS required?**            | No                      | Yes                        |
+| **Who collects card data?**      | PayGlocal (hosted page) | You                        |
+| **Integration effort**           | Low (~5 minutes)        | Medium to high             |
+| **UI control**                   | Limited (hosted)        | Full                       |
+| **3DS authentication**           | Built in                | Built in                   |
+| **International cards**          | Yes                     | Yes                        |
+| **Alt payment methods**          | Yes (iDeal, Sofort, etc.) | No                       |
+| **Endpoint**                     | `/gl/v1/payments/initiate/paycollect` | `/gl/v1/payments/initiate` |
+
+---
+
+## Decision Guide
+
+```
+Are you PCI DSS certified?
+│
+├─ NO  → PayCollect
+│         PayGlocal hosts the payment page.
+│         You send amount + currency; PayGlocal collects card details.
+│
+└─ YES → Do you need full control over the checkout UI?
+          │
+          ├─ YES → PayDirect
+          │         You collect card data on your own page;
+          │         PayGlocal processes the payment.
+          │
+          └─ NO  → PayCollect
+                    Faster integration, less to maintain.
+```
+
+---
+
+## Both Methods Support
+
+<CardGroup cols={2}>
+  <Card title="Standing Instructions" icon="rotate" href="/merchant/standing-instructions">
+    Recurring payments with pre-authorized mandates — subscriptions, EMIs, utility bills.
+  </Card>
+  <Card title="Auth & Capture" icon="shield-check" href="/merchant/auth-capture">
+    Two-step flow: hold funds first, capture when ready. Ideal for delayed fulfillment.
+  </Card>
+</CardGroup>
+
+---
+
+## Not Sure?
+
+Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) — the PayGlocal team can advise on the right integration pattern for your business model.

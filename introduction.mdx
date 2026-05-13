@@ -1,75 +1,64 @@
 ---
-title: "Introduction"
-description: "Welcome to the PayGlocal Developer Portal — your complete reference for Merchant Onboarding and Payment Integration APIs."
+title: "What is PayGlocal?"
+description: "PayGlocal — RBI-licensed payment gateway for global businesses. Secure, scalable, and trusted by thousands of merchants worldwide."
 icon: "house"
 ---
 
-## Welcome to PayGlocal
+## Start Accepting Payments Today
 
-PayGlocal is an RBI-regulated payment gateway based in India, offering payment collection services to merchants and partners across global and domestic markets.
-
-This portal serves two distinct audiences. Pick the path that matches your role:
+The most powerful payment gateway for global businesses. Secure, scalable, and trusted by thousands of merchants worldwide.
 
 <CardGroup cols={2}>
-  <Card title="I'm a Partner — onboarding sub-merchants" icon="building-columns" href="/api-reference/onboarding-overview">
-    You operate a platform and onboard sub-merchants onto PayGlocal programmatically. Use the **Partner: Merchant Onboarding API** to submit KYC data, upload documents, configure products, and trigger VKYC verification.
+  <Card title="Explore Products" icon="boxes-packing" href="/integration/overview">
+    Pick the integration that fits your business and start accepting payments.
   </Card>
-  <Card title="I'm a Merchant — accepting payments" icon="credit-card" href="/guides/integration-chooser">
-    You accept payments from your customers. Use the **Merchant Payment APIs**, **Payment Links** (no-code), or an **E-commerce Plugin** (Shopify, WooCommerce, Magento, OpenCart, Wix).
+  <Card title="Manage Keys" icon="key" href="/key-management/overview">
+    Generate and configure the keys that secure every API call.
   </Card>
 </CardGroup>
 
-<Note>
-  Shared sections — **Getting Started**, **Security Setup**, and **Reference** — apply to both audiences. Persona-specific sections in the sidebar are prefixed **Partner:** or **Merchant:** so you can focus on what's relevant to you.
-</Note>
+---
+
+## Trusted by Industry Leaders
+
+<CardGroup cols={4}>
+  <Card title="500M+" icon="bolt" color="#1A6FE8">
+    **API requests** per day
+  </Card>
+  <Card title="120+" icon="globe" color="#10B981">
+    **Global currencies**
+  </Card>
+  <Card title="30+" icon="credit-card" color="#F59E0B">
+    **Payment methods**
+  </Card>
+  <Card title="100%" icon="circle-check" color="#8B5CF6">
+    **Uptime SLA**
+  </Card>
+</CardGroup>
 
 ---
 
-## How Integration Works
+## Why PayGlocal?
 
-<Steps>
-  <Step title="Set up keys and authentication">
-    Generate your Private Key and download PayGlocal's Public Certificate from the Control Center. Configure your client to sign and encrypt every request.
+Everything you need to build a world-class payment experience.
 
-    → [Key Management Overview](/key-management/overview)
-  </Step>
-  <Step title="Choose your integration path">
-    Decide between PayCollect (hosted, no PCI required), PayDirect (custom checkout, PCI required), Standalone Auth/Capture, or Standing Instructions for recurring payments.
-
-    → [Which Integration Is Right for You?](/guides/integration-chooser)
-  </Step>
-  <Step title="Onboard your first merchant">
-    Make your first API call to create an onboarding record, then submit business details, documents, and trigger verification.
-
-    → [Merchant Onboarding Flow](/guides/api-flow-overview)
-  </Step>
-  <Step title="Integrate payments">
-    Initiate your first GPI payment, handle the redirect callback, and check transaction status.
-
-    → [Payment Flow Overview](/integration/payment-flow)
-  </Step>
-  <Step title="Go live">
-    Complete sandbox testing, get written go-live approval from PayGlocal, and switch to the Production environment.
-
-    → [Requirements & Compliance](/requirements)
-  </Step>
-</Steps>
-
----
-
-## Environments
-
-| Environment | Base URL |
-|---|---|
-| Sandbox | `https://api.uat.payglocal.in` |
-| Production | `https://api.prod.payglocal.in` |
-
-<Note>
-  Always build and test against the Sandbox environment before going live. The Sandbox is functionally identical to Production but does not process real transactions.
-</Note>
-
----
-
-## Support
-
-For integration queries, compliance questions, or escalations, contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).
+<CardGroup cols={2}>
+  <Card title="RBI Licensed" icon="building-columns" color="#1A6FE8">
+    Online payment aggregator license from the Reserve Bank of India.
+  </Card>
+  <Card title="Global Reach" icon="globe" color="#10B981">
+    Support 100+ currencies and payment methods worldwide.
+  </Card>
+  <Card title="Flexible Compliance" icon="shield-check" color="#F59E0B">
+    Support both PCI DSS-compliant and non-PCI DSS merchants.
+  </Card>
+  <Card title="Advanced Fraud Detection" icon="shield" color="#EF4444">
+    Dedicated risk engine to identify fraudulent transactions.
+  </Card>
+  <Card title="Easy Integration" icon="code" color="#8B5CF6">
+    SDKs for all major platforms and frameworks.
+  </Card>
+  <Card title="Expert Support" icon="headset" color="#0EA5E9">
+    Dedicated support team available 24/7/365.
+  </Card>
+</CardGroup>

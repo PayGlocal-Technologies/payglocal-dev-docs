@@ -25,11 +25,34 @@
         "tab": "Getting Started",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Introduction",
             "pages": [
-              "introduction",
-              "guides/integration-chooser",
-              "requirements",
+              "introduction"
+            ]
+          },
+          {
+            "group": "Onboarding",
+            "pages": [
+              "onboarding/overview",
+              {
+                "group": "Partner Onboarding",
+                "pages": [
+                  "requirements",
+                  "guides/merchant-requirements",
+                  "guides/api-flow-overview"
+                ]
+              },
+              {
+                "group": "Merchant Onboarding",
+                "pages": [
+                  "onboarding/merchant"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Dashboard",
+            "pages": [
               "getting-started/gcc-dashboard",
               "getting-started/payglocal-identifiers"
             ]
@@ -45,36 +68,74 @@
             ]
           },
           {
-            "group": "Partner: Merchant Onboarding",
+            "group": "Integration",
             "pages": [
-              "guides/api-flow-overview",
-              "guides/merchant-requirements",
-              "guides/iframe-integration",
-              "guides/webhooks"
+              "integration/overview",
+              {
+                "group": "PayCollect",
+                "pages": [
+                  "merchant/paycollect/overview",
+                  "merchant/paycollect/jwt-authentication",
+                  {
+                    "group": "CodeDrop",
+                    "pages": [
+                      "merchant/paycollect/codedrop",
+                      "guides/iframe-integration",
+                      "guides/webhooks"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "PayDirect",
+                "pages": [
+                  "merchant/paydirect/overview",
+                  "merchant/paydirect/jwt-authentication"
+                ]
+              }
             ]
           },
           {
-            "group": "Merchant: Accept Payments",
+            "group": "Payment Features",
             "pages": [
-              "integration/payment-flow",
-              "payment-services/gpi-service",
-              "payment-services/get-status-service",
-              "payment-services/refund-service",
-              "payment-services/standalone-services",
-              "payment-services/standing-instructions"
+              {
+                "group": "Standing Instructions",
+                "pages": [
+                  "merchant/standing-instructions",
+                  "merchant/services/si-pause",
+                  "merchant/services/si-activate",
+                  "merchant/services/si-on-demand",
+                  "merchant/services/si-status-check"
+                ]
+              },
+              {
+                "group": "Auth & Capture",
+                "pages": [
+                  "merchant/auth-capture",
+                  "merchant/services/capture-payment",
+                  "merchant/services/auth-reversal"
+                ]
+              },
+              "merchant/services/status-check",
+              "merchant/services/initiate-refund"
             ]
           },
           {
-            "group": "Merchant: Payment Links (No-Code)",
+            "group": "Developer Tools",
+            "pages": [
+              "merchant/payment-flow",
+              "merchant/webhooks",
+              "merchant/payment-response-handling",
+              "merchant/payload-templates",
+              "merchant/sdks"
+            ]
+          },
+          {
+            "group": "No-Code",
             "pages": [
               "no-code/payment-links-overview",
               "no-code/payment-link-generation",
-              "no-code/payment-link-management"
-            ]
-          },
-          {
-            "group": "Merchant: E-commerce Plugins",
-            "pages": [
+              "no-code/payment-link-management",
               "plugins/overview",
               "plugins/shopify",
               "plugins/woocommerce",
@@ -86,16 +147,36 @@
           {
             "group": "Reference",
             "pages": [
-              "api-fields/transaction-payment-fields",
-              "api-fields/risk-data-fields",
-              "api-fields/response-fields",
-              "reference/response-codes-and-errors",
-              "reference/response-structure",
-              "reference/business-categories",
-              "reference/state-codes",
-              "reference/rate-limits",
-              "reference/test-cards",
-              "reference/faq"
+              {
+                "group": "API Fields",
+                "pages": [
+                  "api-fields/transaction-payment-fields",
+                  "api-fields/risk-data-fields",
+                  "api-fields/response-fields"
+                ]
+              },
+              {
+                "group": "Errors & Status",
+                "pages": [
+                  "reference/response-codes-and-errors",
+                  "reference/response-structure"
+                ]
+              },
+              {
+                "group": "Lookup Tables",
+                "pages": [
+                  "reference/business-categories",
+                  "reference/state-codes",
+                  "reference/rate-limits",
+                  "reference/test-cards"
+                ]
+              },
+              {
+                "group": "FAQ",
+                "pages": [
+                  "reference/faq"
+                ]
+              }
             ]
           }
         ]

@@ -1,0 +1,236 @@
+---
+title: "Webhooks"
+description: "Receive real-time payment notifications via HTTP callbacks — keep your system in sync with PayGlocal events."
+icon: "bell"
+---
+
+## What Are Webhooks?
+
+Webhooks are HTTP callbacks that notify your application when events occur in PayGlocal. Instead of repeatedly polling our API for status updates, webhooks **push notifications** to your server as soon as events happen.
+
+<CardGroup cols={2}>
+  <Card title="Real-time Updates" icon="bolt" color="#1A6FE8">
+    Get instant notifications when payment status changes.
+  </Card>
+  <Card title="Reduced Load" icon="server" color="#10B981">
+    No need to continuously poll our API for updates.
+  </Card>
+  <Card title="Reliable" icon="circle-check" color="#F59E0B">
+    Automatic retries ensure you receive critical updates.
+  </Card>
+  <Card title="Secure" icon="shield-check" color="#8B5CF6">
+    JWS signatures verify authenticity of every notification.
+  </Card>
+</CardGroup>
+
+---
+
+## Setting Up Webhooks
+
+<Steps>
+  <Step title="Create Webhook Endpoint">
+    Set up an HTTPS endpoint on your server to receive webhooks.
+
+    ```javascript
+    const express = require('express');
+    const app = express();
+
+    app.post('/webhooks/payglocal', express.json(), (req, res) => {
+      // 1. Verify the JWS signature in the request
+      // 2. Process the event payload
+      // 3. Respond with 200 OK within 5 seconds
+      res.status(200).send();
+    });
+    ```
+  </Step>
+
+  <Step title="Configure in Dashboard">
+    Add your webhook URL in the PayGlocal merchant dashboard:
+
+    1. Login to merchant dashboard
+    2. Navigate to **Settings → Webhooks**
+    3. Add your webhook URL (must be HTTPS)
+    4. Select events you want to receive
+    5. Save and activate
+  </Step>
+
+  <Step title="Test Your Integration">
+    Use test mode to verify webhook handling.
+
+    - Use **webhook.site** for quick testing
+    - Use **ngrok** for local development
+    - Test signature verification
+    - Simulate different payment scenarios
+  </Step>
+</Steps>
+
+---
+
+## Webhook Payload
+
+Webhooks are sent as **POST** requests with a JWS-signed payload.
+
+<Note>
+  Flutter source documentation describes the payload as "JWS-encrypted." More accurately: webhook payloads are **RSA-signed JWS** (not encrypted) — the body is readable JSON, and the JWS signature lets you verify authenticity. Verify the signature using PayGlocal's public certificate.
+</Note>
+
+### Headers
+
+```http
+Content-Type: application/json
+x-gl-signature: <JWS-signature>
+x-gl-timestamp: 2026-04-12T07:47:18Z
+x-gl-merchantid: <YOUR-MID>
+```
+
+### Sample Payload
+
+```json
+{
+  "event":       "PAYMENT_SUCCESS",
+  "gid":         "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":      "SENT_FOR_CAPTURE",
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "amount":      "89.00",
+  "currency":    "INR",
+  "timestamp":   "2026-04-12T07:47:18Z"
+}
+```
+
+---
+
+## Webhook Events
+
+PayGlocal sends webhooks for the following events:
+
+| Event | When Fired |
+|-------|------------|
+| `PAYMENT_SUCCESS` | Payment completed successfully |
+| `PAYMENT_FAILED` | Payment failed or was declined |
+| `PAYMENT_PENDING` | Payment is awaiting confirmation |
+| `REFUND_SUCCESS` | Refund processed successfully |
+| `REFUND_FAILED` | Refund processing failed |
+| `DISPUTE_OPENED` | Customer opened a dispute |
+| `DISPUTE_RESOLVED` | Dispute was resolved |
+
+<Note>
+  Verify the exact event names against your PayGlocal merchant account configuration — names may be MID-specific.
+</Note>
+
+---
+
+## Security & Verification
+
+Always verify webhook authenticity before processing.
+
+### Best Practices
+
+- Always verify JWS signature
+- Use HTTPS endpoint only
+- Validate `merchantId` in headers
+- Check timestamp to prevent replay attacks
+- Don't expose webhook URL publicly
+- Implement rate limiting
+
+### Signature Verification
+
+```javascript
+const jose = require('jose');
+
+async function verifyWebhook(req, publicCert) {
+  const signature = req.headers['x-gl-signature'];
+  const payload   = JSON.stringify(req.body);
+
+  try {
+    const { payload: verified } = await jose.compactVerify(signature, publicCert);
+    return verified.toString() === payload;
+  } catch (err) {
+    return false;
+  }
+}
+```
+
+---
+
+## Complete Handler Example (Node.js / Express)
+
+```javascript
+const express = require('express');
+const jose    = require('jose');
+
+const app = express();
+const PUBLIC_CERT = await loadPayGlocalPublicCert();
+
+app.post('/webhooks/payglocal', express.json(), async (req, res) => {
+  // 1. Respond fast — process asynchronously
+  res.status(200).send();
+
+  // 2. Verify signature
+  if (!await verifyWebhook(req, PUBLIC_CERT)) {
+    console.error('Invalid webhook signature');
+    return;
+  }
+
+  // 3. Idempotency — skip duplicates
+  const { gid, merchantTxnId, event, status } = req.body;
+  if (await alreadyProcessed(merchantTxnId, gid)) return;
+
+  // 4. Validate merchant
+  if (req.headers['x-gl-merchantid'] !== process.env.PAYGLOCAL_MID) return;
+
+  // 5. Route by event
+  switch (event) {
+    case 'PAYMENT_SUCCESS':
+      await fulfillOrder(merchantTxnId);
+      break;
+    case 'PAYMENT_FAILED':
+      await notifyCustomerOfFailure(merchantTxnId);
+      break;
+    case 'REFUND_SUCCESS':
+      await markRefundProcessed(merchantTxnId);
+      break;
+    // ...
+  }
+});
+```
+
+### Key Points
+
+- Always respond with **200 OK within 5 seconds**
+- Use `merchantTxnId` + `gid` to track and prevent duplicates
+- Process webhook data **asynchronously** after responding
+- Validate `merchantId` to ensure webhook is for your account
+- Handle different status values (`SENT_FOR_CAPTURE`, `FAILED`, `PENDING`, etc.)
+- Store webhook data in your database for audit trail
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Respond Quickly" icon="bolt" color="#1A6FE8">
+    Return 200 OK as soon as you receive the webhook. Process asynchronously.
+  </Card>
+  <Card title="Handle Duplicates" icon="clone" color="#F59E0B">
+    Use `merchantTxnId` to track processed webhooks and ignore duplicates.
+  </Card>
+  <Card title="Implement Fallback" icon="life-ring" color="#10B981">
+    Don't rely solely on webhooks. Use [Status Check](/merchant/services/status-check) as backup.
+  </Card>
+  <Card title="Log Everything" icon="file-lines" color="#8B5CF6">
+    Keep detailed logs of all webhooks for debugging and auditing.
+  </Card>
+</CardGroup>
+
+---
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Payment Response Handling" icon="arrow-right-from-bracket" href="/merchant/payment-response-handling">
+    Decode the `x-gl-token` callback that arrives after a payment completes.
+  </Card>
+  <Card title="Status Check" icon="magnifying-glass" href="/merchant/services/status-check">
+    Backup ground truth when webhooks are delayed or missed.
+  </Card>
+</CardGroup>

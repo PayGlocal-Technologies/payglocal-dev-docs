@@ -1,0 +1,205 @@
+---
+title: "Payment Response Handling"
+description: "How to receive, decode, and process the x-gl-token callback that PayGlocal sends after payment completion."
+icon: "arrow-right-from-bracket"
+---
+
+## Payment Callback Flow
+
+After a user completes payment, PayGlocal sends an HTTP **POST** request to your callback URL with encoded payment details. Learn how to receive, decode, and process this response.
+
+<CardGroup cols={3}>
+  <Card title="HTTP POST Request" icon="paper-plane" color="#1A6FE8">
+    PayGlocal sends payment results via HTTP POST to your configured callback URL.
+  </Card>
+  <Card title="Encoded Token" icon="lock" color="#F59E0B">
+    Payment data is sent as `x-gl-token` in base64url-encoded JWT format.
+  </Card>
+  <Card title="Decode & Process" icon="code" color="#10B981">
+    Extract, decode, and parse the token to access payment details.
+  </Card>
+</CardGroup>
+
+---
+
+## Step 1: Create Payment with Callback URL
+
+When creating a payment, include `merchantCallbackURL` in your request. This is where PayGlocal will send the payment result after completion.
+
+```json
+{
+  "merchantTxnId":       "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+---
+
+## Step 2: Receive Callback Response
+
+After payment completion, PayGlocal sends an HTTP POST request to your callback URL with payment data encoded in `x-gl-token` format.
+
+### Token Format
+
+The `x-gl-token` follows JWT structure: `HEADER.PAYLOAD.SIGNATURE`
+
+Payment data is in the middle **PAYLOAD** section, encoded in base64url format.
+
+---
+
+## Step 3: Decoding Process
+
+<Steps>
+  <Step title="Extract Token">
+    First, retrieve the `x-gl-token` from the HTTP request body. This token contains the encoded payment information sent by PayGlocal.
+
+    ```javascript
+    const token = req.body['x-gl-token'];
+    ```
+  </Step>
+
+  <Step title="Split by Dot">
+    JWT tokens have three parts separated by dots: header, payload, and signature. Split the token to access each section.
+
+    ```javascript
+    const [header, payload, signature] = token.split('.');
+    ```
+  </Step>
+
+  <Step title="Get Payload">
+    The middle section (index 1) contains the actual payment data. This is what we need to decode.
+
+    ```javascript
+    const encodedPayload = payload;
+    ```
+  </Step>
+
+  <Step title="Convert Base64URL to Base64">
+    Base64URL uses different characters than standard Base64. Replace dashes with plus signs and underscores with slashes.
+
+    ```javascript
+    const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+    ```
+  </Step>
+
+  <Step title="Decode Base64">
+    Decode the Base64 string into a readable UTF-8 text format — gives you the JSON string containing payment details.
+
+    ```javascript
+    const jsonStr = Buffer.from(base64, 'base64').toString('utf-8');
+    ```
+  </Step>
+
+  <Step title="Parse JSON">
+    Parse the decoded string into a JavaScript object so you can access individual payment fields.
+
+    ```javascript
+    const paymentData = JSON.parse(jsonStr);
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Step 4: Complete Callback Handler (Node.js)
+
+```javascript
+const express = require('express');
+const app = express();
+
+app.post('/callback', express.urlencoded({ extended: true }), (req, res) => {
+  try {
+    const token = req.body['x-gl-token'];
+    if (!token) return res.status(400).send('Missing x-gl-token');
+
+    // Decode the JWT payload
+    const [, payload] = token.split('.');
+    const base64      = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr     = Buffer.from(base64, 'base64').toString('utf-8');
+    const data        = JSON.parse(jsonStr);
+
+    const { gid, status, merchantTxnId } = data;
+
+    // Route based on payment status
+    switch (status) {
+      case 'SENT_FOR_CAPTURE':
+        // Update order, send confirmation, fulfill order
+        await markPaid(merchantTxnId, gid);
+        return res.redirect(`/order/success?id=${merchantTxnId}`);
+
+      case 'FAILED':
+        await markFailed(merchantTxnId);
+        return res.redirect(`/order/failed?id=${merchantTxnId}`);
+
+      case 'PENDING':
+        return res.redirect(`/order/pending?id=${merchantTxnId}`);
+
+      case 'CANCELLED':
+        return res.redirect(`/order/cancelled?id=${merchantTxnId}`);
+
+      default:
+        return res.status(400).send('Unknown status');
+    }
+  } catch (err) {
+    console.error('Callback decode failed', err);
+    return res.status(500).send('Internal error');
+  }
+});
+```
+
+<Warning>
+  Always verify the JWT signature using PayGlocal's public certificate before trusting the payment status. An unvalidated callback is a security risk. If signature validation fails, fall back to [Status Check](/merchant/services/status-check) using the `gid`.
+</Warning>
+
+---
+
+## Payment Status Reference
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| `SENT_FOR_CAPTURE` | Payment successfully processed and authorized | Update order to "paid", send confirmation, fulfill order |
+| `FAILED` | Payment attempt unsuccessful (insufficient funds, declined, etc.) | Update order to "failed", notify user, allow retry |
+| `PENDING` | Payment still being processed | Keep order pending, wait for final webhook |
+| `CANCELLED` | Payment cancelled by user before completion | Update order to "cancelled", allow new payment attempt |
+
+---
+
+## Error Handling & Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Validate Token" icon="circle-check" color="#1A6FE8">
+    Check that `x-gl-token` exists before processing.
+  </Card>
+  <Card title="Handle Decode Errors" icon="triangle-exclamation" color="#F59E0B">
+    Wrap decoding logic in try-catch blocks.
+  </Card>
+  <Card title="Log All Callbacks" icon="file-lines" color="#8B5CF6">
+    Keep detailed logs for debugging and audit trails.
+  </Card>
+  <Card title="Validate Status Values" icon="list-check" color="#10B981">
+    Check status against known values before processing.
+  </Card>
+  <Card title="Implement Idempotency" icon="clone" color="#EF4444">
+    Use `merchantTxnId` to prevent duplicate processing.
+  </Card>
+  <Card title="Secure Your Endpoint" icon="shield" color="#0EA5E9">
+    Use HTTPS, validate signatures, implement rate limiting.
+  </Card>
+</CardGroup>
+
+---
+
+## Related Pages
+
+<CardGroup cols={2}>
+  <Card title="Webhooks" icon="bell" href="/merchant/webhooks">
+    Server-to-server notifications independent of the browser callback.
+  </Card>
+  <Card title="Status Check" icon="magnifying-glass" href="/merchant/services/status-check">
+    Always-available ground truth — verify any status server-side.
+  </Card>
+</CardGroup>

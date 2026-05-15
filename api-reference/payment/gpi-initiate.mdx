@@ -1,26 +1,19 @@
 ---
 title: "Initiate Payment (PayDirect)"
 description: "Initiate a payment transaction for PCI DSS certified merchants who collect card data directly."
-openapi: "openapi-paydirect.yaml POST /gl/v1/payments/initiate"
+openapi: "POST /gl/v1/payments/initiate"
 ---
 
 ## When to Use
 
-Use this endpoint when your integration is **PayDirect** — you collect full card details from
-the customer on your own page and send them directly in the API request.
+Use this endpoint when your integration is **PayDirect** — you collect full card details from the customer and send them in the request. You must be PCI DSS compliant to use this endpoint.
 
-**You must be PCI DSS certified** to use this flow. If you are not PCI certified, use
-[Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect) instead, where
-PayGlocal collects card details on its hosted page.
-
-<Info>
-  The request body structure is **identical for domestic and international cards**. However nested
-  fields become mandatory still depends on the transaction — for example, `riskData` is required
-  for international card transactions and is dependent on merchant line of business.
-</Info>
+For non-PCI entities, see [Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect).
 
 ## Notes
 
-- `merchantCallbackURL`: Payers are redirected to this URL post payment completion.
-- Include standingInstruction to set up a recurring mandate alongside this payment, for more details refer to standing instructions section.
+- **Domestic and international:** The request body uses the **same JSON structure** in both cases. Which nested fields are mandatory still depends on the transaction—for example, `riskData` is required for international card transactions.
+- `merchantCallbackURL` is where PayGlocal will POST the customer after payment completion.
+- Include `standingInstruction` to set up a recurring mandate alongside this payment.
+- `riskData` is required for international card transactions.
 - On success the response contains `data.redirectUrl` — redirect the customer's browser to it via HTTP GET to complete 3DS / step-up.

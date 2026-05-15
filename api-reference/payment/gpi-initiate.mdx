@@ -12,6 +12,7 @@ For non-PCI entities, see [Initiate Payment (PayCollect)](/api-reference/payment
 
 ## Notes
 
+- **Domestic and international:** The request body uses the **same JSON structure** in both cases. Which nested fields are mandatory still depends on the transaction—for example, `riskData` is required for international card transactions.
 - `merchantCallbackURL` is where PayGlocal will POST the customer after payment completion.
 - Include `standingInstruction` to set up a recurring mandate alongside this payment.
 - `riskData` is required for international card transactions.

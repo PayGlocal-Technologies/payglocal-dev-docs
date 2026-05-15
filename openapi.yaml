@@ -334,6 +334,26 @@ components:
         authenticationData:
           $ref: "#/components/schemas/Authentication"
 
+    PaymentPayDirectInitiate:
+      type: object
+      required:
+        - totalAmount
+        - txnCurrency
+        - cardData
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a string (preserves decimal precision).
+          example: "100.00"
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code.
+          example: INR
+        cardData:
+          $ref: "#/components/schemas/Card"
+        billingData:
+          $ref: "#/components/schemas/Billing"
+
     Customer:
       type: object
       description: Payer identity for risk evaluation.
@@ -341,6 +361,15 @@ components:
         merchantAssignedCustomerId:
           type: string
           example: cust_12345
+        customerAccountType:
+          type: string
+          description: Merchant-defined account type code for risk scoring.
+        customerSuccessOrderCount:
+          type: string
+          description: Historical successful order count (stringified if numeric).
+        customerAccountCreationDate:
+          type: string
+          description: Account creation date (often YYYYMMDD).
         firstName:
           type: string
         lastName:
@@ -364,6 +393,10 @@ components:
         emailId:
           type: string
           format: email
+        callingCode:
+          type: string
+        phoneNumber:
+          type: string
         addressStreet1:
           type: string
         addressStreet2:
@@ -386,10 +419,25 @@ components:
           type: string
         itemName:
           type: string
+        productDescription:
+          type: string
+          description: Product description (alternative naming to `itemName`).
+        productSKU:
+          type: string
+          description: Product SKU (alternative naming to `itemId`).
+        productType:
+          type: string
+          description: Product category or type (alternative naming to `itemCategory`).
         itemQuantity:
-          type: integer
+          oneOf:
+            - type: integer
+            - type: string
+          description: Line-item quantity (integer or string).
         itemPrice:
           type: string
+        itemUnitPrice:
+          type: string
+          description: Unit price (alternative naming to `itemPrice`).
         itemCategory:
           type: string
 
@@ -405,6 +453,57 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RiskItem"
+
+    RiskFlightLeg:
+      type: object
+      properties:
+        flightNumber:
+          type: string
+        departureAirportCode:
+          type: string
+        departureDate:
+          type: string
+        arrivalAirportCode:
+          type: string
+        carrierCode:
+          type: string
+
+    RiskFlightPassenger:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+
+    RiskFlightBooking:
+      type: object
+      properties:
+        agentCode:
+          type: string
+        agentName:
+          type: string
+        reservationCode:
+          type: string
+        legData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightLeg"
+        passengerData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightPassenger"
+
+    RiskPayDirectInitiate:
+      type: object
+      properties:
+        flightData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightBooking"
 
     SIData:
       type: object
@@ -508,46 +607,53 @@ components:
         Most fields are optional — which fields are required depends on the operation. See each
         endpoint's `required:` list for operation-specific rules.
 
-        **Note:** `required:` lists are best-effort and derived from current integration examples —
+        **Note:** The request payload format is identical for domestic and international transactions.
+        `required:` lists are best-effort and derived from current integration examples —
         validate against your integration spec or contact your PayGlocal implementation lead.
       properties:
         merchantTxnId:
           type: string
-          description: Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
-          example: order_1712345678
-        merchantUniqueId:
-          type: string
-          description: Merchant's secondary unique reference.
-        refundType:
-          type: string
-          description: Full or partial refund indicator (used on refund calls).
-          enum:
-            - F
-            - P
-          example: F
-        refundAction:
-          type: string
-          description: Refund lifecycle action.
-        captureType:
-          type: string
-          description: Full or partial capture indicator (used on capture calls).
-          enum:
-            - F
-            - P
-          example: F
-        captureTxn:
-          type: boolean
-          description: If true on `/initiate`, the transaction is auto-captured post-auth.
+          description: |
+            Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
+            Expected length: 19 characters.
+          example: "23AEE8CB6B62EE2AF07"
         paymentData:
           $ref: "#/components/schemas/Payment"
         riskData:
           $ref: "#/components/schemas/Risk"
-        standingInstruction:
-          $ref: "#/components/schemas/StandingInstruction"
         merchantCallbackURL:
           type: string
           format: uri
           description: URL PayGlocal redirects to after payment completion.
+
+    TransactionRequestPayDirectInitiate:
+      type: object
+      properties:
+        merchantTxnId:
+          type: string
+          description: |
+            Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
+            Expected length: 19 characters.
+          example: "23AEE8CB6B62EE2AF07"
+        paymentData:
+          $ref: "#/components/schemas/PaymentPayDirectInitiate"
+        riskData:
+          $ref: "#/components/schemas/RiskPayDirectInitiate"
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: URL PayGlocal redirects to after payment completion.
+
+    TransactionRequestInitiateOptions:
+      type: object
+      description: Optional fields supported on `POST /gl/v1/payments/initiate/paycollect`, in addition to `TransactionRequest`.
+      properties:
+        merchantUniqueId:
+          type: string
+          description: Merchant's secondary unique reference.
+        captureTxn:
+          type: boolean
+          description: If true on `/initiate`, the transaction is auto-captured post-auth.
         merchantCustomPayload:
           type: object
           additionalProperties:
@@ -559,6 +665,16 @@ components:
         dccReferenceGid:
           type: string
           description: PayGlocal DCC quote reference (when `dcc_indicator=true`).
+
+    TransactionRequestInitiateOptionsPayDirect:
+      type: object
+      properties:
+        merchantUniqueId:
+          type: string
+          description: Merchant's secondary unique reference.
+        captureTxn:
+          type: boolean
+          description: If true on `/initiate`, the transaction is auto-captured post-auth.
 
     ApiResponse:
       type: object
@@ -1481,30 +1597,49 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: "#/components/schemas/TransactionRequest"
+                - $ref: "#/components/schemas/TransactionRequestPayDirectInitiate"
+                - $ref: "#/components/schemas/TransactionRequestInitiateOptionsPayDirect"
                 - type: object
                   required:
                     - merchantTxnId
                     - paymentData
               example:
-                merchantTxnId: order_1712345678
-                captureTxn: true
+                merchantTxnId: "23AEE8CB6B62EE2AF07"
+                merchantUniqueId: "GRAESXCGNJHGFGFAJVY"
                 paymentData:
-                  totalAmount: "100.00"
+                  totalAmount: "10"
                   txnCurrency: INR
-                  cardData:
-                    number: "4111111111111111"
-                    expiryMonth: "12"
-                    expiryYear: "2030"
-                    securityCode: "123"
                   billingData:
-                    firstName: John
-                    lastName: Doe
-                    emailId: john.doe@example.com
-                    addressCountry: IND
-                  authenticationData:
-                    type: "3DS"
-                merchantCallbackURL: https://merchant.example.com/callback
+                    firstName: TestName
+                    addressStreet1: HelloAddress1
+                    addressStreet2: Address2
+                    emailId: test@payglocal.in
+                    callingCode: "+91"
+                    phoneNumber: "9999999999"
+                  cardData:
+                    number: "1111 1111 1111 1111"
+                    expiryMonth: "05"
+                    expiryYear: "2026"
+                    securityCode: "111"
+                riskData:
+                  flightData:
+                    - agentCode: AgentCode
+                      agentName: AgentName
+                      reservationCode: NQM2SR
+                      legData:
+                        - flightNumber: flight123
+                          departureAirportCode: AUH
+                          departureDate: "20230905"
+                          arrivalAirportCode: BLR
+                          carrierCode: AI
+                      passengerData:
+                        - firstName: Sam
+                          lastName: Thomas
+                          email: sam.thomas@gmail.com
+                        - firstName: Nag
+                          lastName: Thomas
+                          email: nag.thomas@gmail.com
+                merchantCallbackURL: https://api.uat.payglocal.in/gl/v1/payments/merchantCallback
       responses:
         "200":
           description: Transaction initiated successfully.
@@ -1549,6 +1684,7 @@ paths:
             schema:
               allOf:
                 - $ref: "#/components/schemas/TransactionRequest"
+                - $ref: "#/components/schemas/TransactionRequestInitiateOptions"
                 - type: object
                   required:
                     - merchantTxnId

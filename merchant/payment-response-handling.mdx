@@ -1,205 +1,199 @@
 ---
 title: "Payment Response Handling"
-description: "How to receive, decode, and process the x-gl-token callback that PayGlocal sends after payment completion."
+description: "Understanding how PayGlocal sends payment responses to your system."
 icon: "arrow-right-from-bracket"
 ---
 
 ## Payment Callback Flow
 
-After a user completes payment, PayGlocal sends an HTTP **POST** request to your callback URL with encoded payment details. Learn how to receive, decode, and process this response.
+After a user completes a payment, PayGlocal sends the transaction response to the callback URL provided by the merchant during payment creation. This allows the merchant system to receive the payment result, process the transaction status, and redirect or display the appropriate success or failure page to the user.
+
+The response is sent as an **HTTP POST request** containing the payment details in encoded format.
+
+---
+
+## Overview
 
 <CardGroup cols={3}>
-  <Card title="HTTP POST Request" icon="paper-plane" color="#1A6FE8">
-    PayGlocal sends payment results via HTTP POST to your configured callback URL.
+  <Card title="HTTP POST Request" icon="arrow-up-from-bracket" color="#1A6FE8">
+    PayGlocal sends payment results via HTTP POST to your configured `merchantCallbackURL`.
   </Card>
-  <Card title="Encoded Token" icon="lock" color="#F59E0B">
-    Payment data is sent as `x-gl-token` in base64url-encoded JWT format.
+  <Card title="Encoded Token" icon="lock" color="#10B981">
+    Payment data is sent as `x-gl-token` — a base64url encoded JWT containing the full transaction result.
   </Card>
-  <Card title="Decode & Process" icon="code" color="#10B981">
-    Extract, decode, and parse the token to access payment details.
+  <Card title="Decode & Process" icon="code" color="#F59E0B">
+    Extract, decode, and parse the token to access payment details and redirect the user accordingly.
   </Card>
 </CardGroup>
 
 ---
 
-## Step 1: Create Payment with Callback URL
-
-When creating a payment, include `merchantCallbackURL` in your request. This is where PayGlocal will send the payment result after completion.
-
-```json
-{
-  "merchantTxnId":       "23AEE8CB6B62EE2AF07",
-  "paymentData": {
-    "totalAmount": "89",
-    "txnCurrency": "INR"
-  },
-  "merchantCallbackURL": "https://www.yoursite.com/callback"
-}
-```
-
----
-
-## Step 2: Receive Callback Response
-
-After payment completion, PayGlocal sends an HTTP POST request to your callback URL with payment data encoded in `x-gl-token` format.
-
-### Token Format
-
-The `x-gl-token` follows JWT structure: `HEADER.PAYLOAD.SIGNATURE`
-
-Payment data is in the middle **PAYLOAD** section, encoded in base64url format.
-
----
-
-## Step 3: Decoding Process
+## What Happens Internally — Step by Step
 
 <Steps>
-  <Step title="Extract Token">
-    First, retrieve the `x-gl-token` from the HTTP request body. This token contains the encoded payment information sent by PayGlocal.
-
-    ```javascript
-    const token = req.body['x-gl-token'];
-    ```
+  <Step title="Payment Request Created">
+    You send a payment initiation request to PayGlocal along with the `merchantCallbackURL` — a POST endpoint on your backend that you create yourself.
   </Step>
-
-  <Step title="Split by Dot">
-    JWT tokens have three parts separated by dots: header, payload, and signature. Split the token to access each section.
-
-    ```javascript
-    const [header, payload, signature] = token.split('.');
-    ```
+  <Step title="Customer Completes Payment">
+    The customer completes (or abandons) the payment on the PayGlocal payment page.
   </Step>
-
-  <Step title="Get Payload">
-    The middle section (index 1) contains the actual payment data. This is what we need to decode.
-
-    ```javascript
-    const encodedPayload = payload;
-    ```
+  <Step title="PayGlocal Processes the Transaction">
+    Once the transaction is processed, PayGlocal prepares the payment response containing the transaction status, amount, currency, transaction ID, payment method, and card or network details.
   </Step>
-
-  <Step title="Convert Base64URL to Base64">
-    Base64URL uses different characters than standard Base64. Replace dashes with plus signs and underscores with slashes.
-
-    ```javascript
-    const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
-    ```
+  <Step title="PayGlocal Sends Callback">
+    PayGlocal fetches the `merchantCallbackURL` from the original request and sends an HTTP POST to that endpoint. The callback contains the encoded transaction response in the `x-gl-token` field.
   </Step>
-
-  <Step title="Decode Base64">
-    Decode the Base64 string into a readable UTF-8 text format — gives you the JSON string containing payment details.
-
-    ```javascript
-    const jsonStr = Buffer.from(base64, 'base64').toString('utf-8');
-    ```
-  </Step>
-
-  <Step title="Parse JSON">
-    Parse the decoded string into a JavaScript object so you can access individual payment fields.
-
-    ```javascript
-    const paymentData = JSON.parse(jsonStr);
-    ```
+  <Step title="Your Backend Receives and Processes">
+    Your backend receives the callback at the configured endpoint. You decode the token, read the payment status, and decide what to show the user — a success page, failure page, or any other experience you choose.
   </Step>
 </Steps>
 
 ---
 
-## Step 4: Complete Callback Handler (Node.js)
+## Implementation
 
-```javascript
-const express = require('express');
-const app = express();
+### 1. Include `merchantCallbackURL` in Your Payment Request
 
-app.post('/callback', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    const token = req.body['x-gl-token'];
-    if (!token) return res.status(400).send('Missing x-gl-token');
+Add `merchantCallbackURL` to your payment payload — this is where PayGlocal will POST the result after the transaction completes.
 
-    // Decode the JWT payload
-    const [, payload] = token.split('.');
-    const base64      = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonStr     = Buffer.from(base64, 'base64').toString('utf-8');
-    const data        = JSON.parse(jsonStr);
-
-    const { gid, status, merchantTxnId } = data;
-
-    // Route based on payment status
-    switch (status) {
-      case 'SENT_FOR_CAPTURE':
-        // Update order, send confirmation, fulfill order
-        await markPaid(merchantTxnId, gid);
-        return res.redirect(`/order/success?id=${merchantTxnId}`);
-
-      case 'FAILED':
-        await markFailed(merchantTxnId);
-        return res.redirect(`/order/failed?id=${merchantTxnId}`);
-
-      case 'PENDING':
-        return res.redirect(`/order/pending?id=${merchantTxnId}`);
-
-      case 'CANCELLED':
-        return res.redirect(`/order/cancelled?id=${merchantTxnId}`);
-
-      default:
-        return res.status(400).send('Unknown status');
-    }
-  } catch (err) {
-    console.error('Callback decode failed', err);
-    return res.status(500).send('Internal error');
-  }
-});
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "15",
+    "txnCurrency": "USD"
+  },
+  "merchantCallbackURL": "https://your-website-domain.com/payments/merchantCallback"
+}
 ```
 
-<Warning>
-  Always verify the JWT signature using PayGlocal's public certificate before trusting the payment status. An unvalidated callback is a security risk. If signature validation fails, fall back to [Status Check](/merchant/services/status-check) using the `gid`.
-</Warning>
+<Note>
+  Must be a publicly accessible **HTTPS POST endpoint**. PayGlocal cannot reach localhost or private IPs.
+</Note>
+
+---
+
+### 2. Receive, Decode, and Handle the Callback
+
+Once the payment completes, PayGlocal POSTs to your callback URL with a single field in the body — `x-gl-token`. This token is a **JWT** (three dot-separated parts: Header · Payload · Signature). The payment data lives in the **Payload** section, encoded in base64url.
+
+Here is what the raw token looks like when it arrives. It has **three dot-separated parts**, each shown in a different color:
+
+<div style={{fontFamily: 'monospace', wordBreak: 'break-all', fontSize: '0.82em', lineHeight: '2', padding: '20px', background: '#0d1117', borderRadius: '8px', border: '1px solid #30363d'}}>
+  <span style={{color: '#f7615f'}}>eyJpc3N1ZWQtYnkiOiJHbG9jYWwiLCJpcy1kaWdlc3RlZCI6ImZhbHNlIiwiYWxnIjoiUlMyNTYiLCJraWQiOiJrSWQtRU5oN3Y1bDdTNE56YjhScCJ9</span><span style={{color: '#8b949e'}}>.</span><span style={{color: '#79c0ff'}}>eyJ4LWdsLW9yZGVySWQiOiJnbF9vLTlmY2QzYTY3YTUwNDUxODczdzNyMFBwWDIiLCJhbXBsaWZpZXItbWlkIjpudWxsLCJpYXQiOiIxNzc4OTY0MzQ4MzQ5IiwieC1nbC1lbmMiOiJ0cnVlIiwieC1nbC1naWQiOiJnbF85ZmNkM2E2N2E1MDQ1MTg3NzE2dzNyMFBwWDIiLCJ4LWdsLW1lcmNoYW50SWQiOiJ0ZXN0bmV3Z2NjMjYifQ</span><span style={{color: '#8b949e'}}>.</span><span style={{color: '#d2a8ff'}}>K6Xiu7zld57xkYZ1JkfvyzQouiWW1shKjftVbDbGBp5h-E-1YazfZqBM7wk3ubH3HxtpMUa4FClconTQCvlhSkNmWmU_D8IU8tMpToUU8nHs7ZEOa_GXT5GBvvkC__ixg_a6MQHbSu4CWPXZsZWUXnJHNj1IcS06gxGdvj8-84F-Rj8WiMkSgCI23Ac_N4bqywzebbm3bSjY-aPzVa9s79y_XbKbguxIaHAZdoRSE2rQp4i4J9JQedXjYtaCP_Bqv5W9fHP42rytBTsX7ZnTxW9oUYU999VP6rYc2wMfTVWzpa2rm40Ps53Z9PvDCQmzcJsQdm6HWw894pUuCF1xCQ</span>
+</div>
+
+**What each part means:**
+
+| Part | Color | Name | What it contains |
+|------|-------|------|-----------------|
+| **Part 1** | 🔴 Red | **Header** | Token metadata — signing algorithm (`RS256`) and the Key ID (`kid`) used to sign |
+| **Part 2** | 🔵 Blue | **Payload** | **Your payment data** — transaction status, amount, `gid`, `merchantId`, and all other response fields. This is the part you decode. |
+| **Part 3** | 🟣 Purple | **Signature** | Cryptographic signature — proves the token was issued by PayGlocal and has not been tampered with |
+
+<Note>
+  The **middle part (Payload)** is where all the transaction data lives. Split the token on `.` and take index `[1]` to get this section, then base64url-decode it to read the payment result.
+</Note>
+
+Your callback endpoint decodes it in the following sequence:
+
+**Extract the token** from the incoming request body:
+```javascript
+const glToken = req.body['x-gl-token'];
+```
+
+**Split on `.`** — take the middle section (index 1), which is the Payload:
+```javascript
+const base64UrlPayload = glToken.split('.')[1];
+```
+
+**Convert base64url → base64** by swapping `-` with `+` and `_` with `/`:
+```javascript
+const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/');
+```
+
+**Decode to a UTF-8 string:**
+```javascript
+const decodedString = Buffer.from(base64Payload, 'base64').toString('utf-8');
+```
+
+**Parse into a usable object:**
+```javascript
+const paymentData = JSON.parse(decodedString);
+```
+
+After parsing, `paymentData` looks like this:
+
+```json
+{
+  "country": "UNITED KINGDOM",
+  "amount": "48",
+  "gid": "PGL_7F8A9B3C2D1E4F5A",
+  "merchantId": "MERCH_9X8Y7Z6W5V4U3T",
+  "cardType": "PREPAID",
+  "merchantTxnId": "TXN_4K5L6M7N8O9P0Q",
+  "paymentMethod": "CARD",
+  "currency": "USD",
+  "cardBrand": "VISA",
+  "status": "SENT_FOR_CAPTURE"
+}
+```
+
+---
+
+### 3. Act on the Status
+
+There is exactly **one success status**: `SENT_FOR_CAPTURE`. Every other status means the transaction did not complete.
+
+Once decoded, PayGlocal hands control entirely back to you — you decide what the customer sees next. There is no fixed redirect or page; you build and control the experience.
+
+**If `status === "SENT_FOR_CAPTURE"` → Payment successful:**
+Mark the order as paid in your database, send a confirmation email, and redirect the customer to your success page.
+
+**If `status` is anything else → Payment failed:**
+Mark the order as failed and redirect the customer to your failure or retry page.
 
 ---
 
 ## Payment Status Reference
 
-| Status | Meaning | Action |
-|--------|---------|--------|
-| `SENT_FOR_CAPTURE` | Payment successfully processed and authorized | Update order to "paid", send confirmation, fulfill order |
-| `FAILED` | Payment attempt unsuccessful (insufficient funds, declined, etc.) | Update order to "failed", notify user, allow retry |
-| `PENDING` | Payment still being processed | Keep order pending, wait for final webhook |
-| `CANCELLED` | Payment cancelled by user before completion | Update order to "cancelled", allow new payment attempt |
+| Status | Meaning | Result |
+|---|---|---|
+| `SENT_FOR_CAPTURE` | Payment successful — funds captured | ✅ Success |
+| `AUTHORIZED` | Funds held, capture pending | ⏳ Pending |
+| `ISSUER_DECLINE` | Card declined by the issuing bank | ❌ Failure |
+| `GENERAL_DECLINE` | Declined by PayGlocal risk engine | ❌ Failure |
+| `CUSTOMER_CANCELLED` | Customer cancelled on the payment page | ❌ Failure |
+| `ABANDONED` | Customer left without completing payment | ❌ Failure |
+| `REQUEST_ERROR` | Field-level error in the original request | ❌ Failure |
 
 ---
 
-## Error Handling & Best Practices
+## Best Practices
 
 <CardGroup cols={2}>
-  <Card title="Validate Token" icon="circle-check" color="#1A6FE8">
-    Check that `x-gl-token` exists before processing.
+  <Card title="Always Decode Before Trusting" icon="shield-check" color="#1A6FE8">
+    Never act on the raw POST body. Always decode `x-gl-token` and read `status` before updating your database or redirecting the user.
   </Card>
-  <Card title="Handle Decode Errors" icon="triangle-exclamation" color="#F59E0B">
-    Wrap decoding logic in try-catch blocks.
+  <Card title="Use gid as Source of Truth" icon="magnifying-glass" color="#10B981">
+    If the callback is delayed or missed, use the [Status Check](/merchant/regular-payment/transaction-management) API with `gid` to fetch the current status.
   </Card>
-  <Card title="Log All Callbacks" icon="file-lines" color="#8B5CF6">
-    Keep detailed logs for debugging and audit trails.
+  <Card title="Prevent Duplicate Processing" icon="clone" color="#F59E0B">
+    Check `merchantTxnId` before updating order status — callbacks can occasionally arrive more than once.
   </Card>
-  <Card title="Validate Status Values" icon="list-check" color="#10B981">
-    Check status against known values before processing.
-  </Card>
-  <Card title="Implement Idempotency" icon="clone" color="#EF4444">
-    Use `merchantTxnId` to prevent duplicate processing.
-  </Card>
-  <Card title="Secure Your Endpoint" icon="shield" color="#0EA5E9">
-    Use HTTPS, validate signatures, implement rate limiting.
+  <Card title="Log Every Callback" icon="file-lines" color="#8B5CF6">
+    Store the raw token and decoded payload for debugging, auditing, and reconciliation.
   </Card>
 </CardGroup>
 
----
-
-## Related Pages
-
 <CardGroup cols={2}>
   <Card title="Webhooks" icon="bell" href="/merchant/webhooks">
-    Server-to-server notifications independent of the browser callback.
+    Server-to-server notifications that arrive independently of the browser callback.
   </Card>
-  <Card title="Status Check" icon="magnifying-glass" href="/merchant/services/status-check">
-    Always-available ground truth — verify any status server-side.
+  <Card title="Status Check" icon="magnifying-glass" href="/merchant/regular-payment/transaction-management">
+    Verify any payment status server-side at any time using the gid.
+  </Card>
+  <Card title="Node.js Implementation" icon="node-js" href="/api-reference/callback-handling">
+    Complete Node.js code for your `merchantCallbackURL` endpoint — ready to adapt and use.
   </Card>
 </CardGroup>

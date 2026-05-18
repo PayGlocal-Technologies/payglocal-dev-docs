@@ -1,0 +1,27 @@
+---
+title: "Payment Initiation"
+sidebarTitle: "Payment Initiation"
+description: "Initiate a one-time regular payment via PayCollect or PayDirect."
+---
+
+Initiate a regular payment using one of two endpoints depending on your integration type.
+
+<CardGroup cols={2}>
+  <Card title="PayCollect" icon="window" color="#1A6FE8">
+    ```
+    POST /gl/v1/payments/initiate/paycollect
+    ```
+    You send amount and currency. PayGlocal redirects the customer to a hosted checkout page to enter card details and complete payment. The result is POSTed back to your `merchantCallbackURL`.
+
+    **Supports:** Cards, Apple Pay, UPI, Net Banking and Alternative Payment Methods.
+  </Card>
+  <Card title="PayDirect" icon="code" color="#8B5CF6">
+    ```
+    POST /gl/v1/payments/initiate
+    ```
+    Your frontend collects card details and your backend sends them directly to PayGlocal. No redirect — payment is processed entirely on your domain.
+
+  </Card>
+</CardGroup>
+
+For full payload reference and side-by-side comparison, see [PayCollect vs PayDirect](/merchant/api-integration).

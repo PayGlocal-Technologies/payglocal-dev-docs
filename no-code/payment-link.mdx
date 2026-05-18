@@ -1,0 +1,216 @@
+---
+title: "Payment Link"
+description: "Create and share payment links for quick, one-time payments without API integration."
+icon: "link"
+---
+
+## What is a Payment Link?
+
+A **Payment Link** is a shareable URL that allows you to collect payments from customers without any coding or API integration. Simply create a link through the GCC dashboard, share it with your customer via email and WhatsApp in case of Domestic Customers and via email for International Customers, or any other channel, and they can complete the payment on PayGlocal's secure hosted checkout page.
+
+## Why Use Payment Link?
+
+- **No Development Required**: Create payment links instantly from the GCC dashboard
+- **Quick Setup**: Start collecting payments in under a minute
+- **Multiple Sharing Options**: Send links via email, SMS, WhatsApp, social media, or any messaging platform
+- **Secure Checkout**: PayGlocal handles the entire payment experience with PCI-compliant security
+- **Real-time Tracking**: Monitor payment status directly from your dashboard
+- **Automatic Notifications**: Customers receive instant notifications about payment status
+
+## Prerequisites
+
+Before creating a Payment Link:
+
+1. **GCC Account**: You must have access to the [GCC dashboard](https://merchant.payglocal.in). Contact your PayGlocal account manager if you need credentials.
+2. **Merchant Onboarding**: Complete the merchant onboarding and verification process.
+3. **Environment Access**: Ensure you're using the correct environment (UAT for testing, Production for live payments).
+
+For detailed setup instructions, see [Dashboard & Key Management](/getting-started/dashboard-and-key-management).
+
+## How to Create a Payment Link
+
+<Steps>
+  <Step title="Navigate to Payment Links">
+    Log in to the [GCC dashboard](https://merchant.payglocal.in) and click on **Payment Links** in the left sidebar under **Payment Products**.
+
+    <img src="/images/payment-links-ui/dashboard-navigation.png" alt="Navigate to Payment Links" />
+  </Step>
+
+  <Step title="Access Payment Links Page">
+    You'll see the Payment Links management page where you can view all your existing links and create new ones.
+
+    <img src="/images/payment-links-ui/payment-links-page.png" alt="Payment Links Page" />
+  </Step>
+
+  <Step title="Create New Link">
+    Click the **+ Create payment link** button in the top right corner to open the payment link creation form.
+  </Step>
+
+  <Step title="Fill Payment Details">
+    Complete the payment link form with the following information:
+
+    <img src="/images/payment-links-ui/create-payment-link-form.png" alt="Create Payment Link Form" />
+
+    **Required Fields:**
+    - **Currency**: Select the payment currency (e.g., INR)
+    - **Amount**: Enter the payment amount to be collected
+    - **Customer Name**: Enter the customer's full name
+    - **Customer Email** or **Customer Mobile**: At least one contact method is required
+    - **Billing Address**: Complete billing address including:
+      - Address Line 1 and 2
+      - Country, State, City
+      - Zipcode
+
+    **Optional Fields:**
+    - **What's this for?**: Add a description or note that will be shown to the customer
+    - **Notify customer via**: Choose Email, SMS, or both
+    - **Shipping Details**: Check the box if shipping address is same as billing address, or provide separate shipping details
+    - **Link expiry**: Set how long the payment link remains valid (default: 2 hours, maximum: 48 hours)
+    - **Make this a recurring payment**: Enable if you want to set up recurring payments
+    - **Capture the transaction immediately**: Enable for instant payment capture (recommended for most cases)
+    - **Payment terms advance**: Enable if accepting advance payment
+    - **Buyer is individual**: Check if the buyer is an individual (not a business)
+
+  </Step>
+
+  <Step title="Generate the Link">
+    After filling all required fields, click the **Create payment link** button at the bottom of the form.
+
+    <Note>
+      **Customer Notifications**:
+      - **International Customers**: Notifications are sent via **Email only**
+      - **Domestic Customers** (India): Notifications are sent via both **Email and SMS/WhatsApp**
+      
+      This ensures customers receive timely updates about their payment links and transaction status through the most appropriate channels based on their location.
+    </Note>
+  </Step>
+
+  <Step title="Share the Link">
+    Once generated, the system will:
+    - Display the Payment Link ID (PLID) and shareable URL
+    - Automatically send the link to the customer's email and/or mobile (based on your selection)
+    - Allow you to copy the URL and share it through any other channel
+  </Step>
+
+  <Step title="Track Status">
+    Monitor the payment status in real-time from the Payment Links dashboard. You'll be able to see:
+    - All payment attempts
+    - Current link status
+    - Transaction details
+    - Customer information
+  </Step>
+</Steps>
+
+## Payment Link Status
+
+Your payment links can have the following statuses:
+
+| Status | Description |
+|--------|-------------|
+| **Active** | Link is live and ready to accept payments |
+| **Transacted** | A successful payment has been completed using this link |
+| **Exhausted** | The link has reached the maximum of 10 payment attempts |
+| **Expired** | The link's expiry time has passed |
+| **Disabled** | You manually disabled the link from the dashboard |
+
+<Warning>
+  Customers can attempt payment on a Payment Link up to **10 times**. After 10 failed attempts, the link status automatically changes to **Exhausted** and cannot be used anymore. Create a new payment link if needed.
+</Warning>
+
+## Managing Payment Links
+
+From the Payment Links dashboard, you can:
+
+- **View All Links**: See all payment links you've created with their current status
+- **Search**: Find specific links by Payment Link ID (PLID) or merchant transaction ID
+- **Filter**: Filter links by status, date range, or amount
+- **Export**: Download the filtered view as a CSV for reporting and reconciliation
+- **Disable**: Manually disable an active link to prevent further payment attempts
+- **View Details**: Click on any link to see detailed information including all payment attempts
+
+## Customer Experience
+
+When a customer receives and clicks on a payment link:
+
+1. **Link Opens**: The customer is directed to PayGlocal's secure hosted checkout page
+2. **Information Review**: Customer reviews the payment amount, description, and merchant details
+3. **Payment Details**: Customer enters their payment method details (card, UPI, net banking, etc.)
+4. **Authentication**: Customer completes any required authentication (OTP, 3D Secure, etc.)
+5. **Confirmation**: Customer receives instant confirmation of payment success or failure
+6. **Receipt**: PayGlocal sends a payment receipt to the customer's email/mobile
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Provide Complete Billing Information">
+    Always fill in complete and accurate billing address details. This information:
+    - Reduces the risk of payment failures
+    - Helps with fraud prevention
+    - Improves authorization success rates
+    - Is required by some payment methods
+  </Accordion>
+
+  <Accordion title="Set Appropriate Expiry Times">
+    - Use shorter expiry times (2-4 hours) for immediate payment requests
+    - Use longer expiry times (24-48 hours) for invoices or scheduled payments
+    - Consider your customer's timezone when setting expiry
+    - Remember the maximum expiry is 48 hours
+  </Accordion>
+
+  <Accordion title="Use Clear Descriptions">
+    In the "What's this for?" field:
+    - Clearly describe what the payment is for
+    - Include order/invoice numbers if applicable
+    - Keep it concise but informative
+    - Help customers recognize the payment request
+  </Accordion>
+
+  <Accordion title="Enable Both Notification Methods">
+    When creating links for domestic customers:
+    - Enable both Email and SMS notifications
+    - This increases the chances of customer seeing the link
+    - Provides backup if one channel fails
+    - Improves payment completion rates
+  </Accordion>
+
+  <Accordion title="Monitor Link Status Regularly">
+    - Check your dashboard frequently for payment updates
+    - Set up webhooks for real-time notifications (if available)
+    - Follow up with customers on pending payments
+    - Disable expired or unused links to keep your dashboard clean
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card 
+    title="Invoice Link" 
+    icon="file-invoice" 
+    href="/no-code/invoice-link"
+  >
+    Learn about invoice-style payment requests
+  </Card>
+  
+  <Card 
+    title="Payment Button" 
+    icon="circle-play" 
+    href="/no-code/payment-button"
+  >
+    Embed payment buttons on your website
+  </Card>
+  
+  <Card 
+    title="Dashboard Overview" 
+    icon="chart-line" 
+    href="/getting-started/gcc-dashboard"
+  >
+    Learn more about the GCC dashboard
+  </Card>
+</CardGroup>
+
+## Support
+
+- **Business and product questions**: Contact your PayGlocal account manager
+- **Technical issues or errors**: Email [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in)
+- **Dashboard access**: Reach out to your account manager for credentials

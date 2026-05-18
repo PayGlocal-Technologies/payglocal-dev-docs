@@ -1,73 +1,249 @@
 ---
 title: "CodeDrop"
-description: "Embed the PayCollect hosted form directly into your page — choose Modal, Drawer, or Inline display."
+description: "Embed PayGlocal's payment experience directly on your page — no redirect, no full-page navigation. The payment form opens as a popup and closes itself when done."
 icon: "square-code"
 ---
 
-## PayGlocal CodeDrop
+## What is CodeDrop?
 
-Don't want a full-page redirect to PayCollect? **CodeDrop** embeds the hosted payment form inside your own page — choose how it appears.
+With a standard PayCollect integration, clicking "Pay" redirects the customer away from your page to PayGlocal's hosted checkout. **CodeDrop removes that redirect entirely.**
 
----
-
-## Choose Payment Method
-
-Select how you want to display the payment form.
+Instead, the payment form opens as a **modal, drawer, or inline widget** directly on your page. When the payment is complete (or cancelled), the form closes itself automatically and your callback function receives the result — the customer never leaves your site.
 
 <CardGroup cols={3}>
   <Card title="Modal" icon="square" color="#1A6FE8">
-    **Opens a focus dialog above the page.** The customer's attention is locked on the payment without losing context of where they were.
+    A dialog appears centered over your page. Customer's focus is locked on payment. Most common choice.
   </Card>
   <Card title="Drawer" icon="sidebar" color="#10B981">
-    **Slides in from the side without leaving the page.** Good when your checkout flow stays partly visible behind the drawer.
+    Slides in from the side of the screen. Cart or order summary stays visible behind it.
   </Card>
   <Card title="Inline" icon="window" color="#F59E0B">
-    **Embeds the payment form directly in the page layout.** Best for fully bespoke checkout layouts where the form is part of the page.
+    The payment form embeds directly within your page layout. Feels completely native to your checkout.
   </Card>
 </CardGroup>
+
+<Note>
+  CodeDrop is a presentation layer on top of PayCollect — the underlying API, security, PCI rules, and supported payment methods are identical. No separate backend integration is needed.
+</Note>
 
 ---
 
 ## How It Works
 
-CodeDrop is a thin JavaScript wrapper around the PayCollect hosted page. You initialize it with the payment details, pick a display mode, and call `launch()` — PayGlocal handles the rest (3DS, payment method selection, capture).
-
-```javascript
-const cd = new PayGlocalCodeDrop({
-  merchantId:    "YOUR_MID",
-  merchantTxnId: "23AEE8CB6B62EE2AF07",
-  totalAmount:   "89",
-  txnCurrency:   "INR",
-  display:       "modal",   // or "drawer" or "inline"
-  callbackURL:   "https://www.yoursite.com/callback"
-});
-
-cd.launch();
+```
+Your page          →     Your backend fetches redirectUrl from PayGlocal
+     ↓
+window.PGPay.launchPayment({ redirectUrl })
+     ↓
+CodeDrop opens (modal / drawer / inline)
+Customer completes payment on PayGlocal's embedded form
+     ↓
+Form closes automatically
+paymentCallback(data) fires with gid, status, merchantTxnId, x-gl-token
 ```
 
-<Note>
-  CodeDrop is a presentation mode of [PayCollect](/merchant/paycollect/overview) — not a separate integration. PCI requirements, supported payment methods, and the underlying API are identical.
-</Note>
+---
+
+## Backend Implementation
+
+Before CodeDrop can launch, your backend needs to call PayGlocal's Initiate Payment API and return the `redirectUrl` to your frontend.
+
+Create an API endpoint on your server that:
+1. Calls PayGlocal's `POST /gl/v1/payments/initiate/paycollect`
+2. Returns the `redirectUrl` from the response to your frontend
+
+Your frontend then passes this `redirectUrl` to `window.PGPay.launchPayment()`.
 
 ---
 
-## When to Use Which Mode
+## Frontend Integration
 
-| Mode | Best when |
-|------|-----------|
-| **Modal** | You want a clean payment moment without scrolling away. Most common choice. |
-| **Drawer** | The customer should still see context (cart, summary) while paying. |
-| **Inline** | You want the payment form to feel part of your own page, no overlay. |
+### Step 1 — Get Enabled for CodeDrop
+
+CodeDrop must be enabled for your Merchant ID by PayGlocal's operations team. Contact your account manager to request enablement. They will provide you a **`cdId`** — a unique identifier for your CodeDrop configuration.
 
 ---
 
-## Related Pages
+### Step 2 — Add the Script Tag
 
-<CardGroup cols={2}>
-  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
-    A different embedding approach — used for the merchant verification (VKYC/DigiLocker) suite.
-  </Card>
-  <Card title="Webhooks" icon="bell" href="/guides/webhooks">
-    Configure webhook callbacks for CodeDrop transactions.
-  </Card>
-</CardGroup>
+Add the following script tag to your HTML `<head>` or at the end of `<body>`:
+
+```html
+<script
+  src="<codedrop script url>"
+  data-display-mode="<display mode>"
+  data-cd-id="<cdId>"
+  defer
+></script>
+```
+
+**Script URLs by environment:**
+
+| Environment | URL |
+|---|---|
+| UAT (Testing) | `https://codedrop.uat.payglocal.in/simple.js` |
+| Production | `https://codedrop.payglocal.in/simple.js` |
+
+**Display modes:**
+
+| Value | Behaviour |
+|---|---|
+| `drawer` | Slides in from the side (default & recommended) |
+| `modal` | Opens as a dialog box on top of the page |
+| `inline` | Embeds within the page (requires additional setup — see Step 3) |
+
+Replace `<cdId>` with the ID provided by PayGlocal. For example, for a modal in UAT with cdId `123456789`:
+
+```html
+<script
+  src="https://codedrop.uat.payglocal.in/simple.js"
+  data-display-mode="modal"
+  data-cd-id="123456789"
+  defer
+></script>
+```
+
+---
+
+### Step 3 — Add Payment Container *(Inline mode only)*
+
+If you chose `inline` display mode, add a container `<div>` at the exact location in your page where the payment form should appear:
+
+```html
+<div
+  id="PayGlocal_payments"
+  data-width="400px"
+></div>
+```
+
+- `id="PayGlocal_payments"` is **mandatory** and must be exactly this value
+- `data-width` is optional — accepted range is `350px` to `450px`, default is `400px`
+
+Skip this step for `modal` and `drawer` modes.
+
+---
+
+### Step 4 — Launch the Payment Form
+
+When the customer clicks your payment button, call your backend to get the `redirectUrl`, then pass it to CodeDrop:
+
+```javascript
+window.PGPay.launchPayment({
+  redirectUrl: '<redirectUrl>'
+});
+```
+
+A complete example using `axios`:
+
+```javascript
+function displayPaymentPage() {
+  axios
+    .get("<merchantPayNowApi>")
+    .then((res) => {
+      window.PGPay.launchPayment({
+        redirectUrl: res.data.redirectUrl
+      });
+    });
+}
+```
+
+Replace `<merchantPayNowApi>` with your own backend endpoint that returns the `redirectUrl`.
+
+---
+
+### Step 5 — Handle the Payment Callback
+
+After the payment completes, is cancelled, or is abandoned, CodeDrop invokes your callback function with the payment result. Pass the callback as the second argument to `launchPayment()`:
+
+```javascript
+function paymentCallback(data) {
+  // handle payment status based on data parameter
+}
+
+window.PGPay.launchPayment(
+  { redirectUrl: res.data.redirectUrl },
+  paymentCallback
+);
+```
+
+The `data` object passed to your callback contains:
+
+```javascript
+const data = {
+  gid: "gl_o-62693b07-1059-45f3-b353-d65cbfa2bee1",  // identify transaction in GCC
+  status: "SENT_FOR_CAPTURE",                          // current payment status
+  merchantTxnId: "23AEE8CB6B62EE2AF07",               // your transaction reference
+  "x-gl-token": "eyJpc3N1ZWQtYnkiOiJHbG9..."          // use to fetch full status from PayGlocal
+};
+```
+
+---
+
+### Step 6 — Custom Pay Now Action *(Inline mode only)*
+
+If you have hidden the default PayNow button inside the inline payment form, expose your own button and wire it to:
+
+```javascript
+function payNowClicked(event) {
+  // perform custom action
+  window.PGPay.handlePayNow(event);
+}
+```
+
+Add this to the `onclick` of your own PayNow button. The `event` parameter is the click event and is mandatory.
+
+---
+
+### Step 7 — Pass Updated Billing & Shipping Details *(Inline mode only)*
+
+If your billing and shipping forms are on the same page as the inline payment widget, the customer might update their address while interacting with the payment form. To keep the payment form in sync, call:
+
+```javascript
+function updateData() {
+  const merchantPayload = {};
+  window.PGPay.modifyPayment(merchantPayload);
+}
+```
+
+The `merchantPayload` format:
+
+```javascript
+const merchantPayload = {
+  paymentData: {
+    billingData: {
+      firstName: "John",
+      lastName: "Doe",
+      emailId: "something@gmail.com",
+      addressStreet1: "Block-2B",
+      addressStreet2: "Hamilton street",
+      addressCity: "Bangalore",
+      addressState: "Karnataka",
+      addressCountry: "IN",
+      addressPostalCode: "123456"
+    }
+  },
+  riskData: {
+    shippingData: {
+      firstName: "John",
+      lastName: "Doe",
+      emailId: "something@gmail.com",
+      addressStreet1: "street 1",
+      addressStreet2: "street 2",
+      addressCity: "Bangalore",
+      addressState: "Karnataka",
+      addressCountry: "IN",
+      addressPostalCode: "123456"
+    }
+  }
+};
+```
+
+You can send `billingData`, `shippingData`, or both. Any field you omit is left unchanged. Data entered directly by the customer in the payment form always takes highest priority.
+
+---
+
+## For the Full Technical Reference with Code Examples
+
+<Card title="CodeDrop API Reference" icon="book" href="/api-reference/codedrop">
+  Complete integration reference with annotated code examples for every step.
+</Card>

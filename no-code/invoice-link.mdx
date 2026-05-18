@@ -1,0 +1,300 @@
+---
+title: "Invoice Link"
+description: "Generate and share professional payment invoices with customers digitally."
+icon: "file-invoice"
+---
+
+## What is an Invoice Link?
+
+**Invoice Links** allow merchants to generate and share professional payment invoices with customers digitally. These invoices can include complete transaction details such as invoice number, due date, item details, tax, discounts, billing details, merchant notes, and more.
+
+The customer receives a secure invoice link through supported communication channels and can complete the payment directly using the hosted payment page.
+
+## When to Use Invoice Link?
+
+Invoice Links are especially useful for:
+
+- **International and domestic customer payments**
+- **Service-based businesses** requiring detailed billing
+- **Manual order collections** with professional invoicing
+- **Professional invoicing and payment tracking**
+- **Businesses requiring detailed billing information**
+
+## Key Feature: Live Invoice Preview
+
+One of the key advantages of Invoice Links is the **live invoice preview feature**. As you fill in the invoice details, customer information, taxes, discounts, notes, and billing data, the invoice preview is generated in real time on the right side of the screen, allowing you to verify how the final invoice will appear to the customer.
+
+## Prerequisites
+
+Before creating an Invoice Link:
+
+1. **GCC Account**: Access to the [GCC dashboard](https://merchant.payglocal.in)
+2. **Merchant Onboarding**: Complete merchant verification process
+3. **Business Details**: Have your company's billing information ready
+
+For setup instructions, see [Dashboard & Key Management](/getting-started/dashboard-and-key-management).
+
+## How to Create an Invoice Link
+
+<Steps>
+  <Step title="Navigate to Invoice Links">
+    Log in to the [GCC dashboard](https://merchant.payglocal.in), click on **Payment Products** in the left sidebar, then select **Invoice Links**.
+
+    <img src="/images/invoice-links/navigate-invoice-links.png" alt="Navigate to Invoice Links" />
+  </Step>
+
+  <Step title="Click Create Invoice">
+    Click the **+ Create invoice** button in the top right corner to open the invoice creation form.
+  </Step>
+
+  <Step title="Fill Payment Details">
+    Start by filling in the **Payment Details** section:
+
+    <img src="/images/invoice-links/create-invoice-step1.png" alt="Invoice Payment Details" />
+
+    **Required Fields:**
+    - **Select Currency**: Choose the invoice currency (e.g., FJD $, INR, USD)
+    - **Amount**: Enter the invoice amount
+
+    As you fill in these details, you'll see a **live preview** of how your invoice will look on the right side of the screen, showing:
+    - Trading Name
+    - Invoice preview layout
+    - Description & Item Code
+    - PPU (Price Per Unit), QTY, TAX, AMOUNT columns
+  </Step>
+
+  <Step title="Complete Customer and Invoice Details">
+    Continue filling in the remaining sections:
+
+    <img src="/images/invoice-links/create-invoice-step2.png" alt="Invoice Details Form" />
+
+    **Section 2: Customer Details**
+    - Customer name, email, phone, and address
+
+    **Section 3: Invoice Details** (All fields are self-explanatory)
+    - **Invoice No.**: Unique invoice identifier (e.g., 12343)
+    - **Due Date**: Payment deadline (e.g., 2026/06/21)
+    - **Items**: Add line items with:
+      - Description (e.g., "payment for Jacket")
+      - Item Code (e.g., 12345)
+      - PPU (Price Per Unit, e.g., $100)
+      - Qty (Quantity, e.g., 1)
+      - Tax(%) (e.g., 18)
+      - Amount (automatically calculated, e.g., $118.00)
+    - **Discount Type**: Select discount type
+    - **Discount**: Enter discount amount if applicable
+    - **Merchant's Note**: Add notes (e.g., "Payment for jacket")
+    - **Memo**: Additional information
+
+    **Section 4: Billing Details** (Optional)
+    - Additional billing information if needed
+
+    <Note>
+      The live preview on the right updates in real-time as you fill in these details, showing:
+      - Customer information
+      - All items entered
+      - Subtotal Amount
+      - Total Amount
+      - Amount Due
+      - Your merchant notes
+    </Note>
+  </Step>
+
+  <Step title="Review Live Preview">
+    Before submitting, review the invoice preview on the right side to ensure:
+    - All details are correct
+    - Items and amounts are accurate
+    - Tax calculations are correct
+    - Customer information is complete
+    - Merchant notes are clear
+  </Step>
+
+  <Step title="Create Invoice Link">
+    Once you're satisfied with the preview:
+    1. Click **Create Invoice Link** button
+    2. You can also **Save as Draft** to finish later
+    3. The invoice link will be generated and shared automatically
+  </Step>
+
+  <Step title="Invoice Link Created Successfully">
+    After creating the invoice, you'll see a success confirmation:
+
+    <img src="/images/invoice-links/invoice-created-success.png" alt="Invoice Link Created Successfully" />
+
+    The success modal shows:
+    - **Invoice Link is created successfully and shared!**
+    - The generated invoice link URL that you can copy
+    - **Copy Invoice Link** button to easily copy the link
+    - **View all Invoice Links** option to see your invoice dashboard
+
+    <Note>
+      **Customer Notifications**:
+      - **International Customers**: Invoice link is sent via **Email only**
+      - **Domestic Customers** (India): Invoice link is sent via both **Email and WhatsApp**
+      
+      This ensures customers receive timely invoice notifications through the most appropriate channels based on their location.
+    </Note>
+  </Step>
+</Steps>
+
+## Invoice Details That Can Be Included
+
+| Detail | Description |
+|--------|-------------|
+| **Invoice Number** | Unique identifier for tracking |
+| **Due Date** | Payment deadline |
+| **Item Details** | Description, code, quantity, price |
+| **Tax** | Tax percentage and amount |
+| **Discounts** | Discount type and amount |
+| **Billing Details** | Complete billing address |
+| **Merchant Notes** | Additional information for customer |
+| **Memo** | Internal notes or references |
+
+## Customer Notifications
+
+<Note>
+  **Notification Channels**:
+  - **International Customers**: Notifications are sent via **Email only**
+  - **Domestic Customers** (India): Notifications are sent via both **Email and SMS**
+  
+  Customers receive notifications for invoice creation, payment reminders, and payment confirmation.
+</Note>
+
+## Customer Experience
+
+When a customer receives an invoice link:
+
+1. **Receives Invoice**: Customer gets the invoice link via email or SMS
+2. **Views Invoice**: Customer opens the link and sees the professional invoice with all details
+3. **Reviews Details**: Customer reviews items, amounts, tax, and billing information
+4. **Makes Payment**: Customer clicks to pay and is directed to PayGlocal's secure checkout
+5. **Completes Payment**: Customer completes payment using their preferred method
+6. **Gets Receipt**: Customer receives payment confirmation and updated invoice
+
+## Invoice Status
+
+Your invoice links can have the following statuses:
+
+| Status | Description |
+|--------|-------------|
+| **Draft** | Invoice created but not sent |
+| **Sent** | Invoice link dispatched to customer |
+| **Viewed** | Customer has opened the invoice |
+| **Paid** | Invoice fully paid |
+| **Partially Paid** | Customer has made a partial payment |
+| **Overdue** | Payment not received by due date |
+| **Cancelled** | Invoice cancelled by merchant |
+
+## Key Differences from Payment Link
+
+| Feature | Invoice Link | Payment Link |
+|---------|--------------|--------------|
+| **Purpose** | Professional invoicing | Quick payment requests |
+| **Details** | Comprehensive billing info | Basic payment details |
+| **Items** | Multiple line items | Single amount |
+| **Preview** | Live invoice preview | No preview |
+| **Best For** | B2B, services, formal billing | B2C, quick payments |
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Clear Invoice Numbers">
+    - Implement a consistent numbering system (e.g., INV-2026-001)
+    - Include reference to month/year for easy tracking
+    - Never reuse invoice numbers
+    - Consider including customer ID or project code
+  </Accordion>
+
+  <Accordion title="Provide Detailed Line Items">
+    - Break down services/products clearly
+    - Include quantity, rate, and amount for each item
+    - Add descriptions that customers can understand
+    - Show tax breakup separately
+    - Include any discounts explicitly
+  </Accordion>
+
+  <Accordion title="Set Realistic Due Dates">
+    - Standard payment terms: Net 30, Net 15, Net 7
+    - Consider customer's payment cycle
+    - Account for weekends and holidays
+    - Provide sufficient time for review and approval
+  </Accordion>
+
+  <Accordion title="Use Live Preview">
+    - Always check the live preview before sending
+    - Verify all calculations are correct
+    - Ensure formatting looks professional
+    - Check that all required information is included
+    - Review customer-facing notes for clarity
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Customer didn't receive invoice">
+    **Solutions**:
+    - Verify customer's email address is correct
+    - Check customer's spam/junk folder
+    - Resend invoice from dashboard
+    - Share invoice link URL manually
+  </Accordion>
+
+  <Accordion title="Preview not updating">
+    **Solutions**:
+    - Refresh the page
+    - Clear browser cache
+    - Try a different browser
+    - Ensure all required fields are filled
+  </Accordion>
+
+  <Accordion title="Tax calculations incorrect">
+    **Solutions**:
+    - Double-check tax percentage entered
+    - Verify quantity and price per unit
+    - Ensure discount is applied correctly
+    - Contact support if issue persists
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card 
+    title="Payment Link" 
+    icon="link" 
+    href="/no-code/payment-link"
+  >
+    For quick payment requests without detailed invoicing
+  </Card>
+  
+  <Card 
+    title="Payment Button" 
+    icon="circle-play" 
+    href="/no-code/payment-button"
+  >
+    For dynamic amount payments on your website
+  </Card>
+  
+  <Card 
+    title="Webhooks" 
+    icon="webhook" 
+    href="/merchant/webhooks"
+  >
+    Set up real-time payment notifications
+  </Card>
+  
+  <Card 
+    title="Dashboard Overview" 
+    icon="chart-line" 
+    href="/getting-started/gcc-dashboard"
+  >
+    Explore more dashboard features
+  </Card>
+</CardGroup>
+
+## Support
+
+- **Business and invoicing questions**: Contact your PayGlocal account manager
+- **Technical issues**: Email [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in)
+- **Dashboard access**: Reach out to your account manager

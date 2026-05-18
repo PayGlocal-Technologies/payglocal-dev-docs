@@ -1,0 +1,253 @@
+---
+title: "Key & Credential Management"
+description: "Understand what credentials PayGlocal needs, why each one matters, and how to get them from your GCC dashboard."
+icon: "key"
+---
+
+<Note>
+  Not logged into GCC yet? Start at [PayGlocal Dashboards](/getting-started/payglocal-dashboards) first.
+</Note>
+
+---
+
+## Why Do You Need Credentials?
+
+PayGlocal uses a **JWT token-based integration model** for every API call. Before your payment request reaches PayGlocal's servers, it goes through two steps:
+
+<Steps>
+  <Step title="Encrypt your payload (JWE)">
+    Your payment data is encrypted using **PayGlocal's public key** so only PayGlocal can read it.
+
+    This produces a **JWE token** — a 5-part encrypted blob in the format `header.encryptedKey.iv.ciphertext.tag`.
+  </Step>
+  <Step title="Sign the encrypted payload (JWS)">
+    The JWE is then signed using **your private key** to prove the request came from you.
+
+    This produces a **JWS token** — a 3-part signed token in the format `header.payload.signature`.
+  </Step>
+  <Step title="Send the request">
+    The JWS goes into the `x-gl-token-external` header. The JWE goes in the request body.
+
+    PayGlocal verifies your signature, decrypts the payload, and processes the payment.
+  </Step>
+</Steps>
+
+**This is why credentials exist.** Each of the five values plays a specific role in this flow:
+
+| Credential | Role in the flow |
+|---|---|
+| **PayGlocal's Public Key** | Encrypts your payload → only PayGlocal can decrypt |
+| **Your Private Key** | Signs the request → proves it came from you |
+| **Public Key ID (KID)** | Tells PayGlocal which key was used to encrypt |
+| **Private Key ID (KID)** | Tells PayGlocal which key pair to verify the signature against |
+| **Merchant ID (MID)** | Identifies your merchant account on every API call |
+
+<Warning>
+  Your **private key is downloaded once** and is not stored by PayGlocal. Keep it in a secrets manager. If lost, you must regenerate a new key pair and update all integrations.
+</Warning>
+
+---
+
+## How to Get Each Credential
+
+### Merchant ID (MID)
+
+<Steps>
+  <Step title="Log in to your GCC dashboard">
+    Open [GCC UAT](https://gcc.uat.payglocal.in) or [GCC Production](https://gcc.prod.payglocal.in).
+  </Step>
+  <Step title="Click your profile icon and open TID Details">
+    Click on your profile icon in the top-right corner of the dashboard and click on **My Account**.
+    
+    ![Click Profile Icon - Step 1](/images/dashboard/mid-step1-profile-click.png)
+    
+    From the headings, click on **TID Details**.
+    
+    ![TID Details - Step 2](/images/dashboard/mid-step2-tid-details.png)
+  </Step>
+  <Step title="Copy your Merchant ID">
+    Under the **Payment Gateway** section, your **Merchant ID (MID)** is displayed. Copy it.
+  </Step>
+</Steps>
+
+---
+
+### Public Key & Private Key
+
+Both keys are managed from the Key Management System in GCC. You'll download the public key first, then generate and download your private key.
+
+---
+
+#### Downloading Public Key
+
+<Steps>
+  <Step title="Navigate to Key Management System">
+    In the **left sidebar**, click on **Configure**.
+    
+    ![Navigate to Configure](/images/dashboard/key-mgmt-step1-configure.png)
+    
+    Then click on **Key Management System**.
+  </Step>
+  <Step title="Download PayGlocal's Public Key">
+    Find **PayGlocal Common Certificate** in the list and click the **Download** button.
+    
+    ![Download PayGlocal Public Key](/images/dashboard/key-mgmt-step2-download-public.png)
+    
+    <Note>
+      This is **PayGlocal's public key** — you'll use it to encrypt your JWE payload so only PayGlocal can decrypt it.
+    </Note>
+  </Step>
+</Steps>
+
+---
+
+#### Downloading Private Key
+
+<Steps>
+  <Step title="Filter by Key Type">
+    In the same Key Management screen, click on the **Key Type** dropdown filter.
+    
+    ![Click on Key Type filter](/images/dashboard/private-key-step1-filter.png)
+  </Step>
+  <Step title="Select RSA">
+    From the dropdown menu, select **RSA**.
+    
+    ![Select RSA from dropdown](/images/dashboard/private-key-step2-select-rsa.png)
+    
+    Then click **Apply**.
+  </Step>
+  <Step title="Generate RSA Key">
+    Click the **Generate RSA Key** button in the top-right corner.
+    
+    ![Click Generate RSA Key](/images/dashboard/private-key-step3-generate.png)
+    
+    <Note>
+      This will create a new RSA key pair. The private key will be available for download only once.
+    </Note>
+  </Step>
+  <Step title="Download Your Private Key">
+    Once the key is generated, you'll see it in the table. Click the **Download** icon to save your private key.
+    
+    ![Download your private key](/images/dashboard/private-key-step4-download.png)
+    
+    <Warning>
+      **This is your only chance!** The private key is not stored by PayGlocal. If you lose it, you'll need to regenerate a new key pair and update all your integrations.
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+### Key IDs (Public KID & Private KID)
+
+**Good news:** You don't need to go back to GCC for Key IDs. They're already built into the filenames of the `.pem` files you just downloaded.
+
+---
+
+#### Fetching Public Key ID
+
+Your Public Key ID is embedded in the filename of the public key file you downloaded from GCC.
+
+<Steps>
+  <Step title="Go to your Downloads folder">
+    Navigate to the folder where your **PayGlocal public key** was downloaded (usually your Downloads folder).
+  </Step>
+  <Step title="View the filename">
+    Look at the filename of the downloaded `.pem` file. It follows this pattern:
+    
+    ```
+    [PUBLIC_KEY_ID]_[rest-of-filename].pem
+    ```
+    
+    ![Public Key ID in filename](/images/dashboard/public-key-id-filename.png)
+  </Step>
+  <Step title="Copy everything before the first underscore">
+    Your **Public Key ID** is everything before the first underscore (`_`).
+    
+    **Example:**
+    - Full filename: `kid-cEKTmICMYBaIm3bW_payglocal_mid.pem`
+    - Your Public Key ID: `kid-cEKTmICMYBaIm3bW`
+    
+    <Note>
+      **Pro tip:** Right-click the file → Rename → Copy just the Key ID part (everything before `_`)
+    </Note>
+  </Step>
+</Steps>
+
+---
+
+#### Fetching Private Key ID
+
+Unlike the Public Key ID, your **Private Key ID can be fetched directly from the GCC dashboard** where you generated the RSA key.
+
+<Steps>
+  <Step title="Go to Key Management (RSA section)">
+    Navigate back to **Configure → Key Management System** and filter by **RSA** (where you generated your private key).
+  </Step>
+  <Step title="Copy the Key ID from the table">
+    In the Key Management table, you'll see your generated RSA key listed with its **Key ID** in the first column.
+    
+    ![Copy Private Key ID from dashboard](/images/dashboard/private-key-id-dashboard.png)
+    
+    **Simply copy the Key ID** displayed in the table — this is your **Private Key ID**.
+    
+    <Note>
+      You can also extract the Private Key ID from the downloaded `.pem` filename (everything before the first `_`), but the dashboard method is easier since it's already displayed.
+    </Note>
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Public Key ID Example" icon="key" color="#10B981">
+    **Filename:**
+    ```
+    kid-kjbvvkjsbkjdsb_kndk.pem
+    ```
+    
+    **Public Key ID:**
+    ```
+    kid-kjbvvkjsbkjdsb
+    ```
+    ✅ Everything before `_`
+  </Card>
+  
+  <Card title="Private Key ID Example" icon="key" color="#F59E0B">
+    **Filename:**
+    ```
+    kid_hfjdthjdfddfjk345_hfj.pem
+    ```
+    
+    **Private Key ID:**
+    ```
+    kid_hfjdthjdfddfjk345
+    ```
+    ✅ Everything before `_`
+  </Card>
+</CardGroup>
+
+---
+
+## Quick Reference
+
+| # | Credential | Where to get it |
+|---|---|---|
+| 1 | Merchant ID | GCC → Profile icon → TID Management → Payment Gateway |
+| 2 | Public Key | GCC → Configure → Key Management → PayGlocal Common Certificate |
+| 3 | Private Key | GCC → Configure → Key Management → Generate RSA Key |
+| 4 | Public Key ID | Public key `.pem` filename — text before the `_` |
+| 5 | Private Key ID | Private key `.pem` filename — text before the `_` |
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Key Management Deep Dive" icon="key" href="/key-management/overview">
+    JWS signing mechanics, key rotation, and environments.
+  </Card>
+  <Card title="Which Integration Is Right for You?" icon="map" href="/integration/overview">
+    Choose between No-Code and API integration based on how your business collects payments.
+  </Card>
+</CardGroup>
+
+Questions? Reach out at [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).

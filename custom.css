@@ -22,6 +22,32 @@ samp,
   font-variant-ligatures: contextual;
 }
 
+/* ── Content area width — broader reading column ──────────── */
+
+/* Mintlify Sequoia content wrapper */
+.content-container,
+[class*="contentContainer"],
+[class*="content-container"],
+[class*="PageLayout"] main,
+[class*="PageLayout"] article,
+[class*="prose"],
+.prose {
+  max-width: 1100px !important;
+  width: 100% !important;
+}
+
+/* Card groups always take full width of their container */
+[class*="CardGroup"],
+[class*="card-group"] {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Tables stretch to full width */
+table {
+  width: 100% !important;
+}
+
 /* ── ParamField / API table improvements ──────────────────── */
 
 table {
@@ -98,3 +124,566 @@ table tbody tr:hover {
   font-size: 0.78rem;
   letter-spacing: 0.02em;
 }
+
+/* ── POC: sidebar section rhythm + right-rail outline (Mintlify Sequoia) ── */
+
+/* Clearer separation between sidebar groups (left rail) */
+#navigation-items .sidebar-group-header {
+  display: flex;
+  align-items: center;
+  min-height: 2.65rem;
+  margin-top: 0.65rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(226 232 240 / 0.95);
+  background: linear-gradient(180deg, rgb(248 250 252 / 0.9), rgb(248 250 252 / 0.15));
+}
+
+.dark #navigation-items .sidebar-group-header {
+  border-color: rgb(51 65 85 / 0.55);
+  background: linear-gradient(180deg, rgb(30 41 59 / 0.55), rgb(15 23 42 / 0));
+}
+
+#navigation-items .sidebar-group-header h5 {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  width: 100%;
+}
+
+/* Breathing room after each group block */
+#navigation-items ul.sidebar-group {
+  margin-bottom: 0.35rem;
+}
+
+/* ── Right-rail outline (TOC): crisp hierarchy & symmetry (Sequoia) ── */
+
+#table-of-contents-content.toc {
+  padding-left: 0.5rem;
+  border-left: 1px solid rgb(226 232 240);
+  margin-left: 0.15rem;
+}
+
+.dark #table-of-contents-content.toc {
+  border-left-color: rgb(51 65 85 / 0.65);
+}
+
+#table-of-contents-content.toc .toc-item > a {
+  display: block;
+  line-height: 1.35;
+  padding-top: 0.22rem;
+  padding-bottom: 0.22rem;
+  border-radius: 0.25rem;
+}
+
+/* H2-equivalent (depth 0) */
+#table-of-contents-content.toc .toc-item[data-depth="0"] > a {
+  margin-top: 0.45rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgb(15 23 42);
+}
+
+.dark #table-of-contents-content.toc .toc-item[data-depth="0"] > a {
+  color: rgb(241 245 249);
+}
+
+/* H3 (depth 1) */
+#table-of-contents-content.toc .toc-item[data-depth="1"] > a {
+  padding-left: 0.65rem !important;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgb(71 85 105);
+}
+
+.dark #table-of-contents-content.toc .toc-item[data-depth="1"] > a {
+  color: rgb(148 163 184);
+}
+
+/* H4+ (depth 2, 3) — tighter, aligned stack */
+#table-of-contents-content.toc .toc-item[data-depth="2"] > a,
+#table-of-contents-content.toc .toc-item[data-depth="3"] > a {
+  padding-left: 1.1rem !important;
+  font-size: 0.74rem;
+  font-weight: 400;
+  color: rgb(100 116 139);
+}
+
+.dark #table-of-contents-content.toc .toc-item[data-depth="2"] > a,
+.dark #table-of-contents-content.toc .toc-item[data-depth="3"] > a {
+  color: rgb(148 163 184 / 0.95);
+}
+
+/* Active / in-view hint (Mintlify toggles text-primary on current link) */
+#table-of-contents-content.toc .toc-item a.text-primary {
+  color: var(--primary, #1a6fe8) !important;
+  font-weight: 600;
+}
+
+/* “On this page” label */
+@media (min-width: 1024px) {
+  #table-of-contents > button {
+    width: 100%;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(100 116 139);
+    cursor: default;
+    padding: 0.15rem 0 0.45rem 0.5rem;
+    margin-left: 0.15rem;
+    border-bottom: 1px solid rgb(226 232 240 / 0.95);
+    margin-bottom: 0.35rem;
+  }
+
+  .dark #table-of-contents > button {
+    color: rgb(148 163 184);
+    border-bottom-color: rgb(51 65 85 / 0.7);
+  }
+}
+
+/* ── API-based products page: layout helpers (used in payment-products/api-based-products.mdx) ── */
+
+.payg-btn-primary {
+  background: linear-gradient(90deg, #6366f1, #7c3aed);
+}
+
+.payg-btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.payg-path-card {
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.payg-path-card:hover {
+  box-shadow: 0 8px 28px rgba(26, 111, 232, 0.12);
+  border-color: rgba(26, 111, 232, 0.25);
+}
+
+.payg-prose-callout {
+  border: 1px solid rgb(226 232 240);
+}
+
+.dark .payg-prose-callout {
+  border-color: rgb(51 65 85 / 0.55);
+}
+
+.payg-flow-rail {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.payg-kp {
+  border-radius: 0.65rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(248 250 252);
+  padding: 0.85rem 1rem;
+}
+
+.dark .payg-kp {
+  border-color: rgb(51 65 85 / 0.55);
+  background: rgb(15 23 42 / 0.45);
+}
+
+.payg-band-init {
+  background: linear-gradient(90deg, rgb(237 233 254), rgb(239 246 255));
+  border: 1px solid rgb(199 210 254 / 0.7);
+}
+
+.dark .payg-band-init {
+  background: linear-gradient(90deg, rgb(49 46 129 / 0.35), rgb(30 58 138 / 0.25));
+  border-color: rgb(99 102 241 / 0.35);
+}
+
+.payg-band-txn {
+  background: linear-gradient(90deg, rgb(255 247 237), rgb(254 252 232));
+  border: 1px solid rgb(253 186 116 / 0.45);
+}
+
+.dark .payg-band-txn {
+  background: linear-gradient(90deg, rgb(124 45 18 / 0.25), rgb(113 63 18 / 0.2));
+  border-color: rgb(251 146 60 / 0.25);
+}
+
+/* Highlighted section: Payment types (API map) */
+h2#payment-types-api-map {
+  margin-top: 2.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(199 210 254 / 0.85);
+  background: linear-gradient(135deg, rgb(238 242 255), rgb(239 246 255));
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.dark h2#payment-types-api-map {
+  border-color: rgb(99 102 241 / 0.35);
+  background: linear-gradient(135deg, rgb(30 27 75 / 0.45), rgb(15 23 42 / 0.6));
+}
+
+.payg-api-map-intro {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255 / 0.85);
+}
+
+.dark .payg-api-map-intro {
+  border-color: rgb(51 65 85 / 0.55);
+  background: rgb(15 23 42 / 0.35);
+}
+
+.payg-pm-rail-nest {
+  animation: payg-pm-fade-in 0.25s ease;
+}
+
+@keyframes payg-pm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.payg-pm-inner-scroll {
+  scrollbar-gutter: stable;
+}
+
+.payg-pm-inner-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.payg-pm-inner-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(148 163 184 / 0.55);
+}
+
+.dark .payg-pm-inner-scroll::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105 / 0.65);
+}
+
+.payg-pm-api-map-title {
+  margin-top: 2.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(199 210 254 / 0.85);
+  background: linear-gradient(135deg, rgb(238 242 255), rgb(239 246 255));
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.dark .payg-pm-api-map-title {
+  border-color: rgb(99 102 241 / 0.35);
+  background: linear-gradient(135deg, rgb(30 27 75 / 0.45), rgb(15 23 42 / 0.6));
+}
+
+.payg-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Plugin integration hub & guides ─────────────────────── */
+
+.payg-plugin-hero {
+  margin-bottom: 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(199 210 254 / 0.85);
+  background: linear-gradient(135deg, rgb(238 242 255) 0%, rgb(224 242 254) 45%, rgb(254 249 195 / 0.35) 100%);
+  padding: 1.35rem 1.5rem;
+  box-shadow: 0 4px 24px rgba(79, 70, 229, 0.08);
+}
+
+.dark .payg-plugin-hero {
+  border-color: rgb(99 102 241 / 0.35);
+  background: linear-gradient(135deg, rgb(30 27 75 / 0.55) 0%, rgb(15 23 42 / 0.75) 50%, rgb(113 63 18 / 0.15) 100%);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.payg-plugin-hero h1,
+.payg-plugin-hero .payg-plugin-hero-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgb(30 27 75);
+}
+
+.dark .payg-plugin-hero .payg-plugin-hero-title {
+  color: rgb(241 245 249);
+}
+
+.payg-plugin-hero p {
+  margin: 0;
+  max-width: 48rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgb(51 65 85);
+}
+
+.dark .payg-plugin-hero p {
+  color: rgb(203 213 225);
+}
+
+.payg-plugin-figure {
+  margin: 1.25rem 0 1.75rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dark .payg-plugin-figure {
+  border-color: rgb(51 65 85 / 0.65);
+  background: rgb(15 23 42 / 0.5);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.payg-plugin-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.payg-plugin-figure figcaption {
+  padding: 0.65rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: rgb(71 85 105);
+  border-top: 1px solid rgb(241 245 249);
+  background: rgb(248 250 252);
+}
+
+.dark .payg-plugin-figure figcaption {
+  color: rgb(148 163 184);
+  border-top-color: rgb(51 65 85 / 0.5);
+  background: rgb(15 23 42 / 0.65);
+}
+
+.payg-plugin-band {
+  margin: 1.5rem 0;
+  padding: 1rem 1.15rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(167 243 208 / 0.65);
+  background: linear-gradient(90deg, rgb(236 253 245), rgb(240 253 244));
+}
+
+.dark .payg-plugin-band {
+  border-color: rgb(16 185 129 / 0.35);
+  background: linear-gradient(90deg, rgb(6 78 59 / 0.35), rgb(15 23 42 / 0.4));
+}
+
+.payg-plugin-download-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff !important;
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.payg-plugin-download-pill:hover {
+  filter: brightness(1.06);
+}
+
+/* ── Payload tab scroll hint arrows ─────────────────────── */
+
+.payg-tab-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  padding: 0 0.15rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.payg-tab-hint-arrow {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #1A6FE8;
+  opacity: 0.75;
+}
+
+.dark .payg-tab-hint-arrow {
+  color: #ffffff;
+  opacity: 0.6;
+}
+
+.payg-tab-hint-arrow svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── API Integration Section Hierarchy ────────────────────── */
+
+/* Target the API Integration nested group for improved spacing */
+nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
+  margin-top: 1.25rem !important;
+  padding-top: 0.65rem !important;
+  padding-bottom: 0.65rem !important;
+  font-weight: 600 !important;
+  font-size: 0.92rem !important;
+  border-top: 1px solid rgb(226 232 240 / 0.5);
+}
+
+.dark nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+.dark nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+.dark nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
+  border-top-color: rgb(51 65 85 / 0.4);
+}
+
+/* Parent headings with icons - make them prominent */
+nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
+nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+  font-weight: 600 !important;
+  color: rgb(15 23 42) !important;
+}
+
+.dark nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+.dark nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+.dark nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
+.dark nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+  color: rgb(241 245 249) !important;
+}
+
+/* Child subheadings - lighter, indented to align with parent text */
+nav[aria-label="Navigation"] a[href*="/payment-initiation"],
+nav[aria-label="Navigation"] a[href*="/transaction-management"],
+nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
+nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
+nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
+nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
+nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
+nav[aria-label="Navigation"] a[href*="/authorization-management"],
+nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
+nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
+nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+  font-weight: 400 !important;
+  font-size: 0.85rem !important;
+  color: rgb(71 85 105) !important;
+  padding-left: 2.25rem !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  margin-left: 0 !important;
+}
+
+.dark nav[aria-label="Navigation"] a[href*="/payment-initiation"],
+.dark nav[aria-label="Navigation"] a[href*="/transaction-management"],
+.dark nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
+.dark nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
+.dark nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
+.dark nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
+.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+.dark nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
+.dark nav[aria-label="Navigation"] a[href*="/authorization-management"],
+.dark nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
+.dark nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
+.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+  color: rgb(148 163 184) !important;
+}
+
+/* Hover states for child subheadings */
+nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
+nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
+nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
+nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
+nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
+nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
+nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
+nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
+nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
+nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
+nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
+nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
+  background-color: rgb(241 245 249 / 0.6) !important;
+  color: rgb(30 41 59) !important;
+}
+
+.dark nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
+.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
+  background-color: rgb(51 65 85 / 0.3) !important;
+  color: rgb(226 232 240) !important;
+}
+
+/* Add spacing after last child of each section */
+nav[aria-label="Navigation"] a[href*="/transaction-management"],
+nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+  margin-bottom: 0.85rem !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid rgb(241 245 249 / 0.6);
+}
+
+.dark nav[aria-label="Navigation"] a[href*="/transaction-management"],
+.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+  border-bottom-color: rgb(51 65 85 / 0.3);
+}
+
+/* CodeDrop spacing */
+nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+  margin-top: 1rem !important;
+  padding-top: 0.5rem !important;
+}
+
+/* Add overall padding to API Integration group */
+nav[aria-label="Navigation"] [data-group="API Integration"] {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* Active/selected state for better visibility */
+nav[aria-label="Navigation"] a[aria-current="page"] {
+  background-color: rgb(219 234 254 / 0.7) !important;
+  color: #1A6FE8 !important;
+  font-weight: 600 !important;
+}
+
+.dark nav[aria-label="Navigation"] a[aria-current="page"] {
+  background-color: rgb(30 58 138 / 0.4) !important;
+  color: rgb(147 197 253) !important;
+}
+

@@ -1,0 +1,374 @@
+---
+title: "Payment methods by PayGlocal"
+description: "Regular payment, auth & capture, and standing instructions — capabilities, lifecycle, and API map for PayCollect and PayDirect."
+icon: "layer-group"
+hideNextPrevious: true
+---
+
+export default function PaymentMethodsPage() {
+  const h2 = 'mb-3 scroll-mt-24 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100'
+  const h3 = 'mb-3 mt-10 scroll-mt-24 text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100'
+  const h4 = 'mt-8 scroll-mt-24 text-lg font-bold text-gray-900 dark:text-gray-100'
+  const h5 = 'mt-6 scroll-mt-24 text-base font-semibold text-gray-900 dark:text-gray-100'
+  const p = 'mt-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300'
+  const lead = 'text-sm leading-relaxed text-gray-700 dark:text-gray-300'
+
+  return (
+    <>
+      <div className="not-prose mb-6 text-sm">
+        <a href="/payment-products/api-based-products" className="text-primary font-medium no-underline hover:underline">← API-based products</a>
+      </div>
+
+      <p className="payg-api-lead mb-8 max-w-4xl text-base leading-relaxed text-gray-600 dark:text-gray-400">
+        Whether you integrate with <strong>PayCollect</strong> or <strong>PayGlocal PayDirect</strong>, PayGlocal exposes the same <strong>payment method families</strong> at the gateway — subject to your MID, bundle, and compliance posture. Your <strong>account manager</strong> confirms which methods are live for you.
+      </p>
+
+      <h2 id="payment-method-families" className={h2}>
+        Payment method families
+      </h2>
+      <p className={`${lead} mb-6 max-w-4xl`}>
+        These are the <strong>payment capabilities</strong> PayGlocal can enable for your merchant account. Availability depends on your bundle and compliance posture — your <strong>account manager</strong> confirms which methods are live for your MID.
+      </p>
+
+      <div className="not-prose mb-10 grid gap-4 lg:grid-cols-3">
+        <div className="flex flex-col rounded-2xl border-2 border-blue-200 bg-white p-5 shadow-sm dark:border-blue-900/50 dark:bg-zinc-900">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">🔐</div>
+          <p className="mt-4 text-lg font-bold text-gray-900 dark:text-gray-100">Regular payment</p>
+          <p className="mt-2 flex-1 text-sm text-gray-600 dark:text-gray-400">Secure payment processing with tokenised payloads for enhanced security.</p>
+          <ul className="mt-3 space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Enhanced security for payloads</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Full control over payment flow</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Direct card data handling where applicable (PCI scope applies)</li>
+          </ul>
+          <a href="#regular-payment" className="payg-btn-primary mt-5 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white no-underline">
+            Jump to details →
+          </a>
+        </div>
+        <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">🔁</div>
+          <p className="mt-4 text-lg font-bold text-gray-900 dark:text-gray-100">Standing instruction</p>
+          <p className="mt-2 flex-1 text-sm text-gray-600 dark:text-gray-400">Automated recurring payments with customer consent for subscriptions.</p>
+          <ul className="mt-3 space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Automated recurring payments</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Reduced manual processing</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Improved cash flow</li>
+          </ul>
+          <a href="#standing-instruction" className="payg-btn-primary mt-5 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white no-underline">
+            Jump to details →
+          </a>
+        </div>
+        <div className="flex flex-col rounded-2xl border-2 border-emerald-200 bg-white p-5 shadow-sm dark:border-emerald-900/45 dark:bg-zinc-900">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">💳</div>
+          <p className="mt-4 text-lg font-bold text-gray-900 dark:text-gray-100">Auth &amp; capture</p>
+          <p className="mt-2 flex-1 text-sm text-gray-600 dark:text-gray-400">Two-step payment — authorize first, capture later for flexible control.</p>
+          <ul className="mt-3 space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Hold funds before capture</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Flexible payment timing</li>
+            <li className="flex gap-2"><span className="text-emerald-500">✓</span> Reduce chargebacks</li>
+          </ul>
+          <a href="#auth-and-capture" className="payg-btn-primary mt-5 inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white no-underline">
+            Jump to details →
+          </a>
+        </div>
+      </div>
+
+      <h2 id="payment-types-api-map" className={`${h2} payg-pm-api-map-title mt-12`}>
+        Payment types (API map)
+      </h2>
+      <p className="not-prose payg-api-map-intro mb-8 max-w-4xl text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+        Use the <strong>On this page</strong> outline on the right (same as other guides, e.g. No-code products) to jump to any section.
+      </p>
+
+      <span id="pm-regular" className="payg-sr-only" aria-hidden="true" />
+
+      <h3 id="regular-payment" className={h3}>
+        Regular payment
+      </h3>
+
+      <h4 id="pm-rp-overview" className={h4}>
+        Regular Payment – Overview
+      </h4>
+      <p className={p}>
+          Regular payment provides a secure, seamless way to handle one-time payment transactions. PayGlocal uses <strong>JWE (encryption)</strong> and <strong>JWS (signature)</strong> to ensure your payment data remains secure throughout the transaction lifecycle.
+        </p>
+        <div className="not-prose payg-kp mt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key points</p>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-gray-800 dark:text-gray-200">
+            <li>Immediate payment capture upon successful authorization</li>
+            <li>Secure token-based authentication for all API calls</li>
+            <li>Real-time transaction status tracking</li>
+            <li>Support for full and partial refunds</li>
+            <li>Suitable for one-time payment scenarios</li>
+          </ul>
+        </div>
+
+        <h4 id="pm-rp-initiate" className={h4}>
+          Payment Initiate
+        </h4>
+        <p className={p}>
+          Initiate a payment transaction with immediate capture. This API creates a payment session and redirects the customer to PayGlocal&apos;s secure payment interface. Upon successful payment, the amount is immediately captured and settled.
+        </p>
+        <div className="not-prose payg-kp mt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key points</p>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-gray-800 dark:text-gray-200">
+            <li>Creates a payment transaction with specified amount</li>
+            <li>Generates a redirect URL for customer payment</li>
+            <li>Immediate capture upon successful authorization</li>
+            <li>Returns Global ID (gid) for transaction tracking</li>
+            <li>Supports multiple payment methods (Cards, UPI, Net Banking)</li>
+            <li>Webhook notification sent to your callback URL</li>
+          </ul>
+        </div>
+
+        <h4 id="pm-rp-txn" className={h4}>
+          Transaction Management
+        </h4>
+        <h5 id="pm-rp-status" className={h5}>
+          Status Check
+        </h5>
+        <p className={p}>
+          Check the current status of any payment transaction using its Global ID (<code className="rounded bg-gray-100 px-1 dark:bg-white/10">gid</code>). This API provides real-time transaction status, payment method used, amount details, and complete transaction history.
+        </p>
+        <div className="not-prose payg-kp mt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key points</p>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-gray-800 dark:text-gray-200">
+            <li>Real-time transaction status updates</li>
+            <li>Returns payment method and amount details</li>
+            <li>Includes authorization codes and timestamps</li>
+            <li>Shows complete transaction lifecycle</li>
+            <li>Essential for reconciliation and reporting</li>
+            <li>Can be called multiple times without side effects</li>
+          </ul>
+        </div>
+
+        <h5 id="pm-rp-partial" className={h5}>
+          Partial Refund
+        </h5>
+        <p className={p}>
+          Refund a specific amount from a completed transaction. This is useful when you need to return only a portion of the payment, such as for partial order cancellations or discounts applied after payment.
+        </p>
+        <div className="not-prose payg-kp mt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key points</p>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-gray-800 dark:text-gray-200">
+            <li>Refund any amount up to the original transaction amount</li>
+            <li>Multiple partial refunds allowed until full amount is refunded</li>
+            <li>Requires refundType &quot;P&quot; and paymentData.totalAmount</li>
+            <li>Each refund requires a unique merchantTxnId</li>
+            <li>Refund typically processes within 5–7 business days</li>
+            <li>Webhook notification sent upon refund completion</li>
+          </ul>
+        </div>
+
+        <h5 id="pm-rp-full" className={h5}>
+          Full Refund
+        </h5>
+        <p className={p}>
+          Refund the entire transaction amount in one operation. This is the quickest way to process a complete refund for order cancellations or returns.
+        </p>
+        <div className="not-prose payg-kp mt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Key points</p>
+          <ul className="list-disc space-y-1.5 pl-5 text-sm text-gray-800 dark:text-gray-200">
+            <li>Refunds the complete original transaction amount</li>
+            <li>Requires refundType &quot;F&quot; only, no amount needed</li>
+            <li>Simpler payload than partial refund</li>
+            <li>Only one full refund allowed per transaction</li>
+            <li>Refund typically processes within 5–7 business days</li>
+            <li>Webhook notification sent upon refund completion</li>
+          </ul>
+        </div>
+
+        <div className="not-prose mt-6 flex flex-wrap gap-3">
+          <Card title="GPI Initiate (API)" icon="code" href="/api-reference/payment/gpi-initiate" />
+          <Card title="Get status (API)" icon="signal" href="/api-reference/payment/get-status" />
+          <Card title="Refund (API)" icon="rotate-left" href="/api-reference/payment/refund" />
+        </div>
+
+        <span id="pm-si" className="payg-sr-only" aria-hidden="true" />
+        <span id="si-recurring-payments" className="payg-sr-only" aria-hidden="true" />
+
+        <h3 id="standing-instruction" className={h3}>
+          Standing instruction
+        </h3>
+
+        <div className="text-sm leading-relaxed text-gray-800 dark:text-gray-200">
+          <h4 id="pm-si-init" className={h4}>
+            Payment initiation
+          </h4>
+          <h5 className={h5}>Standing Instructions API</h5>
+          <p className={p}>
+            Standing Instructions (SI) enable merchants to charge customers on a recurring basis using pre-authorized mandates. This payment solution is ideal for subscriptions, EMI collections, utility billing, SaaS renewals, and automated recurring payments where customer approval is collected once during mandate creation.
+          </p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Key concept</h5>
+          <p className={p}>
+            Customers authorize the merchant once during the initial payment setup, and the generated <strong>Mandate ID</strong> can later be used for future recurring charges without repeated authentication.
+          </p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Features</h5>
+          <p className={p}><strong>Mandate-based</strong> — One-time authorization for recurring future deductions linked to a customer payment instrument.</p>
+          <p className={p}><strong>Flexible types</strong> — Supports both fixed recurring amounts and variable recurring amounts within a defined ceiling.</p>
+          <p className={p}><strong>Auto or manual collection</strong> — Supports scheduled auto-debit flows as well as merchant-triggered ONDEMAND deductions.</p>
+          <p className={p}><strong>Secure &amp; compliant</strong> — Built with PCI DSS compliant payment flows and mandate-based recurring billing standards.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>SI Initiate and mandate setup</h5>
+          <p className={p}>
+            <strong>SI Initiate – creating payment mandates</strong> — SI Initiate is the first step in the recurring payments lifecycle. It creates a standing instruction mandate which authorizes future recurring deductions from the customer&apos;s selected payment method.
+          </p>
+          <p className={p}><strong>What it does</strong> — Creates a recurring payment mandate linked to the customer&apos;s payment instrument. Customer approval is captured during the initial transaction and future recurring payments are enabled using the returned Mandate ID.</p>
+          <p className={p}><strong>When to use</strong> — Use SI Initiate when onboarding customers for subscription plans, EMI collections, membership billing, utility payments, insurance premium collections, and SaaS recurring billing. This is always the first step in the SI lifecycle.</p>
+          <p className={p}><strong>Mandate ID is critical</strong> — The response contains a Mandate ID. This ID must be securely stored because it is required for recurring deductions, status checks, pause operations, reactivation flows, and mandate lifecycle management.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>SI types</h5>
+          <p className={p}><strong>Fixed SI</strong> — Use Fixed SI when the same amount needs to be deducted on every billing cycle. Ideal for fixed subscriptions, EMIs, gym memberships, OTT renewals, and insurance premiums. Provides predictable recurring billing schedules.</p>
+          <p className={p}><strong>Variable SI</strong> — Use Variable SI when the amount may vary between billing cycles. Suitable for utility bills, usage-based pricing, metered subscriptions, recharge systems, and top-up style billing. A maximum amount ceiling is defined during mandate setup.</p>
+
+          <h4 id="pm-si-deduct" className={h4}>
+            Payment deduction
+          </h4>
+          <h5 className={h5}>Fixed + auto debit</h5>
+          <p className={`${p} font-semibold text-gray-900 dark:text-gray-100`}>frequency: DAILY / WEEKLY / MONTHLY</p>
+          <p className={p}>
+            PayGlocal automatically debits the configured fixed amount according to the selected recurring schedule. No manual merchant action is required once the mandate is successfully created.
+          </p>
+          <p className={`${p} font-semibold text-gray-900 dark:text-gray-100`}>Best suited for</p>
+          <ul className={`${p} list-disc space-y-1 pl-5`}>
+            <li>EMI repayments</li>
+            <li>Fixed subscriptions</li>
+            <li>Rental billing</li>
+            <li>Membership renewals</li>
+          </ul>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Variable + ONDEMAND</h5>
+          <p className={`${p} font-semibold text-gray-900 dark:text-gray-100`}>frequency: ONDEMAND</p>
+          <p className={p}>
+            Provides merchants complete flexibility over deduction timing and amount. Merchant triggers deductions manually whenever required, while staying within the approved mandate ceiling amount.
+          </p>
+          <p className={`${p} font-semibold text-gray-900 dark:text-gray-100`}>Suitable for</p>
+          <ul className={`${p} list-disc space-y-1 pl-5`}>
+            <li>Utility billing</li>
+            <li>Usage-based subscriptions</li>
+            <li>Wallet top-ups</li>
+            <li>Consumption billing</li>
+          </ul>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>ONDEMAND deduction – executing charges</h5>
+          <p className={p}>Execute recurring deductions against an existing VARIABLE mandate whenever billing needs to occur.</p>
+          <p className={p}><strong>What it does</strong> — Charges the customer&apos;s linked payment method using a previously created VARIABLE mandate. Merchant specifies the deduction amount during each request while remaining within the approved maximum limit.</p>
+          <p className={p}><strong>When to use</strong> — Use this API when billing cycles complete, usage calculations are finalized, the customer initiates a top-up, or metered consumption billing is generated. Works only with VARIABLE SI mandates configured for ONDEMAND deductions.</p>
+          <p className={p}><strong>Business scenarios</strong> — Ideal for electricity billing, telecom recharge systems, usage-based SaaS pricing, subscription top-ups, and dynamic recurring collections.</p>
+          <p className={p}><strong>Payment confirmation</strong> — The API immediately returns transaction acknowledgement status. Final payment confirmation should always be handled using webhook notifications in production systems.</p>
+
+          <h4 id="pm-si-mandate" className={h4}>
+            Mandate management
+          </h4>
+          <h5 className={h5}>SI status check</h5>
+          <p className={p}>Retrieve current status and complete details of an existing standing instruction mandate.</p>
+          <p className={p}><strong>What it does</strong> — Returns comprehensive mandate information including current mandate status, payment history, billing configuration, next scheduled deduction, and deduction history.</p>
+          <p className={p}><strong>When to use</strong> — Use before triggering deductions, customer support operations, reporting and reconciliation, monitoring mandate health, and validating mandate activity.</p>
+          <p className={p}><strong>Key information</strong> — Possible mandate states include ACTIVE, PAUSED, CANCELLED, and EXPIRED. Additional details include processed debit counts, remaining billing cycles, and next billing dates.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Pause mandate – temporary suspension</h5>
+          <p className={p}>Temporarily stop recurring deductions without permanently cancelling the mandate. The merchant may pause immediately or pause from a future date.</p>
+          <p className={p}><strong>Business scenarios</strong> — Useful when the customer requests temporary suspension, payment disputes are under investigation, seasonal service pauses occur, the customer is updating payment method, or insufficient funds issues arise temporarily.</p>
+          <p className={p}><strong>Pause types</strong> — <strong>Instant pause</strong> stops recurring deductions immediately from the current moment. <strong>Pause by date</strong> schedules mandate suspension from a specified future date.</p>
+          <p className={p}><strong>Impact on billing</strong> — While paused: no recurring deductions occur, mandate details remain preserved, billing cycles do not progress, and future reactivation remains possible.</p>
+          <p className={p}><strong>When to use</strong> — Use pause functionality only for temporary interruptions where recurring billing is expected to resume later. Do not use for permanent cancellations.</p>
+          <p className={p}><strong>Customer communication</strong> — Always notify customers before pausing mandates. Clearly communicate pause reason, effective date, and expected resume timeline to improve transparency and reduce support escalations.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Instant pause</h5>
+          <p className={p}>Immediately suspend an active mandate effective from the current timestamp.</p>
+          <p className={p}><strong>Immediate effect</strong> — Any scheduled deductions from the pause moment onward will not be processed until mandate reactivation.</p>
+          <p className={p}><strong>Use cases</strong> — Immediate customer suspension requests, fraud investigations, payment disputes, compliance-related holds, and risk management actions.</p>
+          <p className={p}><strong>Reactivation</strong> — Mandate can later be resumed using the Activate Mandate API once the issue is resolved.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Pause by date</h5>
+          <p className={p}>Schedule a mandate pause to begin from a specified future date.</p>
+          <p className={p}><strong>Scheduled pause</strong> — Recurring billing continues normally until the configured pause date is reached.</p>
+          <p className={p}><strong>Business scenarios</strong> — Ideal for planned service interruptions, seasonal business closures, customer-requested future holds, and upcoming billing adjustments.</p>
+          <p className={p}><strong>Flexibility</strong> — Allows merchants to proactively plan recurring billing interruptions while maintaining uninterrupted current billing cycles.</p>
+          <hr className="my-6 border-0 border-t border-gray-200 dark:border-white/10" />
+          <h5 className={h5}>Activate mandate – resuming charges</h5>
+          <p className={p}>Resume a previously paused mandate and restart recurring deductions.</p>
+          <p className={p}><strong>Business use cases</strong> — Useful when the customer resolves payment issues, the temporary suspension period ends, service resumes, the customer updates payment method successfully, or seasonal pauses conclude.</p>
+          <p className={p}><strong>What happens after activation</strong> — Mandate becomes ACTIVE immediately, scheduled billing resumes normally, existing billing configuration remains unchanged, and recurring cycles continue from the previous state.</p>
+          <p className={p}><strong>When to activate</strong> — Before activation: confirm suspension issue is resolved, verify payment instrument validity, ensure customer acknowledgement where necessary, and validate mandate eligibility.</p>
+          <p className={p}><strong>Operational best practice</strong> — Notify customers before reactivation, schedule first resumed deduction thoughtfully, update internal billing systems immediately, and monitor first recurring charge after activation carefully.</p>
+        </div>
+
+        <div className="not-prose mt-8">
+          <CardGroup cols={3}>
+            <Card title="Subsequent payment" icon="credit-card" href="/api-reference/standing-instructions/si-subsequent-payment" />
+            <Card title="Cancellation" icon="ban" href="/api-reference/standing-instructions/si-cancellation" />
+            <Card title="SI status" icon="signal" href="/api-reference/standing-instructions/si-status" />
+          </CardGroup>
+        </div>
+        <div className="not-prose mt-4">
+          <Card title="Standing instructions flow" icon="repeat" href="/payment-services/standing-instructions" />
+        </div>
+
+        <span id="pm-auth" className="payg-sr-only" aria-hidden="true" />
+        <span id="auth-and-capture-payments" className="payg-sr-only" aria-hidden="true" />
+
+        <h3 id="auth-and-capture" className={h3}>
+          Auth &amp; capture
+        </h3>
+        <p className={p}>
+          Authorize at order time, capture when you ship — or adjust with capture / reversal APIs. This method uses separate lifecycles from Regular payment one-step capture.
+        </p>
+
+        <h4 id="pm-auth-init" className={h4}>
+          Payment Initiation
+        </h4>
+        <p className={p}>Create an authorisation (hold) appropriate to your bundle.</p>
+
+        <h4 id="pm-auth-authz" className={h4}>
+          Authorization Management
+        </h4>
+        <p className={p}>Where your bundle separates auth-only initiation from capture, follow the sequence your account manager documents.</p>
+
+        <h4 id="pm-auth-txn" className={h4}>
+          Transaction Management
+        </h4>
+        <p className={`${p} font-semibold text-gray-900 dark:text-gray-100`}>Payment capture or reversal</p>
+        <p className={p}>Capture after fulfilment, or reverse / void where supported.</p>
+        <p className={p}>Reconciliation and status polling across auth &amp; capture lifecycles.</p>
+
+        <div className="not-prose mt-6">
+          <CardGroup cols={2}>
+            <Card title="Standalone capture" icon="check" href="/api-reference/payment/standalone-capture" />
+            <Card title="Standalone reversal" icon="rotate-left" href="/api-reference/payment/standalone-reversal" />
+          </CardGroup>
+        </div>
+
+      <h2 id="support" className={`${h2} mt-16`}>
+        Support
+      </h2>
+      <div className="not-prose">
+        <ul className="mt-0 list-disc space-y-1 pl-5 text-sm text-gray-700 dark:text-gray-300">
+          <li><strong>Architecture</strong> — PayGlocal account manager.</li>
+          <li>
+            <strong>Integration support</strong> —{' '}
+            <a href="mailto:merchant.support@payglocal.in" className="text-primary font-medium no-underline hover:underline">merchant.support@payglocal.in</a>.
+          </li>
+        </ul>
+      </div>
+
+      <div className="not-prose mt-14 flex flex-wrap justify-center gap-4 border-t border-gray-200 pt-8 dark:border-white/10">
+          <a href="/payment-products/api-based-products" className="group inline-flex min-w-[200px] max-w-sm flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3 no-underline transition hover:border-primary/35 hover:bg-white dark:border-white/10 dark:bg-zinc-900/50 dark:hover:bg-zinc-900">
+            <span className="text-xl text-gray-400 group-hover:text-primary" aria-hidden="true">←</span>
+            <span>
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Previous</span>
+              <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">API-based products</span>
+            </span>
+          </a>
+          <a href="/plugins/overview" className="group inline-flex min-w-[200px] max-w-sm flex-1 items-center justify-end gap-3 rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3 text-right no-underline transition hover:border-primary/35 hover:bg-white dark:border-white/10 dark:bg-zinc-900/50 dark:hover:bg-zinc-900">
+            <span>
+              <span className="block text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Next</span>
+              <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">Merchant store plugins</span>
+            </span>
+            <span className="text-xl text-gray-400 group-hover:text-primary" aria-hidden="true">→</span>
+          </a>
+        </div>
+    </>
+  )
+}

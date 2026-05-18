@@ -1,0 +1,222 @@
+---
+title: "Payment Button"
+description: "Embed payment buttons on your website for dynamic amount payments."
+icon: "circle-play"
+---
+
+## What is a Payment Button?
+
+A **Payment Button** is a no-code solution that allows you to add a payment button to your website without any API integration. When you create a payment button in the GCC dashboard, you receive JavaScript and HTML scripts that you can simply paste into your website.
+
+## When to Use Payment Button?
+
+Payment Button is ideal when:
+
+- **Dynamic Amounts**: The payment amount needs to be entered by the customer (not fixed)
+- **Quick Website Integration**: You want to add payment functionality without backend development
+- **No API Knowledge Required**: You can embed payments by just copying and pasting code
+
+Unlike Payment Links (which have fixed amounts), Payment Buttons allow customers to enter the amount they want to pay.
+
+## Prerequisites
+
+Before creating a Payment Button:
+
+1. **GCC Account**: Access to the [GCC dashboard](https://merchant.payglocal.in)
+2. **Website Access**: Ability to add HTML/JavaScript code to your website
+3. **Merchant Onboarding**: Complete merchant verification process
+
+For setup instructions, see [Dashboard & Key Management](/getting-started/dashboard-and-key-management).
+
+## How to Create a Payment Button
+
+<Steps>
+  <Step title="Navigate to Payment Button">
+    Log in to the [GCC dashboard](https://merchant.payglocal.in), click on **Payment Products** in the left sidebar, then select **Payment Button**.
+
+    <img src="/images/payment-button/navigate-payment-button.png" alt="Navigate to Payment Button" />
+  </Step>
+
+  <Step title="Click Create">
+    Click the **Create** button in the top right corner to open the payment button creation form.
+  </Step>
+
+  <Step title="Configure Payment Button">
+    Fill in the required details:
+
+    <img src="/images/payment-button/create-payment-button-form.png" alt="Create Payment Button Form" />
+
+    **Configuration Options:**
+    - **ISO3 Currency Code**: Select the currency (e.g., INR for Indian Rupee)
+    - **Website URL**: Enter your website URL where the button will be embedded
+    - **Customer Phone Number**: Toggle on/off to collect customer phone number
+    - **Customer Email ID**: Toggle on/off to collect customer email
+  </Step>
+
+  <Step title="Submit">
+    Click the **Submit** button to generate your payment button.
+  </Step>
+
+  <Step title="Copy the Scripts">
+    After submission, you'll receive:
+    - **JavaScript Script**: Add this to your website's `<head>` section or before `</body>`
+    - **HTML Button Code**: Paste this where you want the payment button to appear
+  </Step>
+
+  <Step title="Embed on Your Website">
+    1. Copy the JavaScript script and add it to your website
+    2. Copy the HTML button code and place it where you want the button
+    3. Test the button to ensure it works correctly
+    4. The customer will be able to enter the payment amount when they click the button
+  </Step>
+</Steps>
+
+## Configuration Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **ISO3 Currency Code** | Yes | Three-letter currency code (INR, USD, etc.) |
+| **Website URL** | Yes | URL of the website where button will be embedded |
+| **Customer Phone Number** | Optional | Toggle to collect customer's phone number |
+| **Customer Email ID** | Optional | Toggle to collect customer's email address |
+
+<Note>
+  **Important**: You can choose which customer information to collect by toggling the switches. At least one contact method (email or phone) is recommended for sending payment receipts.
+</Note>
+
+## How Payment Button Works
+
+When a customer clicks your payment button:
+
+1. **Button Click**: Customer clicks the payment button on your website
+2. **Enter Amount**: Customer enters the payment amount (dynamic)
+3. **Enter Details**: Customer fills in required information (email/phone if enabled)
+4. **Payment Page**: Customer is directed to PayGlocal's secure checkout
+5. **Complete Payment**: Customer completes payment using their preferred method
+6. **Confirmation**: Customer receives payment confirmation and returns to your website
+
+## Customer Experience
+
+<img src="/images/payment-button/customer-experience-placeholder.png" alt="Customer Experience - Coming Soon" />
+
+_Screenshot showing customer entering amount and making payment - Coming soon_
+
+## Managing Payment Buttons
+
+From the Payment Button dashboard, you can:
+
+- **View All Buttons**: See all payment buttons you've created
+- **Check Status**: Monitor which buttons are active
+- **View Transactions**: See all payments made through each button
+- **Edit Button**: Update button configuration
+- **Enable/Disable**: Activate or deactivate buttons as needed
+
+## Example Use Cases
+
+Payment Buttons are perfect for:
+
+| Use Case | Description |
+|----------|-------------|
+| **Custom Services** | Services with variable pricing |
+| **Pay What You Want** | Flexible pricing models |
+| **Partial Payments** | Let customers pay any amount toward a balance |
+
+## Button Embed Preview
+
+<img src="/images/payment-button/embed-preview-placeholder.png" alt="Button Embed Preview - Coming Soon" />
+
+_Screenshot showing how the button appears on a website - Coming soon_
+
+## Key Features
+
+- **No Fixed Amount**: Customer enters the amount they want to pay
+- **Easy Integration**: Just copy and paste the provided scripts
+- **No Backend Code**: Works without any server-side programming
+- **Secure**: PayGlocal handles all payment security
+- **Mobile Responsive**: Works on all devices
+- **Multiple Payment Methods**: Supports cards, UPI, net banking, wallets
+
+## Difference from Payment Link
+
+| Feature | Payment Button | Payment Link |
+|---------|---------------|--------------|
+| **Amount** | Dynamic (customer enters) | Fixed (set by merchant) |
+| **Integration** | Embedded on website | Shared via URL |
+| **Use Case** | Website checkout | Share via email/SMS |
+| **Code Required** | Yes (HTML/JS) | No |
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Button not appearing on website">
+    **Solutions**:
+    - Verify the JavaScript script is properly added to your website
+    - Check browser console for any errors
+    - Ensure your website URL matches what you entered in the form
+    - Check if ad blockers are interfering
+  </Accordion>
+
+  <Accordion title="Button not clickable">
+    **Solutions**:
+    - Check if there are any CSS conflicts on your page
+    - Verify the HTML code is correctly placed
+    - Ensure no overlapping elements are blocking the button
+    - Test in different browsers
+  </Accordion>
+
+  <Accordion title="Payment not processing">
+    **Solutions**:
+    - Verify your merchant account is active
+    - Check if the currency code is correctly configured
+    - Ensure customer is entering a valid amount
+    - Contact support if issue persists
+  </Accordion>
+</AccordionGroup>
+
+## Screenshots & Documentation
+
+<img src="/images/payment-button/button-management-placeholder.png" alt="Button Management Dashboard - Coming Soon" />
+
+_Additional screenshots showing button management and analytics - Coming soon_
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card 
+    title="Payment Link" 
+    icon="link" 
+    href="/no-code/payment-link"
+  >
+    For fixed amount payments with shareable links
+  </Card>
+  
+  <Card 
+    title="Invoice Link" 
+    icon="file-invoice" 
+    href="/no-code/invoice-link"
+  >
+    For formal invoice-style payments
+  </Card>
+  
+  <Card 
+    title="API Integration" 
+    icon="code" 
+    href="/merchant/regular-payment"
+  >
+    For full API integration and customization
+  </Card>
+  
+  <Card 
+    title="Webhooks" 
+    icon="webhook" 
+    href="/merchant/webhooks"
+  >
+    Set up real-time payment notifications
+  </Card>
+</CardGroup>
+
+## Support
+
+- **Technical integration help**: Email [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in)
+- **Business inquiries**: Contact your PayGlocal account manager
+- **Dashboard access**: Reach out to your account manager for credentials

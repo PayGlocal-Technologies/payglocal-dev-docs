@@ -1,43 +1,7 @@
 ---
-title: "GCC Dashboard"
-description: "Learn about the Glocal Command Center — PayGlocal's merchant dashboard."
+title: "GCC Dashboard (moved)"
+description: "This page has moved to Dashboard & Key Management."
 icon: "gauge"
 ---
 
-## What is GCC?
-
-The **Glocal Command Center (GCC)** is PayGlocal's merchant dashboard. From GCC, merchants can:
-
-- Track transactions
-- Download reports
-- Manage cryptographic keys
-- Generate and manage [Payment Links](/no-code/payment-links-overview)
-- Configure products and users
-
-Access to GCC is a prerequisite for completing any PayGlocal integration.
-
-## How do I access GCC?
-
-If you do not yet have GCC credentials, contact the [PayGlocal sales team](mailto:sales@payglocal.in) — credentials are issued during merchant onboarding.
-
-If you already have credentials:
-
-- **Sandbox:** [merchant.uat.payglocal.in](https://merchant.uat.payglocal.in)
-- **Production:** [merchant.payglocal.in](https://merchant.payglocal.in)
-
-## Payment Links in GCC
-
-For no-code integration, Payment Links are generated and managed entirely via GCC. See [Payment Links](/no-code/payment-links-overview).
-
-## Keys in GCC
-
-Keys are required for code-based and plugin integrations to enforce authentication. PayGlocal supports:
-
-| Key type | Purpose |
-|----------|---------|
-| **API Keys** | API authentication (passed in `x-gl-auth`). |
-| **Asymmetric Keys (RSA)** | JWS token signing for API + plugin integrations. |
-| **PayGlocal Public Certificates** | Encrypt payloads to PayGlocal (JWE). |
-| **Symmetric Keys (Shared Secrets)** | Shared-secret JWS signing for select flows. |
-
-See [Key Management](/key-management/overview) for download and rotation details.
+This content now lives on **[Dashboard & Key Management](/getting-started/dashboard-and-key-management)** — GCC UAT vs Production URLs, how to log in, and a single place for the five credentials overview plus links to the full key guides.

@@ -1,126 +1,126 @@
 ---
 title: "Payment Flow"
-description: "How PayGlocal encrypts and signs your payment data — JWE for confidentiality, JWS for integrity — in 4 steps."
+description: "Understand how a payment request is built — from raw payload to encrypted, signed API call."
 icon: "shield"
 ---
 
-## How PayGlocal Encrypts Your Data
-
-PayGlocal's SDKs use a **4-step process** to secure your payment data before sending it to PayGlocal:
-
-<CardGroup cols={2}>
-  <Card title="JWE" icon="lock" color="#1A6FE8">
-    Encrypts the payload with **RSA-OAEP-256 + AES-128-CBC-HS256**.
-  </Card>
-  <Card title="JWS" icon="signature" color="#10B981">
-    Signs the encrypted data with **RS256 (RSA + SHA-256)**.
-  </Card>
-  <Card title="Headers" icon="brackets-curly" color="#F59E0B">
-    JWS goes in `x-gl-token-external`, JWE in body.
-  </Card>
-  <Card title="Send" icon="paper-plane" color="#8B5CF6">
-    POST encrypted payload to PayGlocal.
-  </Card>
-</CardGroup>
+Before making any API call, it helps to understand **what actually happens** when you send a payment request to PayGlocal. This page explains the full flow — no code, just the logic.
 
 ---
 
-## The 4 Steps
+## Why Can't I Send a Raw Payload?
 
-<Steps>
-  <Step title="Create JWE — encrypt the payload">
-    The SDK encrypts your JSON payment payload using **RSA-OAEP-256** for key wrapping and **AES-128-CBC-HS256** for content encryption. The result is a compact JWE token. PayGlocal can decrypt this using their private key.
+PayGlocal never accepts a plain JSON request. Every request must be:
 
-    ```javascript
-    const jwe = await jose.CompactEncrypt(payload)
-      .setProtectedHeader({
-        alg: 'RSA-OAEP-256',
-        enc: 'A128CBC-HS256',
-        kid: pubcertKid
-      })
-      .encrypt(pubcert);
-    ```
-  </Step>
+- **Encrypted** — so no one in transit can read your payment data
+- **Signed** — so PayGlocal can verify the request genuinely came from you
 
-  <Step title="Create JWS — sign the JWE">
-    Take the SHA-256 hash of the JWE token and sign it with your private key using **RS256**. This is a detached JWS that proves the payload is authentic and unmodified.
-
-    ```javascript
-    const jws = await new jose.SignJWT({ digest: sha256(jwe) })
-      .setProtectedHeader({
-        alg: 'RS256',
-        kid: privateKeyKid
-      })
-      .sign(privateKey);
-    ```
-  </Step>
-
-  <Step title="Build Request Headers">
-    Place the JWS token in the `x-gl-token-external` header and the JWE in the request body.
-
-    ```http
-    POST /gl/v1/payments/initiate/paycollect HTTP/1.1
-    Host: api.payglocal.in
-    x-gl-token-external: <JWS-token>
-    x-gl-merchantid:     <YOUR-MID>
-    x-gl-kid:            <PVT-KEY-KID>
-    Content-Type:        application/jose
-
-    <JWE-token>
-    ```
-  </Step>
-
-  <Step title="Send Request">
-    POST the request to PayGlocal. The server verifies the JWS signature, decrypts the JWE, and processes the payment.
-  </Step>
-</Steps>
+These two steps produce two tokens — a **JWE** and a **JWS** — which travel together in every API call.
 
 ---
 
-## Complete Flow
+## Flow: From Payload to Request
 
 ```
-1. Payload JSON                              Payment data (amount, currency, etc.)
-       │
-       ▼
-2. Generate JWE                              jose.CompactEncrypt
-       │                                     → RSA-OAEP-256 + AES-128-CBC-HS256
-       ▼
-3. Generate JWS                              SHA-256 hash of JWE
-       │                                     → Sign with RS256
-       ▼
-4. Build Request                             Headers: x-gl-token-external = JWS
-       │                                     Body:    JWE
-       ▼
-5. Send to PayGlocal                         POST /gl/v1/payments/initiate/paycollect
-
-PayGlocal receives → verifies signature → decrypts JWE → processes payment.
+Your Payment Data (plain JSON)
+         │
+         ▼
+  [ generateJWE ]
+  Encrypts your payload using PayGlocal's public key
+  Returns → JWE Token (encrypted, unreadable string)
+         │
+         ▼
+  [ generateJWS ]
+  Hashes the JWE and signs it using your private key
+  Returns → JWS Token (signed proof string)
+         │
+         ▼
+  [ POST Request ]
+  Body    →  JWE Token
+  Header  →  x-gl-token-external: JWS Token
+         │
+         ▼
+  PayGlocal receives the request
+  → Verifies JWS (confirms it came from you)
+  → Decrypts JWE (reads your payload)
+  → Processes the payment
 ```
+
+---
+
+## What Each Function Does
+
+### `generateJWE` — Encrypt the Payload
+
+**Takes in:** Your payment payload + PayGlocal's public key + your Merchant ID + Public Key ID
+
+**What it does:** Converts your JSON payload into an encrypted token. Once encrypted, the data is completely unreadable — only PayGlocal can decrypt it using their private key.
+
+**Returns:** A JWE token — a compact encrypted string that becomes the **body of your API request**.
+
+---
+
+### `generateJWS` — Sign the JWE
+
+**Takes in:** The JWE token + your private key + your Merchant ID + Private Key ID
+
+**What it does:** Takes the JWE token, hashes it with SHA-256, and signs that hash using your private key. This signature is proof that the request was sent by you and has not been modified in transit.
+
+**Returns:** A JWS token — a compact signed string that goes into the **`x-gl-token-external` header of your API request**.
+
+---
+
+### `generateJWEAndJWS` — The Single Entry Point
+
+**Takes in:** Your payload + all five credentials (public key, private key, Merchant ID, Public Key ID, Private Key ID)
+
+**What it does:** Calls `generateJWE` first, then passes its output to `generateJWS`. Validates all your credentials before running.
+
+**Returns:** Both tokens together — `{ jweToken, jwsToken }`.
+
+This is the **only function you need to call**. Everything else happens internally.
+
+---
+
+## Assembling the Request
+
+Once you have both tokens, your request is:
+
+```
+POST  https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect
+
+Header:  Content-Type         →  text/plain
+Header:  x-gl-token-external  →  JWS Token
+
+Body:  JWE Token
+```
+
+That's it. PayGlocal handles the rest.
+
+---
+
+## Why Two Tokens?
+
+| Token | Sent as | Key used | What it protects |
+|---|---|---|---|
+| **JWE** | Request body | PayGlocal's **public** key | Confidentiality — data cannot be read in transit |
+| **JWS** | Request header | **Your** private key | Authenticity — PayGlocal confirms the request is from you |
+
+One without the other is incomplete. JWE alone means PayGlocal can read the data, but cannot trust it came from you. JWS alone means PayGlocal can verify the sender, but cannot read the payload.
+
+---
+
+## Credentials You Need
+
+| Credential | Purpose |
+|---|---|
+| **PayGlocal Public Key** | Used by `generateJWE` to encrypt the payload |
+| **Your Private Key** | Used by `generateJWS` to sign the JWE |
+| **Merchant ID** | Embedded in both token headers to identify you |
+| **Public Key ID** | Tells PayGlocal which key was used to encrypt |
+| **Private Key ID** | Tells PayGlocal which key to use for signature verification |
 
 <Note>
-  The encryption flow is identical for **PayCollect** (`/gl/v1/payments/initiate/paycollect`) and **PayDirect** (`/gl/v1/payments/initiate`) — only the endpoint path changes.
+  See [Key Management](/getting-started/dashboard-and-key-management) for step-by-step instructions on fetching all five credentials.
 </Note>
 
----
-
-## Why Both Encryption and Signing?
-
-| Mechanism | Purpose |
-|-----------|---------|
-| **JWE** (encryption) | Confidentiality — only PayGlocal can read the payload |
-| **JWS** (signature) | Integrity + authenticity — proves the payload is from you and unmodified |
-
-Together, they provide **end-to-end security**: data cannot be read in transit (TLS or otherwise), and PayGlocal can verify the request actually came from you.
-
----
-
-## Related Pages
-
-<CardGroup cols={2}>
-  <Card title="Security Setup" icon="key" href="/key-management/overview">
-    Generate your private key and download PayGlocal's public certificate.
-  </Card>
-  <Card title="Request Construction" icon="screwdriver-wrench" href="/key-management/request-construction">
-    Configure the PayGlocal sample client to perform these 4 steps automatically.
-  </Card>
-</CardGroup>

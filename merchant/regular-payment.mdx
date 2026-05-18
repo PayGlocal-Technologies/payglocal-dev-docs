@@ -1,0 +1,167 @@
+---
+title: "Regular Payment"
+sidebarTitle: "Overview"
+description: "One-time, instant payments for products and services — simple checkout experience."
+---
+
+## What is a Regular Payment?
+
+**Regular Payment** is a simple **one-time payment transaction** where the customer makes a payment instantly for a product or service.
+
+The customer:
+
+1. Visits a website or app
+2. Selects a product or service
+3. Completes payment
+4. Receives confirmation
+
+**The transaction ends once the payment is completed.**
+
+This is the most common type of online payment flow used across e-commerce, retail, travel, food delivery, ticket booking, and digital services.
+
+---
+
+## Understanding One-Time Payments
+
+A **one-time payment** means:
+
+<CardGroup cols={3}>
+  <Card title="Single Purchase" icon="shopping-bag" color="#1A6FE8">
+    Customer pays only for the **current purchase** — not for future transactions.
+  </Card>
+  <Card title="Instant Settlement" icon="bolt" color="#10B981">
+    Payment is completed **instantly** — money is captured right away.
+  </Card>
+  <Card title="No Continuation" icon="ban" color="#F59E0B">
+    Transaction does **not continue automatically** in the future.
+  </Card>
+</CardGroup>
+
+**Every new purchase creates a completely new payment transaction.**
+
+### Example
+
+```
+Customer purchases shoes online
+        ↓
+Completes payment
+        ↓
+Order gets confirmed
+        ↓
+Transaction ends
+```
+
+**If the customer buys again tomorrow:**  
+A **new payment process** starts again from scratch.
+
+---
+
+## Simple Payment Experience
+
+Regular payment is designed to provide:
+
+- **Quick checkout** — fast payment completion
+- **Instant confirmation** — immediate order confirmation
+- **Seamless experience** — smooth payment flow
+- **Easy order completion** — hassle-free checkout
+
+### The Goal
+
+| For Customer | For Merchant |
+|---|---|
+| Complete payment quickly | Receive instant payment confirmation |
+| Get immediate order confirmation | Begin order processing immediately |
+| Simple, intuitive checkout | Reduce cart abandonment |
+
+---
+
+## Where Regular Payments Are Commonly Used
+
+<CardGroup cols={2}>
+  <Card title="E-commerce Websites" icon="cart-shopping" color="#1A6FE8">
+    **Customers purchase:**
+    - Clothes
+    - Electronics
+    - Accessories
+    - Groceries
+    
+    Payment is completed **instantly during checkout**.
+  </Card>
+  
+  <Card title="Food Delivery Platforms" icon="utensils" color="#F59E0B">
+    **Customers:**
+    - Place food orders
+    - Make immediate payment
+    - Receive order confirmation
+    
+    Payment is **for that order only**.
+  </Card>
+</CardGroup>
+
+---
+
+## How Regular Payment Works
+
+<Steps>
+  <Step title="Customer Initiates Payment">
+    Customer adds items to cart and proceeds to checkout.
+  </Step>
+  
+  <Step title="Payment Details Entered">
+    Customer enters:
+    - Card details, OR
+    - UPI ID, OR
+    - Net banking credentials, OR
+    - Wallet credentials
+  </Step>
+  
+  <Step title="Payment Processing">
+    Payment gateway validates and processes the transaction instantly.
+  </Step>
+  
+  <Step title="Instant Confirmation">
+    Customer receives:
+    - Payment success notification
+    - Order confirmation
+    - Receipt/invoice
+    
+    Merchant receives:
+    - Payment confirmation
+    - Order details
+    - Settlement notification
+  </Step>
+</Steps>
+
+---
+
+## Regular Payment vs Other Payment Types
+
+| Feature | Regular Payment | Recurring Payment (SI) | Auth & Capture |
+|---|---|---|---|
+| **Payment Frequency** | One-time only | Recurring/automatic | One-time |
+| **Capture Timing** | Immediate | Scheduled or triggered | Delayed (after auth) |
+| **Use Case** | E-commerce, bills, bookings | Subscriptions, EMIs | Hotels, flights, pre-orders |
+| **Future Charges** | None | Automatic or manual | None (unless re-authorized) |
+| **Customer Action** | Pays each time | Approves once | Pays once, charged later |
+| **Complexity** | Simple | Requires mandate management | Requires capture/reversal |
+
+---
+
+<Note>
+  **Regular payments are final and immediate** — once payment is completed, the transaction is done. If a customer needs a refund, merchant must initiate a separate refund process.
+</Note>
+
+---
+
+## Next Steps
+
+Now that you understand how Regular Payments work, learn how to implement them:
+
+<CardGroup cols={2}>
+  <Card title="Payment Initiation" icon="paper-plane" href="/merchant/regular-payment/payment-initiation">
+    Start a one-time regular payment transaction.
+  </Card>
+  <Card title="Transaction Management" icon="magnifying-glass" href="/merchant/regular-payment/transaction-management">
+    Check payment status and process refunds.
+  </Card>
+</CardGroup>

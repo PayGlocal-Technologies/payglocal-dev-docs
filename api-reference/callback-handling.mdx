@@ -1,0 +1,126 @@
+---
+title: "Callback Handling — Node.js"
+sidebarTitle: "Callback Handling"
+description: "Complete Node.js implementation for receiving and processing PayGlocal payment callbacks."
+icon: "node-js"
+---
+
+This page contains the complete Node.js implementation for handling the `merchantCallbackURL` endpoint. For a conceptual explanation of the callback flow, see [Payment Response Handling](/merchant/payment-response-handling).
+
+---
+
+## What This Endpoint Does
+
+PayGlocal POSTs to this endpoint after every payment — success or failure. The endpoint:
+
+1. Extracts the `x-gl-token` from the request body
+2. Decodes the JWT payload to read the payment data
+3. Checks the `status` field
+4. Updates your order and redirects the customer accordingly
+
+---
+
+## Implementation
+
+```javascript
+app.post('/payments/merchantCallback', async (req, res) => {
+  try {
+    // Step 1: Extract token
+    const glToken = req.body['x-gl-token'];
+    if (!glToken) {
+      return res.status(400).send('Token missing');
+    }
+
+    // Step 2: Split token by dot — JWT has 3 parts: header.payload.signature
+    const tokenParts = glToken.split('.');
+    const base64UrlPayload = tokenParts[1];
+
+    // Step 3: Convert base64url to base64
+    // base64url uses - and _ instead of + and /
+    const base64Payload = base64UrlPayload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    // Step 4: Decode base64 to string
+    const decodedString = Buffer
+      .from(base64Payload, 'base64')
+      .toString('utf-8');
+
+    // Step 5: Parse JSON
+    const paymentData = JSON.parse(decodedString);
+
+    // Step 6: Extract payment details
+    const { status, merchantTxnId, amount, gid } = paymentData;
+
+    // Step 7: Handle success/failure
+    if (status === 'SENT_FOR_CAPTURE') {
+      // Payment successful — update order and redirect to success page
+      await updateOrderStatus(merchantTxnId, 'paid');
+      await sendConfirmationEmail(merchantTxnId);
+
+      return res.redirect(
+        `https://your-domain.com/payment/success?txnId=${merchantTxnId}`
+      );
+    } else {
+      // Payment failed — update order and redirect to failure page
+      await updateOrderStatus(merchantTxnId, 'failed');
+
+      return res.redirect(
+        `https://your-domain.com/payment/failure?txnId=${merchantTxnId}`
+      );
+    }
+  } catch (error) {
+    console.error('Error processing payment callback:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+```
+
+---
+
+## Step-by-Step Breakdown
+
+| Step | What it does |
+|---|---|
+| **1 — Extract token** | Reads `x-gl-token` from POST body. Returns 400 if missing. |
+| **2 — Split by dot** | Splits the JWT into 3 parts. Takes index 1 — the Payload. |
+| **3 — Convert base64url** | Swaps `-` → `+` and `_` → `/` to get standard Base64. |
+| **4 — Decode Base64** | Converts Base64 to a UTF-8 string (raw JSON). |
+| **5 — Parse JSON** | Parses the string into a usable JavaScript object. |
+| **6 — Extract fields** | Pulls `status`, `merchantTxnId`, `amount`, `gid` from the object. |
+| **7 — Handle result** | `SENT_FOR_CAPTURE` → success. Anything else → failure. |
+
+---
+
+## Decoded Payload Structure
+
+```json
+{
+  "country": "UNITED KINGDOM",
+  "amount": "48",
+  "gid": "PGL_7F8A9B3C2D1E4F5A",
+  "merchantId": "MERCH_9X8Y7Z6W5V4U3T",
+  "cardType": "PREPAID",
+  "merchantTxnId": "TXN_4K5L6M7N8O9P0Q",
+  "paymentMethod": "CARD",
+  "currency": "USD",
+  "cardBrand": "VISA",
+  "status": "SENT_FOR_CAPTURE"
+}
+```
+
+---
+
+## Key Notes
+
+<Note>
+  Replace `updateOrderStatus` and `sendConfirmationEmail` with your own database and email logic. These are placeholders representing actions you implement.
+</Note>
+
+<Warning>
+  `SENT_FOR_CAPTURE` is the **only success status**. Every other status — `ISSUER_DECLINE`, `CUSTOMER_CANCELLED`, `ABANDONED`, `GENERAL_DECLINE` — must be treated as a failure and redirect to your failure page.
+</Warning>
+
+<Note>
+  Replace `https://your-domain.com/payment/success` and `https://your-domain.com/payment/failure` with your actual success and failure page URLs.
+</Note>

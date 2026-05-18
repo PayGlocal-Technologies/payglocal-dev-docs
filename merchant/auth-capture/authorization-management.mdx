@@ -1,0 +1,22 @@
+---
+title: "Authorization Management"
+sidebarTitle: "Authorization Management"
+description: "After a successful authorization, capture funds or release the hold."
+---
+
+Once a payment is **authorized**, funds are held on the customer's card but not yet collected. Use the capture endpoints when you are ready to fulfill, or reversal to release the hold without charging.
+
+```
+POST /gl/v1/payments/{gid}/capture   →  Full or partial capture
+POST /gl/v1/payments/{gid}/reversal  →  Release hold without charging
+```
+
+| Action | When to use |
+|---|---|
+| [Auth Full Capture](/merchant/auth-capture-guide#auth-full-capture) | Collect the entire authorized amount |
+| [Auth Partial Capture](/merchant/auth-capture-guide#auth-partial-capture) | Collect less than authorized; remainder is released |
+| [Auth Reversal](/merchant/auth-capture-guide#auth-reversal) | Cancel before capture — no charge occurs |
+
+<Warning>
+  Auth Reversal applies only to **AUTHORIZED** transactions that have not been captured. If funds were already captured, use the standard refund flow instead.
+</Warning>

@@ -27,7 +27,6 @@
           {
             "group": "Introduction",
             "pages": [
-              "quickstart",
               "introduction"
             ]
           },
@@ -163,24 +162,34 @@
             ]
           },
           {
-            "group": "Merchant payment APIs",
+            "group": "Payment APIs",
             "pages": [
-              "api-reference/payment/overview",
+              "api-reference/payment/overview"
+            ]
+          },
+          {
+            "group": "Payment Initiation",
+            "pages": [
               "api-reference/payment/gpi-paycollect",
-              "api-reference/payment/gpi-initiate",
+              "api-reference/payment/gpi-initiate"
+            ]
+          },
+          {
+            "group": "Transaction Management",
+            "pages": [
               "api-reference/payment/get-status",
               "api-reference/payment/refund"
             ]
           },
           {
-            "group": "Merchant auth & capture",
+            "group": "Authenticator Endpoint",
             "pages": [
               "api-reference/payment/standalone-capture",
               "api-reference/payment/standalone-reversal"
             ]
           },
           {
-            "group": "Merchant SI endpoints",
+            "group": "Recurring Payment",
             "pages": [
               "api-reference/standing-instructions/si-subsequent-payment",
               "api-reference/standing-instructions/si-cancellation",
@@ -233,21 +242,15 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Changelog",
-        "groups": [
-          {
-            "group": "Product changelog",
-            "pages": [
-              "changelog/index"
-            ]
-          }
-        ]
       }
     ]
   },
   "redirects": [
+    {
+      "source": "/quickstart",
+      "destination": "/introduction",
+      "permanent": false
+    },
     {
       "source": "/no-code/payment-links-overview",
       "destination": "/no-code/payment-link",

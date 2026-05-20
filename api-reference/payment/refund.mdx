@@ -1,16 +1,148 @@
 ---
-title: "Refund"
-description: "Initiate a full or partial refund for a successfully captured transaction."
-openapi: "POST /gl/v1/payments/{gid}/refund"
+title: "Refund API"
+sidebarTitle: "POST  Refund API"
+description: "Initiate a full or partial refund against a successfully captured transaction."
 ---
 
 ## When to Use
 
-Refund all or part of a captured transaction. If the transaction is still in `AUTHORIZED` state (not yet captured), use [Auth Reversal](/api-reference/payment/standalone-reversal) instead.
+Issue a refund after a payment has reached `SENT_FOR_CAPTURE` state. Both full and partial refunds are supported.
 
-## Full vs Partial
+<Warning>
+  If the transaction is still `AUTHORIZED` (funds held but not yet captured), use [Auth Reversal](/api-reference/payment/standalone-reversal) instead — you cannot refund an uncaptured authorization.
+</Warning>
 
-- `refundType=F` — full refund. Omit `paymentData.totalAmount`.
-- `refundType=P` — partial refund. `paymentData.totalAmount` is required and must be ≤ the captured amount.
+---
 
-Multiple partial refunds are allowed as long as the cumulative refunded amount does not exceed the original capture.
+## Full vs Partial Refund
+
+| Type | `refundType` value | `paymentData.totalAmount` | Notes |
+|---|---|---|---|
+| Full refund | `"F"` | Omit this field | Refunds the entire captured amount |
+| Partial refund | `"P"` | Required — must be ≤ captured amount | Multiple partial refunds allowed until original total is reached |
+
+---
+
+<Info>
+  **Endpoint:** `/gl/v1/payments/{gid}/refund`
+
+  **Method:** `POST`
+</Info>
+
+## Step 1 — Build Your Raw Business Payload
+
+The `{gid}` in the endpoint URL is the PayGlocal ID from the original GPI response.
+
+<Tabs>
+  <Tab title="Full Refund">
+  Refund the complete captured amount. Omit `paymentData`.
+
+  ```json
+  {
+    "merchantUniqueId": "REFUND-IFNN939494NJFJ",
+    "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07",
+    "refundType": "F"
+  }
+  ```
+  </Tab>
+  <Tab title="Partial Refund">
+  Refund a specific amount. Must not exceed the captured amount.
+
+  ```json
+  {
+    "merchantUniqueId": "REFUND-IFNN939494NJFJ-1",
+    "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07-1",
+    "refundType": "P",
+    "paymentData": {
+      "totalAmount": "25.00"
+    }
+  }
+  ```
+  </Tab>
+</Tabs>
+
+---
+
+## Step 2 — Encrypt, Sign, and Send
+
+Pass the payload to `generateJWEAndJWS()` from PayGlocal's client SDK:
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+);
+
+// POST /gl/v1/payments/{gid}/refund
+// Content-Type: text/plain
+// x-gl-token-external: jwsToken
+// Body: jweToken
+```
+
+See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+
+---
+
+## Response
+
+### Success (`HTTP 200`)
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_REFUND",
+  "message": "Refund Initiated Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "reasonCode": "GL-201-002",
+  "data": {
+    "Amount": "25.00",
+    "Currency": "USD",
+    "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07-1"
+  },
+  "errors": null
+}
+```
+
+### Error — Transaction Not Found
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Transaction not found",
+  "reasonCode": "GL-400-999",
+  "errors": null
+}
+```
+
+### Error — Amount Mismatch
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Amount mismatch with original transaction",
+  "reasonCode": "GL-400-006",
+  "errors": null
+}
+```
+
+---
+
+## Notes
+
+- `SENT_FOR_REFUND` means the refund was accepted by PayGlocal — actual settlement depends on the downstream acquirer.
+- To verify the final refund status, call [Get Status](/api-reference/payment/get-status) with the original `gid`.
+- Multiple partial refunds are allowed as long as the cumulative refunded total does not exceed the original captured amount.
+- `merchantUniqueId` and `merchantTxnId` for the refund must be different from the ones used in the original payment.
+
+---
+
+## Error Scenarios
+
+| HTTP code | Reason code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-006` | Refund amount exceeds captured amount | Reduce `paymentData.totalAmount` |
+| `400` | `GL-400-999` | Transaction not found | Verify the `gid` is correct |
+| `400` | `GL-400-002` | Invalid data | Check required fields |
+| `201` | `GL-201-000` | Declined by system | Contact PayGlocal support |
+| `501` | `GL-501-000` | System error | Retry after some time |

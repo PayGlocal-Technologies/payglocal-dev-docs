@@ -1,13 +1,106 @@
 ---
 title: "Auth Reversal"
-description: "Reverse (void) an authorized payment before it is captured."
-openapi: "POST /gl/v1/payments/{gid}/auth-reversal"
+sidebarTitle: "POST  Auth Reversal"
+description: "Void an authorized payment before it is captured — releases held funds back to the customer's card."
 ---
 
 ## When to Use
 
-Void an `AUTHORIZED` transaction that has not yet been captured. This releases the hold on the customer's card.
+Cancel an `AUTHORIZED` payment that has not yet been captured. This releases the funds held on the customer's card.
 
-<Note>
-  Only **full reversals** are supported. If the payment has already been captured, use the [Refund](/api-reference/payment/refund) service instead.
-</Note>
+<Warning>
+  Only **full reversals** are supported. If the payment has already been **captured**, use [Refund](/api-reference/payment/refund) instead.
+</Warning>
+
+---
+
+<Info>
+  **Endpoint:** `/gl/v1/payments/{gid}/auth-reversal`
+
+  **Method:** `POST`
+</Info>
+
+## Step 1 — Build Your Raw Business Payload
+
+Auth reversal only requires your transaction reference. No amount is needed.
+
+```json
+{
+  "merchantTxnId": "REV-23AEE8CB6B62EE2AF07"
+}
+```
+
+The `{gid}` in the endpoint URL is the PayGlocal ID of the authorization.
+
+---
+
+## Step 2 — Encrypt, Sign, and Send
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+);
+
+// POST /gl/v1/payments/{gid}/auth-reversal
+// Content-Type: text/plain
+// x-gl-token-external: jwsToken
+// Body: jweToken
+```
+
+See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+
+---
+
+## Response
+
+### Success (`HTTP 200`)
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REVERSED",
+  "message": "Authorization Reversed Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "errors": null
+}
+```
+
+### Error — Already Captured
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Transaction already captured",
+  "reasonCode": "GL-400-002",
+  "errors": null
+}
+```
+
+---
+
+## Auth & Capture Decision Flow
+
+```
+GPI (captureTxn: false)  →  AUTHORIZED
+        │
+        ├── Proceed with order? → POST /capture  → SENT_FOR_CAPTURE
+        └── Cancel order?       → POST /auth-reversal  → REVERSED
+```
+
+---
+
+## Notes
+
+- Once reversed, the transaction is final — it cannot be captured or refunded.
+- This endpoint requires the same **Auth-Only MID configuration** as Standalone Capture.
+
+---
+
+## Error Scenarios
+
+| HTTP code | Reason code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-999` | Transaction not found | Verify the `gid` |
+| `400` | `GL-400-002` | Invalid request or already captured | Check transaction state |
+| `501` | `GL-501-000` | System error | Retry after some time |

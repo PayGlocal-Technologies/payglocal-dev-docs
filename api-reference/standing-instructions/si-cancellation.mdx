@@ -1,21 +1,165 @@
 ---
-title: "Cancel Standing Instruction"
-description: "Revoke an active mandate to prevent future recurring debits."
-openapi: "PUT /gl/v1/payments/si/status"
+title: "SI — Cancel / Pause / Activate Mandate"
+sidebarTitle: "PUT  SI — Cancel / Pause / Activate"
+description: "Manage the lifecycle of a Standing Instruction mandate — pause, resume, or permanently cancel recurring debits."
 ---
 
 ## When to Use
 
-Revoke an active standing-instruction mandate. Future scheduled debits will not be attempted. Once revoked, the mandate cannot be reactivated — a new mandate must be created via `/initiate`.
+| Action | When to use |
+|---|---|
+| **REVOKE** | Permanently cancel the mandate. Future debits will not be attempted. Cannot be undone. |
+| **PAUSE** | Temporarily suspend debits. Mandate remains and can be resumed. |
+| **ACTIVATE** | Resume a paused mandate to restart recurring charges. |
 
-## Common Failure Responses
+<Note>
+  Mandates can also be managed through the PayGlocal Control Center using the mandate ID.
+</Note>
 
-**Already inactive:**
-```json
-{ "status": "REQUEST_ERROR", "message": "Mandate was inactive" }
+---
+
+<Info>
+  **Endpoint:** `/gl/v1/payments/si/status`
+
+  **Method:** `PUT`
+</Info>
+
+## Step 1 — Build Your Raw Business Payload
+
+<Tabs>
+  <Tab title="Revoke (Permanent Cancel)">
+  Once revoked, a new mandate must be created via a fresh GPI request.
+
+  ```json
+  {
+    "merchantTxnId": "REVOKE-23AEE8CB6B62EE2AF07",
+    "standingInstruction": {
+      "action": "REVOKE",
+      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+    }
+  }
+  ```
+  </Tab>
+  <Tab title="Pause (Temporary Suspend)">
+  Pauses recurring debits. Resume using `ACTIVATE`.
+
+  ```json
+  {
+    "merchantTxnId": "PAUSE-23AEE8CB6B62EE2AF07",
+    "standingInstruction": {
+      "action": "PAUSE",
+      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+    }
+  }
+  ```
+  </Tab>
+  <Tab title="Activate (Resume Paused)">
+  Reactivates a paused mandate.
+
+  ```json
+  {
+    "merchantTxnId": "ACTIVATE-23AEE8CB6B62EE2AF07",
+    "standingInstruction": {
+      "action": "ACTIVATE",
+      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+    }
+  }
+  ```
+  </Tab>
+</Tabs>
+
+---
+
+## Step 2 — Encrypt, Sign, and Send
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+);
+
+// PUT /gl/v1/payments/si/status
+// Content-Type: text/plain
+// x-gl-token-external: jwsToken
+// Body: jweToken
 ```
 
-**Not found:**
+See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+
+---
+
+## Response
+
+### Success — Mandate Revoked (`HTTP 200`)
+
 ```json
-{ "status": "REQUEST_ERROR", "message": "Mandate id not found" }
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "message": "Successfully inactivated mandate",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "transactionCreationTime": "25/08/2021 14:24:12",
+  "data": null,
+  "errors": null
+}
 ```
+
+### Error — Mandate Already Inactive
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Mandate was inactive",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "data": null,
+  "errors": null
+}
+```
+
+### Error — Mandate Not Found
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Mandate id not found",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "data": null,
+  "errors": null
+}
+```
+
+---
+
+## Mandate State Transitions
+
+```
+              ┌─────────┐
+              │  ACTIVE │
+              └────┬────┘
+                   │
+       ┌───────────┴──────────┐
+       │                      │
+  PAUSE (PUT)            REVOKE (PUT)
+       │                      │
+       ▼                      ▼
+  ┌──────────┐          ┌──────────────┐
+  │ INACTIVE │          │ INACTIVE     │
+  │ (paused) │          │ (permanent)  │
+  └────┬─────┘          └──────────────┘
+       │                   (cannot be reactivated)
+  ACTIVATE (PUT)
+       │
+       ▼
+  ┌─────────┐
+  │  ACTIVE │
+  └─────────┘
+```
+
+---
+
+## Notes
+
+- A **REVOKED** mandate is permanent. A new mandate requires a new GPI payment with `standingInstruction` data.
+- `merchantTxnId` must be unique for each action request.
+- Use [Check Mandate Status](/api-reference/standing-instructions/si-status) to verify the result of any action.

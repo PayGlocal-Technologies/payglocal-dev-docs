@@ -687,3 +687,52 @@ nav[aria-label="Navigation"] a[aria-current="page"] {
   color: rgb(147 197 253) !important;
 }
 
+/* ── API Reference: HTTP Method badges (left panel) ─────────── */
+
+/* Shared badge base */
+nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-paycollect"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-initiate"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/refund"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/standalone-capture"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/standalone-reversal"]::before,
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-subsequent-payment"]::before,
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-status"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/get-status"]::before,
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-cancellation"]::before {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  color: #fff;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* POST — yellow */
+nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-paycollect"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-initiate"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/refund"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/standalone-capture"]::before,
+nav[aria-label="Navigation"] a[href*="api-reference/payment/standalone-reversal"]::before,
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-subsequent-payment"]::before,
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-status"]::before {
+  content: "POST";
+  background-color: #D97706;
+}
+
+/* GET — green */
+nav[aria-label="Navigation"] a[href*="api-reference/payment/get-status"]::before {
+  content: "GET";
+  background-color: #059669;
+}
+
+/* PUT — yellow (same shade as POST) */
+nav[aria-label="Navigation"] a[href*="standing-instructions/si-cancellation"]::before {
+  content: "PUT";
+  background-color: #D97706;
+}
+

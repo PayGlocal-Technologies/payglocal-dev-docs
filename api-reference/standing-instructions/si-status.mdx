@@ -1,45 +1,142 @@
 ---
-title: "Check Mandate Status"
-description: "Retrieve the current status, payment count, and details of a standing instruction mandate."
-openapi: "POST /gl/v1/payments/si/status"
+title: "SI — Check Mandate Status"
+sidebarTitle: "POST  SI — Check Mandate Status"
+description: "Retrieve the current state, payment count, and details of a Standing Instruction mandate."
 ---
 
 ## When to Use
 
-Check the current lifecycle state of a standing-instruction mandate — e.g., whether it's still active, how many debits have been processed, and how many remain.
+- Before triggering a subsequent payment — confirm the mandate is still `ACTIVE`
+- After pausing or revoking — confirm the action succeeded
+- To check how many payments remain before the mandate is exhausted
+- For reconciliation and mandate lifecycle management
+
+---
+
+<Info>
+  **Endpoint:** `/gl/v1/payments/si/status`
+
+  **Method:** `POST`
+</Info>
+
+## Step 1 — Build Your Raw Business Payload
+
+```json
+{
+  "merchantTxnId": "STATUS-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "mandateId": "md_c87fcf0a-a62c-4dae-b001-ee69fee587c3"
+  }
+}
+```
+
+---
+
+## Step 2 — Encrypt, Sign, and Send
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+);
+
+// POST /gl/v1/payments/si/status
+// Content-Type: text/plain
+// x-gl-token-external: jwsToken
+// Body: jweToken
+```
+
+See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+
+---
+
+## Response
+
+### Active Mandate (`HTTP 200`)
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "message": "Successfully retrieved mandate details",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "data": {
+    "mandateData": {
+      "mandateStatus": "ACTIVE",
+      "mandateCreateDate": "20211204",
+      "maskedMandateId": "md_94fxxxxxx3e15",
+      "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+      "numberOfPaymentsProcessed": "4",
+      "numberOfPaymentsRemaining": "2"
+    }
+  },
+  "errors": null
+}
+```
+
+### Exhausted Mandate
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SUCCESS",
+  "message": "Successfully retrieved mandate details",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "data": {
+    "mandateData": {
+      "mandateStatus": "EXHAUSTED",
+      "mandateCreateDate": "20211204",
+      "mandateExhaustionDate": "20211209",
+      "maskedMandateId": "md_94fxxxxxx3e15",
+      "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+      "numberOfPaymentsProcessed": "6",
+      "numberOfPaymentsRemaining": "0"
+    }
+  },
+  "errors": null
+}
+```
+
+### Mandate Not Found
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "NOT_FOUND",
+  "message": "Mandate id not found",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "data": null,
+  "errors": null
+}
+```
+
+---
 
 ## Mandate Status Values
 
-| Status | Description |
-|--------|-------------|
-| `ACTIVE` | Mandate is active and can be used for subsequent payments |
-| `INACTIVE` | Mandate was revoked via API or Control Center |
-| `EXHAUSTED` | All configured payments have been processed |
+| Status | Description | Can charge again? |
+|---|---|---|
+| `ACTIVE` | Mandate is live and accepting debits | Yes |
+| `INACTIVE` | Mandate was paused or revoked | No — resume via `ACTIVATE` or create new mandate |
+| `EXHAUSTED` | All `numberOfPayments` have been processed | No — create a new mandate |
 
-## Example Data Payloads
+---
 
-**Active mandate:**
-```json
-{
-  "mandateData": {
-    "mandateStatus": "ACTIVE",
-    "mandateCreateDate": "20211204",
-    "maskedMandateId": "md_94fxxxxxx3e15",
-    "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
-    "numberOfPaymentsProcessed": "4",
-    "numberOfPaymentsRemaining": "2"
-  }
-}
-```
+## Response Fields — `mandateData`
 
-**Exhausted mandate:**
-```json
-{
-  "mandateData": {
-    "mandateStatus": "EXHAUSTED",
-    "mandateExhaustionDate": "20211209",
-    "numberOfPaymentsProcessed": "6",
-    "numberOfPaymentsRemaining": "0"
-  }
-}
-```
+| Field | Description |
+|---|---|
+| `mandateStatus` | Current state: `ACTIVE`, `INACTIVE`, or `EXHAUSTED` |
+| `mandateCreateDate` | Date the mandate was created (`yyyyMMdd`) |
+| `mandateExhaustionDate` | Date the mandate was exhausted — only present when `EXHAUSTED` |
+| `maskedMandateId` | Use this in [SI Sale](/api-reference/standing-instructions/si-subsequent-payment) requests |
+| `siId` | Standing Instruction reference for the PayGlocal Control Center |
+| `numberOfPaymentsProcessed` | Total successful debits completed |
+| `numberOfPaymentsRemaining` | Remaining debits before exhaustion |
+
+---
+
+## Notes
+
+- `merchantTxnId` must be unique per request.
+- If `mandateStatus` is `INACTIVE` due to a pause, use [SI Cancel / Pause / Activate](/api-reference/standing-instructions/si-cancellation) with `action: ACTIVATE` to resume.
+- If `mandateStatus` is `EXHAUSTED`, create a new mandate via a fresh GPI payment with `standingInstruction` data.

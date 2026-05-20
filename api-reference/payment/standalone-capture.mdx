@@ -1,16 +1,123 @@
 ---
 title: "Standalone Capture"
-description: "Capture an authorized payment to trigger settlement."
-openapi: "POST /gl/v1/payments/{gid}/capture"
+sidebarTitle: "POST  Standalone Capture"
+description: "Capture an authorized payment to trigger settlement. Used in the Auth-Only flow."
 ---
 
 ## When to Use
 
-Capture an `AUTHORIZED` transaction (i.e., one initiated with `captureTxn=false`). Until captured, the authorization holds funds on the customer's card but does not settle them to you.
+Capture a payment that is in `AUTHORIZED` state — i.e., initiated with `captureTxn: false`. Until captured, funds are held on the customer's card but are not settled to your account.
 
-## Full vs Partial
+<Warning>
+  This endpoint requires your MID to be configured for the **Auth-Only** model. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to enable this.
+</Warning>
 
-- `captureType=F` — full capture of the authorized amount. Omit `paymentData.totalAmount`.
-- `captureType=P` — partial capture. `paymentData.totalAmount` is required and must be ≤ the authorized amount.
+---
 
-Only one capture is allowed per authorization. The remaining authorized amount is released after the first capture.
+## Full vs Partial Capture
+
+| Type | `captureType` value | `paymentData.totalAmount` | Notes |
+|---|---|---|---|
+| Full capture | `"F"` | Omit this field | Captures the entire authorized amount |
+| Partial capture | `"P"` | Required — must be ≤ authorized amount | Releases the remaining authorization |
+
+Only **one capture** is allowed per authorization.
+
+---
+
+<Info>
+  **Endpoint:** `/gl/v1/payments/{gid}/capture`
+
+  **Method:** `POST`
+</Info>
+
+## Step 1 — Build Your Raw Business Payload
+
+The `{gid}` in the endpoint URL is the PayGlocal ID from the original authorization response.
+
+<Tabs>
+  <Tab title="Full Capture">
+
+  ```json
+  {
+    "merchantTxnId": "CAP-23AEE8CB6B62EE2AF07"
+  }
+  ```
+  </Tab>
+  <Tab title="Partial Capture">
+
+  ```json
+  {
+    "merchantTxnId": "CAP-23AEE8CB6B62EE2AF07-1",
+    "paymentData": {
+      "totalAmount": "60.00"
+    },
+    "captureType": "P"
+  }
+  ```
+  </Tab>
+</Tabs>
+
+---
+
+## Step 2 — Encrypt, Sign, and Send
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+);
+
+// POST /gl/v1/payments/{gid}/capture
+// Content-Type: text/plain
+// x-gl-token-external: jwsToken
+// Body: jweToken
+```
+
+See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+
+---
+
+## Response
+
+### Success (`HTTP 200`)
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Sent for Capture Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "errors": null
+}
+```
+
+### Error — Transaction Not Found
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REQUEST_ERROR",
+  "message": "Transaction not found",
+  "reasonCode": "GL-400-999",
+  "errors": null
+}
+```
+
+---
+
+## Notes
+
+- `SENT_FOR_CAPTURE` in the response means settlement has been triggered.
+- After capture, you can issue a refund using the [Refund](/api-reference/payment/refund) endpoint.
+- To void the authorization instead of capturing, use [Auth Reversal](/api-reference/payment/standalone-reversal).
+
+---
+
+## Error Scenarios
+
+| HTTP code | Reason code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-006` | Capture amount exceeds authorized amount | Reduce `paymentData.totalAmount` |
+| `400` | `GL-400-999` | Transaction not found | Verify the `gid` |
+| `400` | `GL-400-002` | Invalid data | Check field values |
+| `501` | `GL-501-000` | System error | Retry after some time |

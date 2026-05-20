@@ -104,23 +104,6 @@ PayCollect is a **hosted payment page** solution where PayGlocal manages the ent
 - **Operational clarity** — Clear handoff between your order system and checkout
 - **Consistent payer UX** — Hosted page optimized for completion and 3DS
 
-**API Endpoint**
-```
-POST /gl/v1/payments/initiate/paycollect
-```
-
-**Sample Payload**
-```json
-{
-  "merchantTxnId": "23AEE8CB6B62EE2AF07",
-  "paymentData": {
-    "totalAmount": "89",
-    "txnCurrency": "INR"
-  },
-  "merchantCallbackURL": "https://yoursite.com/callback"
-}
-```
-
 No card data in the payload — PayGlocal collects it on the hosted page. PayGlocal returns a `redirectUrl`; send the customer there to complete payment.
 
 **Supported Payment Methods:** Cards, Apple Pay, UPI, Net Banking and other Alternative Payment sections
@@ -147,29 +130,6 @@ PayGlocal **PayDirect** is a **direct payment integration** for **PCI DSS compli
 - **Direct processing** — Submit payment instructions from your controlled environment
 - **Advanced API access** — Compose richer flows when your MID supports them
 - **Real-time analytics** — Tie gateway responses back to your order and risk stack
-
-**API Endpoint**
-```
-POST /gl/v1/payments/initiate
-```
-
-**Sample Payload**
-```json
-{
-  "merchantTxnId": "23AEE8CB6B62EE2AF07",
-  "paymentData": {
-    "totalAmount": "89",
-    "txnCurrency": "INR",
-    "cardData": {
-      "number": "5132552222223470",
-      "expiryMonth": "12",
-      "expiryYear": "2030",
-      "securityCode": "123"
-    }
-  },
-  "merchantCallbackURL": "https://yoursite.com/callback"
-}
-```
 
 Card data collected on your own UI and sent directly. No redirect. Payment processed on your domain.
 

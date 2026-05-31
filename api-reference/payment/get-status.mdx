@@ -1,149 +1,118 @@
 ---
 title: "Status API"
-sidebarTitle: "GET  Status API"
-description: "Query the real-time state of any GPI payment or refund using the GID or merchantUniqueId."
+sidebarTitle: "Status API"
+openapi: "GET /gl/v1/payments/{id}/status"
 ---
 
-## When to Use
+Query the current state of a transaction after payment initiation. Use this to verify callback data, confirm refund acceptance, or retrieve Standing Instruction IDs.
 
-Call this endpoint whenever you need the current state of a transaction:
-
-- After receiving a callback — independently verify the status before processing
-- When the `merchantCallbackURL` callback was missed, delayed, or failed
-- To confirm a refund was accepted
-- To retrieve the `maskedMandateId` / `siId` after a successful SI setup
-
-<Note>
-  Use Get Status only when the original GPI call returned `CREATED`. If GPI itself returned a terminal error (e.g., `REQUEST_ERROR`, `CONFIG_ERROR`), those are final — Get Status will not change them.
-</Note>
+The Status API is a **GET** request. There is no JSON request body and **no JWE**. Replace `<TXN-GID>` with the `gid` from your initiation response (or your `merchantUniqueId` where supported), then sign the request path with your private key to create the JWS token.
 
 ---
 
-<Info>
-  **Endpoint:** `/gl/v1/payments/{id}/status`
+## Token Generation
 
-  **Method:** `GET`
-</Info>
+<Warning>
+  **Do not send a JSON body on this endpoint.** Build the status path string (`statusPayload="/gl/v1/payments/<TXN-GID>/status"`), sign it with the PayGlocal SDK, and pass only the JWS token in `x-gl-token-external`. JWE is not used for GET Status.
+</Warning>
 
-## How to Call This Endpoint
-
-Get Status is a **GET** request with no body. Authentication still requires a **JWS-signed header**, generated using your credentials via the SDK.
+Use the SDK to generate the JWS token from the status path:
 
 ```javascript
-const { jwsToken } = generateJWEAndJWS(
-  {},           // empty payload for GET requests
-  pubCert,
-  pvtKey,
+const { jwsToken } = generateJWS(
+  statusPayload="/gl/v1/payments/<TXN-GID>/status",
+  pvtKey,       // Your private key (from GCC)
   merchantId,
-  pubKeyId,
   pvtKeyId
 );
-
-// Send: GET /gl/v1/payments/{id}/status
-// Header: x-gl-token-external: jwsToken
-// No request body
 ```
 
-The `{id}` path parameter accepts either:
-- The PayGlocal `gid` (e.g., `gl-13bbd3c4-9817-4786-96c6-12fa6191f118`)
-- Your `merchantUniqueId` from the original GPI request
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jwsToken` | RSA signature over the status path (`/gl/v1/payments/<TXN-GID>/status`) using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X GET https://api.uat.payglocal.in/gl/v1/payments/<TXN-GID>/status \
+  -H "x-gl-token-external: <your-jws-token>"
+```
+
+---
+
+## Path Parameter
+
+| Parameter | Description |
+|---|---|
+| `{id}` | Transaction GID from initiation response (e.g., `gl-13bbd3c4...`). |
 
 ---
 
 ## Response
 
-### Success (`HTTP 200`)
+### Success
 
 ```json
 {
   "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
   "status": "SENT_FOR_CAPTURE",
   "message": "Get Status Successful",
-  "timestamp": "2021-04-12T07:47:18Z",
+  "timestamp": "2026-05-23T07:47:18Z",
   "reasonCode": "GL-201-001",
   "data": {
     "detailedMessage": "Transaction Processed Successfully",
-    "transactionCreationTime": "25/08/2021 14:24:12",
+    "transactionCreationTime": "23/05/2026 14:24:12",
     "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-    "Amount": "10",
-    "Currency": "INR",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "reasonCode": "GL-201-001",
+    "Amount": "3999.50",
+    "Currency": "USD",
+    "merchantTxnId": "TXN-456789-20260523",
     "status": "SENT_FOR_CAPTURE"
   },
   "errors": null
 }
 ```
 
-### Success with Standing Instruction
-
-When the original GPI included SI data and the SI was set up successfully:
+### With Standing Instruction
 
 ```json
 {
   "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
   "status": "SENT_FOR_CAPTURE",
-  "message": "Get Status Successful",
-  "timestamp": "2021-04-12T07:47:18Z",
   "data": {
-    "Amount": "89",
+    "Amount": "3999.50",
     "Currency": "USD",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
     "status": "SENT_FOR_CAPTURE",
     "siStatus": "SUCCESS",
     "maskedMandateId": "md_94fxxxxxx3e15",
     "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32"
-  },
-  "errors": null
+  }
 }
 ```
-
-<Note>
-  `maskedMandateId` is what you pass to the [SI Sale](/api-reference/standing-instructions/si-subsequent-payment) endpoint for subsequent charges. `siId` is the Standing Instruction reference for the PayGlocal Control Center.
-</Note>
 
 ---
 
 ## Transaction Status Values
 
-### GPI Payment Statuses
-
-| Status | Final? | Meaning | Your next action |
-|--------|--------|---------|-----------------|
-| `CREATED` | No | Transaction registered; customer has not yet redirected | Redirect customer to `redirectUrl` |
-| `INPROGRESS` | No | Customer is on PayGlocal's payment page | Wait for customer to proceed |
-| `AUTHORIZED` | No | Authorized by issuer; awaiting capture | Plan to ship goods |
-| `SENT_FOR_CAPTURE` | **Yes** | Payment captured; settlement in progress | Ship goods; optionally issue refund later |
-| `ABANDONED` | **Yes** | Customer closed or timed out the payment window | Send a payment link to retry |
-| `ISSUER_DECLINE` | **Yes** | Card declined by the issuing bank | Ask customer to use another card |
-| `CUSTOMER_CANCELLED` | **Yes** | Customer cancelled on PayGlocal's page | Ask customer to retry |
-| `AUTHENTICATION_TIMEOUT` | **Yes** | 3DS authentication timed out | Ask customer to retry |
-| `GENERAL_DECLINE` | **Yes** | Declined by PayGlocal's risk engine | Check customer profile |
-| `REQUEST_ERROR` | **Yes** | Field-level error in the original request | Fix the payload and retry |
-| `SYSTEM_ERROR` | **Yes** | PayGlocal system issue | Retry after some time |
-| `CONFIG_ERROR` | **Yes** | MID misconfiguration | Contact PayGlocal merchant support |
-| `CONDITIONAL_DECLINE` | **Yes** | Processing error or timeout | Retry after some time |
+| Status | Final | Meaning | Action |
+|---|---|---|---|
+| `CREATED` | No | Registered; awaiting redirect | Redirect to `redirectUrl` |
+| `INPROGRESS` | No | Customer on payment page | Wait for completion |
+| `AUTHORIZED` | No | Funds held; awaiting capture | Capture or reverse |
+| `SENT_FOR_CAPTURE` | Yes | Captured; settlement in progress | Fulfill order |
+| `ABANDONED` | Yes | Customer closed payment window | Retry payment |
+| `ISSUER_DECLINE` | Yes | Card declined by bank | Try different card |
+| `CUSTOMER_CANCELLED` | Yes | Customer cancelled | Retry payment |
+| `AUTHENTICATION_TIMEOUT` | Yes | 3DS timed out | Retry payment |
+| `GENERAL_DECLINE` | Yes | Declined by risk engine | Contact support |
+| `REQUEST_ERROR` | Yes | Invalid request data | Fix and retry |
+| `SYSTEM_ERROR` | Yes | PayGlocal system issue | Retry after delay |
+| `CONFIG_ERROR` | Yes | MID misconfiguration | Contact support |
+| `CONDITIONAL_DECLINE` | Yes | Processing error/timeout | Retry after delay |
 
 ### Refund Statuses
 
-| Status | Final? | Meaning |
-|--------|--------|---------|
-| `SENT_FOR_REFUND` | **Yes** | Refund accepted and sent to processor |
-| `REQUEST_ERROR` | **Yes** | Fix request fields and retry |
-| `SYSTEM_ERROR` | **Yes** | Retry after some time |
-
----
-
-## Response Fields
-
-| Field | Description |
+| Status | Meaning |
 |---|---|
-| `gid` | PayGlocal transaction ID |
-| `status` | Current transaction status |
-| `reasonCode` | PayGlocal reason code |
-| `data.Amount` | Transaction amount |
-| `data.Currency` | Transaction currency |
-| `data.merchantTxnId` | Your original transaction reference ID |
-| `data.siStatus` | SI setup result (`SUCCESS` / `FAILURE`) — SI transactions only |
-| `data.maskedMandateId` | Masked mandate ID for subsequent SI payments — SI transactions only |
-| `data.siId` | Standing Instruction ID for GCC management — SI transactions only |
+| `SENT_FOR_REFUND` | Refund accepted and sent to processor |
+| `REQUEST_ERROR` | Invalid refund request |
+| `SYSTEM_ERROR` | System error; retry after delay |

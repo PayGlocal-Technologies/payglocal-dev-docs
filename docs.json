@@ -168,32 +168,34 @@
             ]
           },
           {
-            "group": "Payment Initiation",
+            "group": "Regular Payment",
             "pages": [
               "api-reference/payment/gpi-paycollect",
               "api-reference/payment/gpi-initiate"
             ]
           },
           {
-            "group": "Transaction Management",
+            "group": "Transaction Management APIs",
             "pages": [
               "api-reference/payment/get-status",
               "api-reference/payment/refund"
             ]
           },
           {
-            "group": "Authenticator Endpoint",
+            "group": "Auth and Capture APIs",
             "pages": [
+              "api-reference/payment/auth-payment-initiation",
               "api-reference/payment/standalone-capture",
               "api-reference/payment/standalone-reversal"
             ]
           },
           {
-            "group": "Recurring Payment",
+            "group": "Recurring Payment APIs",
             "pages": [
+              "api-reference/standing-instructions/si-payment-initiation",
               "api-reference/standing-instructions/si-subsequent-payment",
-              "api-reference/standing-instructions/si-cancellation",
-              "api-reference/standing-instructions/si-status"
+              "api-reference/standing-instructions/si-status",
+              "api-reference/standing-instructions/si-cancellation"
             ]
           },
           {
@@ -444,6 +446,7 @@
   "appearance": {
     "default": "system"
   },
+  "css": "custom.css",
   "navbar": {
     "links": [
       {

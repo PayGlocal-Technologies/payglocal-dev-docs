@@ -1,244 +1,110 @@
 ---
 title: "Pay Direct"
-sidebarTitle: "POST  Pay Direct"
-description: "Start a payment for PCI-certified merchants who collect card data directly and send it in the request."
+sidebarTitle: "Pay Direct"
+openapi: "POST /gl/v1/payments/initiate"
 ---
 
-## When to Use
+## Raw Payload
 
-Use **PayDirect** when your integration is **PCI DSS certified** and you collect the customer's full card details (card number, expiry, CVV) on your own checkout page.
+Build this JSON payload first. This is the **human-readable** business data — it is **never sent directly**. It must be encrypted and signed before transmission.
+
+```json
+{
+  "merchantUniqueId": "ORD-2026-05-23-456789",
+  "merchantTxnId": "TXN-456789-20260523",
+  "paymentData": {
+    "totalAmount": "3999.50",
+    "txnCurrency": "USD",
+    "cardData": {
+      "number": "4242424242424242",
+      "expiryMonth": "12",
+      "expiryYear": "2028",
+      "securityCode": "123"
+    },
+    "billingData": {
+      "firstName": "Michael",
+      "lastName": "Roberts",
+      "addressStreet1": "789 Pine Avenue",
+      "addressCity": "Austin",
+      "addressState": "TX",
+      "addressPostalCode": "78701",
+      "addressCountry": "US",
+      "emailId": "michael.roberts@example.com",
+      "callingCode": "+1",
+      "phoneNumber": "5125559876"
+    }
+  },
+  "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
+}
+```
+
+<Note>
+  For auth-only flows, add `"captureTxn": false`. For Standing Instructions, include the `standingInstruction` object. See [Payload Templates](/api-reference/payload-templates) for all variants.
+</Note>
+
+---
+
+## Token Generation
 
 <Warning>
-  **PCI DSS compliance is mandatory** for this flow. You are responsible for securely collecting, transmitting, and handling cardholder data. If you are not PCI certified, use [PayCollect](/api-reference/payment/gpi-paycollect) instead.
+  **The raw payload above cannot be sent directly.** It must be encrypted into a JWE token and signed into a JWS token using the PayGlocal SDK before any API call.
 </Warning>
 
----
-
-<Info>
-  **Endpoint:** `/gl/v1/payments/initiate`
-
-  **Method:** `POST`
-</Info>
-
-## Step 1 — Build Your Raw Business Payload
-
-Select your use case and construct the JSON payload. This is the business data you pass into the SDK before sending the request.
-
-<Tabs>
-  <Tab title="Minimum (Card Payment)">
-  The minimum required fields for a PayDirect card payment.
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "89",
-      "txnCurrency": "INR",
-      "cardData": {
-        "number": "5132552222223470",
-        "expiryMonth": "12",
-        "expiryYear": "2030",
-        "securityCode": "123"
-      }
-    },
-    "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
-  }
-  ```
-  </Tab>
-  <Tab title="With Billing Data">
-  Including billing address reduces decline rates and satisfies issuer requirements for many markets.
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "100",
-      "txnCurrency": "INR",
-      "cardData": {
-        "number": "4242424242424242",
-        "expiryMonth": "05",
-        "expiryYear": "2026",
-        "securityCode": "173"
-      },
-      "billingData": {
-        "firstName": "John",
-        "lastName": "Denver",
-        "addressStreet1": "Test123 Avenue",
-        "addressCity": "Bangalore",
-        "addressState": "Karnataka",
-        "addressPostalCode": "560094",
-        "addressCountry": "IN",
-        "emailId": "john@example.com",
-        "callingCode": "+91",
-        "phoneNumber": "9008018469"
-      }
-    },
-    "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
-  }
-  ```
-  </Tab>
-  <Tab title="With Authentication Data">
-  For markets where 3DS authentication must be completed before authorization. Pass the CAVV and ECI values from your authentication step.
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "100",
-      "txnCurrency": "INR",
-      "cardData": {
-        "number": "4242424242424242",
-        "expiryMonth": "05",
-        "expiryYear": "2026",
-        "securityCode": "173"
-      },
-      "authenticationData": {
-        "eci": "5",
-        "cavv": "<cavv-value-from-3ds>"
-      }
-    },
-    "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
-  }
-  ```
-  </Tab>
-  <Tab title="With Network Token (AltID)">
-  For merchants using network tokenization. Set `altId: true` and provide token details in `tokenData`.
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "89",
-      "txnCurrency": "INR",
-      "tokenData": {
-        "altId": "true",
-        "number": "4039073788299302",
-        "expiryMonth": "07",
-        "expiryYear": "2026",
-        "securityCode": "322",
-        "cryptogram": "ASNJBSHA988943NJS",
-        "requestorID": "BBFH8838NK",
-        "firstSix": "403907",
-        "lastFour": "9302",
-        "cardBrand": "visa",
-        "cardCountryCode": "IN",
-        "cardType": "CREDIT"
-      }
-    },
-    "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
-  }
-  ```
-  </Tab>
-  <Tab title="With Standing Instruction (SI)">
-  Creates a recurring mandate alongside the first payment. Card data is required for SI setup in PayDirect.
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "89",
-      "txnCurrency": "INR",
-      "cardData": {
-        "number": "5132552222223470",
-        "expiryMonth": "12",
-        "expiryYear": "2030",
-        "securityCode": "123"
-      }
-    },
-    "standingInstruction": {
-      "data": {
-        "amount": "89",
-        "numberOfPayments": "12",
-        "frequency": "MONTHLY",
-        "type": "FIXED",
-        "startDate": "20260601"
-      }
-    },
-    "merchantCallbackURL": "https://yourwebsite.com/callback"
-  }
-  ```
-  </Tab>
-  <Tab title="Auth Only (No Auto-Capture)">
-  Holds funds on the card without capturing. Use `captureTxn: false`. Capture separately via [Standalone Capture](/api-reference/payment/standalone-capture).
-
-  ```json
-  {
-    "merchantUniqueId": "IFNN939494NJFJ",
-    "merchantTxnId": "AUTH_TXN_001",
-    "paymentData": {
-      "totalAmount": "1000.00",
-      "txnCurrency": "INR",
-      "cardData": {
-        "number": "4242424242424242",
-        "expiryMonth": "05",
-        "expiryYear": "2026",
-        "securityCode": "173"
-      }
-    },
-    "captureTxn": false,
-    "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
-  }
-  ```
-  </Tab>
-</Tabs>
-
-For all available fields and more industry-specific templates (flights, hotels, trains), see [Payload Templates](/api-reference/payload-templates).
-
----
-
-## Step 2 — Encrypt, Sign, and Send
-
-<Warning>
-  **You cannot send raw JSON to PayGlocal payment endpoints.** Every request body must be JWE-encrypted and the header must carry a JWS-signed token. Both are generated from your credentials using PayGlocal's client SDK.
-</Warning>
-
-Pass the raw payload above to `generateJWEAndJWS()` from PayGlocal's client SDK:
+Use the SDK to generate both tokens from your raw payload:
 
 ```javascript
 const { jweToken, jwsToken } = generateJWEAndJWS(
-  rawPayload,   // the JSON object you built in Step 1
-  pubCert,      // PayGlocal's PUBCERT — encrypts payload → JWE body
-  pvtKey,       // Your PVT-KEY — signs JWE → JWS header
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
   merchantId,
   pubKeyId,
   pvtKeyId
 );
-
-// jweToken → send as the request body (text/plain)
-// jwsToken → send as the x-gl-token-external header
 ```
 
-The resulting HTTP call has the form:
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
 
+**Generated cURL request:**
+
+```bash
+curl -X POST https://api.uat.payglocal.in/gl/v1/payments/initiate \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
 ```
-POST /gl/v1/payments/initiate
-Content-Type: text/plain
-x-gl-token-external: [jwsToken from SDK]
 
-[jweToken from SDK]
-```
+---
 
-<Note>
-  See [Payment Flow](/merchant/payment-flow) for the full JWE + JWS transformation, and [Key Management](/getting-started/dashboard-and-key-management) for credentials setup.
-</Note>
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantUniqueId` | string | Yes | Your unique order/transaction ID. Must not start with `gl-`. |
+| `merchantTxnId` | string | Yes | Internal transaction reference. |
+| `paymentData.totalAmount` | string | Yes | Amount to charge (e.g., `"3999.50"`). |
+| `paymentData.txnCurrency` | string | Yes | ISO 4217 currency code (`"USD"`, `"INR"`, etc.). |
+| `paymentData.cardData` | object | Yes | Card number, expiry month/year, and CVV. |
+| `paymentData.billingData` | object | Recommended | Customer billing address. Improves authorization rates. |
+| `riskData` | object | Required* | Required for international cards. Include shipping and customer data. |
+| `merchantCallbackURL` | string | Yes | Publicly accessible HTTPS POST endpoint for payment results. |
+| `captureTxn` | boolean | Optional | Set `false` for auth-only mode. Default: `true` (auto-capture). |
 
 ---
 
 ## Response
 
-### Success (`HTTP 200`)
+### Success
 
 ```json
 {
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "gid": "gl-7f8e2a4c-1234-5678-90ab-cdef12345678",
   "status": "CREATED",
   "message": "Transaction Created Successfully",
-  "timestamp": "2021-04-12T07:47:18Z",
+  "timestamp": "2026-05-23T10:15:42Z",
   "reasonCode": "GL-201-001",
   "data": {
     "redirectUrl": "https://api.uat.payglocal.in/gl/v1/payments/redirect?x-gl-token=eyJ...",
@@ -248,50 +114,23 @@ x-gl-token-external: [jwsToken from SDK]
 }
 ```
 
-### Response Fields
+### After `CREATED`
 
-| Field | Description |
-|---|---|
-| `gid` | PayGlocal's unique transaction ID. Save this — all follow-on calls use it. |
-| `status` | `CREATED` on success. This is not a final payment status. |
-| `data.redirectUrl` | Redirect the customer's browser here via HTTP **GET** to complete 3DS / payment. |
-| `data.statusUrl` | Convenience URL for a Get Status call on this transaction. |
-| `data.mandateId` | Present only when `standingInstruction` was included. Confirm via Get Status after payment. |
+1. Save the `gid` from the response
+2. Redirect customer to `data.redirectUrl` via **HTTP GET** (never POST)
+3. Customer completes 3DS authentication
+4. PayGlocal POSTs result to your `merchantCallbackURL`
+5. Decode the callback JWT and process the payment status
 
 ---
 
-## What to Do After a `CREATED` Response
+## Error Responses
 
-```
-1. Save the gid from the response
-2. Redirect the customer's browser to data.redirectUrl using HTTP GET
-   ⚠️  Never use HTTP POST for the redirect
-3. Customer completes 3DS on PayGlocal's page
-4. PayGlocal POSTs the result to your merchantCallbackURL as x-gl-token
-5. Decode the callback JWT and act on the payment status
-```
-
-If the callback is delayed or missed, poll [Get Status](/api-reference/payment/get-status) using the `gid`.
-
----
-
-## Notes
-
-- `merchantUniqueId` must be globally unique per MID. Do not prefix it with `gl-`.
-- `merchantCallbackURL` must be a publicly accessible HTTPS POST endpoint.
-- `ipAddress`, `httpAccept`, and `httpUserAgent` in `riskData.customerData` are mandatory for **RuPay card** transactions.
-- For **international card** transactions, `riskData` is required — missing risk data may cause rejection.
-- For **Portfolio (Parent-Child MID)** setups: pass `x-gl-kid-mid: <parent-MID>` as an additional request header and set the child MID as the `merchantId`.
-
----
-
-## Error Scenarios
-
-| HTTP code | Reason code | Description | Action |
+| HTTP | Reason Code | Description | Action |
 |---|---|---|---|
-| `400` | `GL-400-002` | Invalid data in request | Check field values and types |
-| `400` | `GL-400-003` | Missing `merchantTxnId` | Add the required field |
-| `400` | `GL-400-004` | Card type not enabled for this MID | Contact PayGlocal support |
-| `400` | `GL-400-007` | Card type is not valid | Verify card number and type |
+| `400` | `GL-400-002` | Invalid request data | Verify field values and types |
+| `400` | `GL-400-003` | Missing `merchantTxnId` | Include required field |
+| `400` | `GL-400-004` | Card type not enabled | Contact PayGlocal support |
+| `400` | `GL-400-007` | Invalid card number | Verify card details |
 | `201` | `GL-201-020` | MID misconfigured | Contact PayGlocal support |
-| `501` | `GL-501-000` | System error | Retry after some time |
+| `501` | `GL-501-000` | System error | Retry after delay |

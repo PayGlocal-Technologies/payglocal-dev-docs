@@ -1,149 +1,125 @@
 ---
-title: "SI — Subsequent Payment"
-sidebarTitle: "POST  SI — Subsequent Payment"
-description: "Charge a customer against an existing active Standing Instruction mandate."
+title: "SI Subsequent Payment"
+sidebarTitle: "SI Subsequent Payment"
+openapi: "POST /gl/v1/payments/si/sale"
 ---
 
-## When to Use
-
-Trigger a recurring debit against an **active mandate** created during the original GPI payment. You need the `maskedMandateId` from the [Get Status](/api-reference/payment/get-status) response of the first payment.
-
-<Note>
-  The mandate ID for subsequent payments is retrieved from the Get Status response (`data.maskedMandateId`) — not directly from the GPI initiation response.
-</Note>
+Trigger a recurring debit against an active mandate. Requires the `maskedMandateId` from the [Get Status](/api-reference/payment/get-status) response after the first payment.
 
 <Warning>
-  If your MID has **Auto Debit** enabled, PayGlocal initiates subsequent payments automatically — this API is not applicable in that case.
+  If your MID has **Auto Debit** enabled, PayGlocal initiates subsequent payments automatically. This API is not applicable in that case.
 </Warning>
 
 ---
 
-## FIXED vs VARIABLE Mandates
+## Raw Payload
 
-| Type | Amount behavior | `paymentData.totalAmount` in this request |
+| Mandate Type | Amount Behavior | `paymentData.totalAmount` |
 |---|---|---|
-| `FIXED` | Always debits the amount set at mandate creation | Omit — ignored even if sent |
-| `VARIABLE` | You specify the amount each time | Required — must be ≤ `maxAmount` set at mandate creation |
+| `FIXED` | Always debits the preset amount | **Omit** |
+| `VARIABLE` | You specify amount each time | **Required** (≤ `maxAmount` from mandate setup) |
+
+### FIXED Mandate
+
+```json
+{
+  "merchantUniqueId": "SALE-ORD-2026-05-23-123456",
+  "merchantTxnId": "SALE-TXN-123456-20260523",
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### VARIABLE Mandate
+
+```json
+{
+  "merchantUniqueId": "SALE-ORD-2026-05-23-123456",
+  "merchantTxnId": "SALE-TXN-123456-20260523",
+  "paymentData": {
+    "totalAmount": "1299.00"
+  },
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
 
 ---
 
-<Info>
-  **Endpoint:** `/gl/v1/payments/si/sale`
+## Token Generation
 
-  **Method:** `POST`
-</Info>
-
-## Step 1 — Build Your Raw Business Payload
-
-<Tabs>
-  <Tab title="FIXED mandate">
-  The amount is locked in from the original GPI setup. Only the `mandateId` is needed.
-
-  ```json
-  {
-    "merchantUniqueId": "SALE-IFNN939494NJFJ",
-    "merchantTxnId": "SALE-23AEE8CB6B62EE2AF07",
-    "standingInstruction": {
-      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-    }
-  }
-  ```
-  </Tab>
-  <Tab title="VARIABLE mandate">
-  Include the amount to charge — must not exceed the `maxAmount` set at mandate creation.
-
-  ```json
-  {
-    "merchantUniqueId": "SALE-IFNN939494NJFJ",
-    "merchantTxnId": "SALE-23AEE8CB6B62EE2AF07",
-    "paymentData": {
-      "totalAmount": "89"
-    },
-    "standingInstruction": {
-      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-    }
-  }
-  ```
-  </Tab>
-</Tabs>
-
----
-
-## Step 2 — Encrypt, Sign, and Send
+<Warning>
+  **The raw payload above cannot be sent directly.** It must be encrypted and signed using the PayGlocal SDK.
+</Warning>
 
 ```javascript
 const { jweToken, jwsToken } = generateJWEAndJWS(
-  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
+  merchantId,
+  pubKeyId,
+  pvtKeyId
 );
-
-// POST /gl/v1/payments/si/sale
-// Content-Type: text/plain
-// x-gl-token-external: jwsToken
-// Body: jweToken
 ```
 
-See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X POST https://api.uat.payglocal.in/gl/v1/payments/si/sale \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
+```
+
+---
+
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantUniqueId` | string | Yes | Unique identifier for this debit. |
+| `merchantTxnId` | string | Yes | Your internal transaction reference for this debit. |
+| `standingInstruction.mandateId` | string | Yes | Masked mandate ID from Get Status response (`data.maskedMandateId`). |
+| `paymentData.totalAmount` | string | Conditional | Required for VARIABLE mandates. Omit for FIXED. |
 
 ---
 
 ## Response
 
-### Success — Payment Captured (`HTTP 200`)
+### Success
 
 ```json
 {
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "gid": "gl-8f3b4d2a-5678-90ab-cdef-123456789abc",
   "status": "SENT_FOR_CAPTURE",
   "message": "Sent for Capture Successfully",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "transactionCreationTime": "25/08/2021 14:24:12",
-  "errors": null
-}
-```
-
-### Error — Mandate Not Found
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "REQUEST_ERROR",
-  "message": "Mandate is not found",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "errors": null
-}
-```
-
-### Error — Mandate Inactive (Revoked or Paused)
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "REQUEST_ERROR",
-  "message": "Mandate is inactive",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "errors": null
-}
-```
-
-### Error — Mandate Exhausted
-
-Occurs when the `numberOfPayments` limit set at mandate creation has been reached.
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "REQUEST_ERROR",
-  "message": "Mandate is exhausted",
-  "timestamp": "2021-04-12T07:47:18Z",
+  "timestamp": "2026-05-23T18:22:45Z",
+  "transactionCreationTime": "23/05/2026 18:22:45",
   "errors": null
 }
 ```
 
 ---
 
+## Error Responses
+
+| Status | Message | Action |
+|---|---|---|
+| `REQUEST_ERROR` | Mandate is not found | Verify mandate ID via [SI Status](/api-reference/standing-instructions/si-status) |
+| `REQUEST_ERROR` | Mandate is inactive | Reactivate via [SI Cancel/Pause/Activate](/api-reference/standing-instructions/si-cancellation) |
+| `REQUEST_ERROR` | Mandate is exhausted | Create new mandate via fresh GPI payment |
+
+---
+
 ## Notes
 
-- `merchantTxnId` must be unique for each subsequent payment — do not reuse the original GPI transaction ID.
-- Check mandate status before triggering a debit using [Check Mandate Status](/api-reference/standing-instructions/si-status) to avoid errors.
-- For **VARIABLE + ONDEMAND** mandates, each debit must be triggered manually using this API.
-- For **FIXED** mandates with a scheduled frequency and Auto Debit enabled at the MID level, PayGlocal debits automatically — do not call this API.
+- `merchantTxnId` must be unique for each subsequent payment
+- Check mandate status before charging using [SI Status](/api-reference/standing-instructions/si-status)

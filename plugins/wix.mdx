@@ -18,9 +18,9 @@ Integrating PayGlocal with Wix enables merchants to accept online payments from 
 
 Log in to your Wix account and select the site on which you need to install the PayGlocal plugin. Click the **Edit Site** button (top-right) from your dashboard.
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-dashboard.png" alt="Wix Dashboard — click Edit Site" />
-</Frame>
+</div>
 
 ---
 
@@ -28,9 +28,9 @@ Log in to your Wix account and select the site on which you need to install the 
 
 From the Wix editor top bar, go to **Dev Mode** and click **Turn on Dev Mode** to enable Velo.
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-dev-mode.png" alt="Wix Velo Dev Mode panel" />
-</Frame>
+</div>
 
 ---
 
@@ -38,17 +38,17 @@ From the Wix editor top bar, go to **Dev Mode** and click **Turn on Dev Mode** t
 
 Inside the **Service Plugins** directory, click the **+** (Add) icon and select **Payment** from the list.
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-service-plugins-payment.png" alt="Service Plugins panel with Payment option" />
-</Frame>
+</div>
 
 Enter the plugin name as **PayGlocal**. Two files will be created automatically:
 - `PayGlocal.js`
 - `PayGlocal-config.js`
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-add-payment-plugin-modal.png" alt="Add new payment plugin modal with PayGlocal name" />
-</Frame>
+</div>
 
 <Note>
   Replace the contents in both files by copying the code from the repository: [PayGlocal-Plugin-Wix-Github](https://github.com/PayGlocal-Technologies)
@@ -63,9 +63,9 @@ In the **Backend** section, create the following configuration files:
 - `payglocal-constants.js`
 - `http-functions.js` *(if required)*
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-backend-payment-provider.png" alt="Wix Backend & Public panel with payment-provider folder" />
-</Frame>
+</div>
 
 <Note>
   Replace the contents in the above files by copying the code from: [PayGlocal-Plugin-Configuration-Wix-Github](https://github.com/PayGlocal-Technologies)
@@ -93,9 +93,9 @@ Navigate to **Packages & Apps** in the Velo sidebar and install the following li
 - `jose`
 - `crypto-js`
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-npm-packages.png" alt="Wix Packages and Apps panel with jose and crypto-js installed" />
-</Frame>
+</div>
 
 ---
 
@@ -109,9 +109,9 @@ Once all the changes are made, click the **Publish** button (top-right of the ed
 
 After publishing, PayGlocal will appear as a plugin under the **Accept Payments** section.
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-connect-payment.png" alt="PayGlocal listed as a payment provider with Connect button" />
-</Frame>
+</div>
 
 ---
 
@@ -145,8 +145,8 @@ To activate PayGlocal as a payment method:
 
 On the checkout page, PayGlocal will appear as a payment option. Upon selecting **International Credit/Debit cards (PayGlocal)**, the customer will be redirected to the payment page to complete the transaction.
 
-<Frame>
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
   <img src="/images/plugins/wix-checkout-payglocal.png" alt="Wix checkout page showing PayGlocal as a payment option" />
-</Frame>
+</div>
 
 After a successful payment, an order entry will be created in the **Orders** tab with all relevant transaction details.

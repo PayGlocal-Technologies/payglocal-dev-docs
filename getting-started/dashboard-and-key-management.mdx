@@ -59,11 +59,15 @@ PayGlocal uses a **JWT token-based integration model** for every API call. Befor
   <Step title="Click your profile icon and open TID Details">
     Click on your profile icon in the top-right corner of the dashboard and click on **My Account**.
     
-    ![Click Profile Icon - Step 1](/images/dashboard/mid-step1-profile-click.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/mid-step1-profile-click.png" alt="Click Profile Icon - Step 1" />
+    </div>
     
     From the headings, click on **TID Details**.
     
-    ![TID Details - Step 2](/images/dashboard/mid-step2-tid-details.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/mid-step2-tid-details.png" alt="TID Details - Step 2" />
+    </div>
   </Step>
   <Step title="Copy your Merchant ID">
     Under the **Payment Gateway** section, your **Merchant ID (MID)** is displayed. Copy it.
@@ -84,14 +88,18 @@ Both keys are managed from the Key Management System in GCC. You'll download the
   <Step title="Navigate to Key Management System">
     In the **left sidebar**, click on **Configure**.
     
-    ![Navigate to Configure](/images/dashboard/key-mgmt-step1-configure.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/key-mgmt-step1-configure.png" alt="Navigate to Configure" />
+    </div>
     
     Then click on **Key Management System**.
   </Step>
   <Step title="Download PayGlocal's Public Key">
     Find **PayGlocal Common Certificate** in the list and click the **Download** button.
     
-    ![Download PayGlocal Public Key](/images/dashboard/key-mgmt-step2-download-public.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/key-mgmt-step2-download-public.png" alt="Download PayGlocal Public Key" />
+    </div>
     
     <Note>
       This is **PayGlocal's public key** — you'll use it to encrypt your JWE payload so only PayGlocal can decrypt it.
@@ -107,19 +115,25 @@ Both keys are managed from the Key Management System in GCC. You'll download the
   <Step title="Filter by Key Type">
     In the same Key Management screen, click on the **Key Type** dropdown filter.
     
-    ![Click on Key Type filter](/images/dashboard/private-key-step1-filter.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/private-key-step1-filter.png" alt="Click on Key Type filter" />
+    </div>
   </Step>
   <Step title="Select RSA">
     From the dropdown menu, select **RSA**.
     
-    ![Select RSA from dropdown](/images/dashboard/private-key-step2-select-rsa.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/private-key-step2-select-rsa.png" alt="Select RSA from dropdown" />
+    </div>
     
     Then click **Apply**.
   </Step>
   <Step title="Generate RSA Key">
     Click the **Generate RSA Key** button in the top-right corner.
     
-    ![Click Generate RSA Key](/images/dashboard/private-key-step3-generate.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/private-key-step3-generate.png" alt="Click Generate RSA Key" />
+    </div>
     
     <Note>
       This will create a new RSA key pair. The private key will be available for download only once.
@@ -128,7 +142,9 @@ Both keys are managed from the Key Management System in GCC. You'll download the
   <Step title="Download Your Private Key">
     Once the key is generated, you'll see it in the table. Click the **Download** icon to save your private key.
     
-    ![Download your private key](/images/dashboard/private-key-step4-download.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/private-key-step4-download.png" alt="Download your private key" />
+    </div>
     
     <Warning>
       **This is your only chance!** The private key is not stored by PayGlocal. If you lose it, you'll need to regenerate a new key pair and update all your integrations.
@@ -159,7 +175,9 @@ Your Public Key ID is embedded in the filename of the public key file you downlo
     [PUBLIC_KEY_ID]_[rest-of-filename].pem
     ```
     
-    ![Public Key ID in filename](/images/dashboard/public-key-id-filename.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/public-key-id-filename.png" alt="Public Key ID in filename" />
+    </div>
   </Step>
   <Step title="Copy everything before the first underscore">
     Your **Public Key ID** is everything before the first underscore (`_`).
@@ -187,7 +205,9 @@ Unlike the Public Key ID, your **Private Key ID can be fetched directly from the
   <Step title="Copy the Key ID from the table">
     In the Key Management table, you'll see your generated RSA key listed with its **Key ID** in the first column.
     
-    ![Copy Private Key ID from dashboard](/images/dashboard/private-key-id-dashboard.png)
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/dashboard/private-key-id-dashboard.png" alt="Copy Private Key ID from dashboard" />
+    </div>
     
     **Simply copy the Key ID** displayed in the table — this is your **Private Key ID**.
     
@@ -245,7 +265,7 @@ Unlike the Public Key ID, your **Private Key ID can be fetched directly from the
   <Card title="Key Management Deep Dive" icon="key" href="/key-management/overview">
     JWS signing mechanics, key rotation, and environments.
   </Card>
-  <Card title="Which Integration Is Right for You?" icon="map" href="/integration/overview">
+  <Card title="Choose for Integration" icon="map" href="/integration/overview">
     Choose between No-Code and API integration based on how your business collects payments.
   </Card>
 </CardGroup>

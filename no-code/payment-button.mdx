@@ -18,23 +18,15 @@ Payment Button is ideal when:
 
 Unlike Payment Links (which have fixed amounts), Payment Buttons allow customers to enter the amount they want to pay.
 
-## Prerequisites
-
-Before creating a Payment Button:
-
-1. **GCC Account**: Access to the [GCC dashboard](https://merchant.payglocal.in)
-2. **Website Access**: Ability to add HTML/JavaScript code to your website
-3. **Merchant Onboarding**: Complete merchant verification process
-
-For setup instructions, see [Dashboard & Key Management](/getting-started/dashboard-and-key-management).
-
 ## How to Create a Payment Button
 
 <Steps>
   <Step title="Navigate to Payment Button">
     Log in to the [GCC dashboard](https://merchant.payglocal.in), click on **Payment Products** in the left sidebar, then select **Payment Button**.
 
-    <img src="/images/payment-button/navigate-payment-button.png" alt="Navigate to Payment Button" />
+    <div className="payg-screenshot-tile">
+      <img src="/images/payment-button/navigate-payment-button.png" alt="Navigate to Payment Button" />
+    </div>
   </Step>
 
   <Step title="Click Create">
@@ -44,7 +36,9 @@ For setup instructions, see [Dashboard & Key Management](/getting-started/dashbo
   <Step title="Configure Payment Button">
     Fill in the required details:
 
-    <img src="/images/payment-button/create-payment-button-form.png" alt="Create Payment Button Form" />
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/payment-button/create-payment-button-form.png" alt="Create Payment Button Form" />
+    </div>
 
     **Configuration Options:**
     - **ISO3 Currency Code**: Select the currency (e.g., INR for Indian Rupee)
@@ -58,9 +52,14 @@ For setup instructions, see [Dashboard & Key Management](/getting-started/dashbo
   </Step>
 
   <Step title="Copy the Scripts">
-    After submission, you'll receive:
-    - **JavaScript Script**: Add this to your website's `<head>` section or before `</body>`
-    - **HTML Button Code**: Paste this where you want the payment button to appear
+    After submission, open the button from the **Payment Button** dashboard. The **Payment Button is retrieved** panel shows your **Button ID** and **Embed Code**.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/payment-button/payment-button-retrieved.png" alt="Payment Button retrieved with Button ID and embed code" />
+    </div>
+
+    - Click **Copy Button ID** to save the button reference for search and status checks
+    - Click **Copy Embed Code** and paste the snippet into your website HTML where customers will pay
   </Step>
 
   <Step title="Embed on Your Website">
@@ -70,19 +69,6 @@ For setup instructions, see [Dashboard & Key Management](/getting-started/dashbo
     4. The customer will be able to enter the payment amount when they click the button
   </Step>
 </Steps>
-
-## Configuration Fields
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| **ISO3 Currency Code** | Yes | Three-letter currency code (INR, USD, etc.) |
-| **Website URL** | Yes | URL of the website where button will be embedded |
-| **Customer Phone Number** | Optional | Toggle to collect customer's phone number |
-| **Customer Email ID** | Optional | Toggle to collect customer's email address |
-
-<Note>
-  **Important**: You can choose which customer information to collect by toggling the switches. At least one contact method (email or phone) is recommended for sending payment receipts.
-</Note>
 
 ## How Payment Button Works
 
@@ -111,73 +97,11 @@ From the Payment Button dashboard, you can:
 - **Edit Button**: Update button configuration
 - **Enable/Disable**: Activate or deactivate buttons as needed
 
-## Example Use Cases
-
-Payment Buttons are perfect for:
-
-| Use Case | Description |
-|----------|-------------|
-| **Custom Services** | Services with variable pricing |
-| **Pay What You Want** | Flexible pricing models |
-| **Partial Payments** | Let customers pay any amount toward a balance |
-
 ## Button Embed Preview
 
 <img src="/images/payment-button/embed-preview-placeholder.png" alt="Button Embed Preview - Coming Soon" />
 
 _Screenshot showing how the button appears on a website - Coming soon_
-
-## Key Features
-
-- **No Fixed Amount**: Customer enters the amount they want to pay
-- **Easy Integration**: Just copy and paste the provided scripts
-- **No Backend Code**: Works without any server-side programming
-- **Secure**: PayGlocal handles all payment security
-- **Mobile Responsive**: Works on all devices
-- **Multiple Payment Methods**: Supports cards, UPI, net banking, wallets
-
-## Difference from Payment Link
-
-| Feature | Payment Button | Payment Link |
-|---------|---------------|--------------|
-| **Amount** | Dynamic (customer enters) | Fixed (set by merchant) |
-| **Integration** | Embedded on website | Shared via URL |
-| **Use Case** | Website checkout | Share via email/SMS |
-| **Code Required** | Yes (HTML/JS) | No |
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title="Button not appearing on website">
-    **Solutions**:
-    - Verify the JavaScript script is properly added to your website
-    - Check browser console for any errors
-    - Ensure your website URL matches what you entered in the form
-    - Check if ad blockers are interfering
-  </Accordion>
-
-  <Accordion title="Button not clickable">
-    **Solutions**:
-    - Check if there are any CSS conflicts on your page
-    - Verify the HTML code is correctly placed
-    - Ensure no overlapping elements are blocking the button
-    - Test in different browsers
-  </Accordion>
-
-  <Accordion title="Payment not processing">
-    **Solutions**:
-    - Verify your merchant account is active
-    - Check if the currency code is correctly configured
-    - Ensure customer is entering a valid amount
-    - Contact support if issue persists
-  </Accordion>
-</AccordionGroup>
-
-## Screenshots & Documentation
-
-<img src="/images/payment-button/button-management-placeholder.png" alt="Button Management Dashboard - Coming Soon" />
-
-_Additional screenshots showing button management and analytics - Coming soon_
 
 ## Next Steps
 

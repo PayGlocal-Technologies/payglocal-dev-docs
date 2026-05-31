@@ -1,146 +1,154 @@
 ---
 title: "Payment APIs — Overview"
-description: "Reference for PayGlocal's full payment API surface: initiation, status, refunds, auth & capture, and Standing Instructions."
+description: "Complete API reference for PayGlocal payment processing, transaction management, and recurring billing."
 icon: "credit-card"
 ---
 
-## What Are the Payment APIs?
+## Authentication
 
-The **Payment APIs** handle the complete transaction lifecycle — initiating payments, tracking status, issuing refunds, standalone auth/capture flows, and managing recurring Standing Instructions (SI) mandates.
+All Payment APIs use **JWS + JWE** authentication (different from Onboarding API's HMAC-SHA256).
+
+| API Area | Auth Mechanism | Key Header |
+|---|---|---|
+| Merchant Onboarding | HMAC-SHA256 (`x-gl-digest`) | `x-api-key` |
+| Payment / SI APIs | RSA-signed JWS + JWE-encrypted body | `x-gl-token-external` |
 
 <Warning>
-  The Payment APIs use a **JWS + JWE** authentication scheme — completely separate from the HMAC-SHA256 used by the Onboarding API. Do not mix credentials between the two systems.
+  Do not mix credentials between Onboarding and Payment APIs.
 </Warning>
-
-| API area | Auth mechanism | Key header |
-|----------|---------------|------------|
-| Merchant Onboarding | HMAC-SHA256 (`x-gl-digest`) | `x-api-key` |
-| Payment / SI APIs | RSA-signed JWS header + JWE-encrypted body | `x-gl-token-external` |
 
 ---
 
-## How Every Payment Request Works
+## Request Format
 
-PayGlocal never accepts a plain JSON request. Before any API call, your raw business payload must be transformed into two tokens:
+Most payment requests require encryption and signing:
 
 ```
-Your Raw JSON Payload
-        │
-        ▼
- [ generateJWE ]  ──── uses PayGlocal's public certificate (PUBCERT)
-        │               to encrypt your payload
-        ▼
-    JWE Token  ──────── becomes the request BODY
-        │
-        ▼
- [ generateJWS ]  ──── uses your private key (PVT-KEY)
-        │               to sign the JWE token
-        ▼
-    JWS Token  ──────── becomes the x-gl-token-external HEADER
-        │
-        ▼
-  HTTP Request sent to PayGlocal
+Raw JSON Payload
+      ↓
+[ generateJWE ]  ← Encrypts with PayGlocal's PUBCERT
+      ↓
+  JWE Token (request body)
+      ↓
+[ generateJWS ]  ← Signs with your PVT-KEY
+      ↓
+  JWS Token (x-gl-token-external header)
 ```
 
-Every API request therefore has this shape:
-
-```bash
+**HTTP Request Structure:**
+```
 POST https://api.uat.payglocal.in/<endpoint>
-
 Content-Type: text/plain
 x-gl-token-external: <generated-jws-token>
 
 <generated-jwe-payload>
 ```
 
-<Note>
-  The **raw business payload** shown in each endpoint page below is what you build and pass into `generateJWEAndJWS`. The function handles encryption and signing internally. See [Payment Flow](/merchant/payment-flow) for the full step-by-step transformation and [Key Management](/getting-started/dashboard-and-key-management) for credentials setup.
-</Note>
+See [Payment Flow](/merchant/payment-flow) for implementation details.
+
+### Status API Exception (GET)
+
+Status check does not send a JWE body. Build the path string and sign it to create JWS:
+
+```javascript
+const { jwsToken } = generateJWS(
+  statusPayload="/gl/v1/payments/<TXN-GID>/status",
+  pvtKey,
+  merchantId,
+  pvtKeyId
+);
+```
+
+Use this JWS in `x-gl-token-external` for `GET /gl/v1/payments/<TXN-GID>/status`. See [Status API](/api-reference/payment/get-status) for details.
 
 ---
 
-## Credentials Required
+## Required Credentials
 
-| Credential | Where it comes from | Used for |
+| Credential | Source | Purpose |
 |---|---|---|
-| **PayGlocal Public Certificate** (`PUBCERT`) | Downloaded from GCC → Key Management | `generateJWE` — encrypts your payload |
-| **Your Private Key** (`PVT-KEY`) | Downloaded from GCC → Key Management | `generateJWS` — signs the JWE |
-| **Merchant ID** (`MID`) | Provided by PayGlocal at onboarding | Embedded in both token headers |
-| **Public Key ID** (`pubKeyId`) | Extracted from PUBCERT filename | Tells PayGlocal which key encrypted the body |
-| **Private Key ID** (`pvtKeyId`) | Extracted from PVT-KEY filename | Tells PayGlocal which key to verify signature with |
+| PayGlocal Public Certificate (PUBCERT) | GCC → Key Management | Encrypts payload (JWE) |
+| Your Private Key (PVT-KEY) | GCC → Key Management | Signs request (JWS) |
+| Merchant ID (MID) | Provided at onboarding | Embedded in token headers |
+| Public Key ID (pubKeyId) | PUBCERT filename | Identifies encryption key |
+| Private Key ID (pvtKeyId) | PVT-KEY filename | Identifies signing key |
 
 <Tip>
-  **Key ID extraction**: The Key ID is the part of the filename before the underscore.  
-  - PVT-KEY file: `884hiurh-8e0b-4907-38nn-fuerikejr89_paygmerchant.pem` → KID = `884hiurh-8e0b-4907-38nn-fuerikejr89`  
-  - PUBCERT file: `834hinrh-8r0n-4657-34nn-fnjhjre33uur_glocal.cert` → KID = `834hinrh-8r0n-4657-34nn-fnjhjre33uur`
+  **Extract Key IDs:** The Key ID is the part before the underscore in the filename.  
+  - `884hiurh-8e0b-4907-38nn-fuerikejr89_paygmerchant.pem` → `884hiurh-8e0b-4907-38nn-fuerikejr89`
 </Tip>
+
+See [Key Management](/getting-started/dashboard-and-key-management) for setup instructions.
 
 ---
 
 ## Environments
 
-| Environment | Base URL | When to use |
+All examples, cURL samples, and **Try It** use **UAT (Sandbox)** by default.
+
+| Environment | Base URL | Use Case |
 |---|---|---|
-| **UAT (Sandbox)** | `https://api.uat.payglocal.in` | Development and testing |
-| **Production** | `https://api.prod.payglocal.in` | Live transactions — requires signed contract |
+| **UAT (Sandbox)** — default | `https://api.uat.payglocal.in` | Development and testing |
+| Production | `https://api.payglocal.in` | Live transactions |
 
 ---
 
-## The GID — Transaction Identifier
+## Transaction Identifier (GID)
 
-Every PayGlocal API response returns a **GID** (PayGlocal ID) — the central reference for a transaction:
+Every API response returns a **GID** (PayGlocal ID) — the primary transaction reference:
 
-- Always prefixed with `gl-` (e.g., `gl-13bbd3c4-9817-4786-96c6-12fa6191f118`)
-- Returned in every GPI initiation response
-- Used as the `{gid}` path parameter for status, refund, capture, and reversal calls
-- Your own `merchantUniqueId` can be used interchangeably with the GID in most endpoints
+- Format: `gl-13bbd3c4-9817-4786-96c6-12fa6191f118`
+- Returned on payment initiation
+- Used as `{gid}` path parameter in status, refund, capture, and reversal calls
+- Your `merchantUniqueId` can be used interchangeably in most endpoints
 
 ```
-GPI Initiation (POST)
-  └── Returns → gid: "gl-13bbd3c4-..."
+GPI Initiation → Returns: gid
         │
-        ├── GET  /gl/v1/payments/{gid}/status        ← Check status
-        ├── POST /gl/v1/payments/{gid}/refund         ← Issue refund
-        ├── POST /gl/v1/payments/{gid}/capture        ← Capture authorized payment
-        └── POST /gl/v1/payments/{gid}/auth-reversal  ← Void authorization
+        ├── GET  /gl/v1/payments/{id}/status
+        ├── POST /gl/v1/payments/{gid}/refund
+        ├── POST /gl/v1/payments/{gid}/capture
+        └── POST /gl/v1/payments/{gid}/auth-reversal
 ```
 
 ---
 
-## Endpoint Reference
+## API Endpoints
 
-### Payment Initiation (GPI)
+### Regular Payment
 
-| Endpoint | Method | Integration type | When to use |
-|---|---|---|---|
-| [POST /gl/v1/payments/initiate/paycollect](/api-reference/payment/gpi-paycollect) | POST | **PayCollect** | Non-PCI merchants — PayGlocal collects card data on its hosted page |
-| [POST /gl/v1/payments/initiate](/api-reference/payment/gpi-initiate) | POST | **PayDirect** | PCI-certified merchants — you collect card data directly |
-
-### Transaction Management
-
-| Endpoint | Method | When to use |
+| Endpoint | Method | Use Case |
 |---|---|---|
-| [GET /gl/v1/payments/{id}/status](/api-reference/payment/get-status) | GET | Check live status of any GPI or Refund transaction |
-| [POST /gl/v1/payments/{gid}/refund](/api-reference/payment/refund) | POST | Initiate full or partial refund on a captured transaction |
+| [POST /gl/v1/payments/initiate/paycollect](/api-reference/payment/gpi-paycollect) | POST | **PayCollect** (default) — Non-PCI merchants. PayGlocal hosts checkout. |
+| [POST /gl/v1/payments/initiate](/api-reference/payment/gpi-initiate) | POST | **PayDirect** — PCI-certified merchants. You collect card data. |
 
-### Auth & Capture (Standalone)
+### Transaction Management APIs
 
-| Endpoint | Method | When to use |
+| Endpoint | Method | Use Case |
 |---|---|---|
-| [POST /gl/v1/payments/{gid}/capture](/api-reference/payment/standalone-capture) | POST | Capture an `AUTHORIZED` payment (requires `captureTxn: false` at initiation) |
-| [POST /gl/v1/payments/{gid}/auth-reversal](/api-reference/payment/standalone-reversal) | POST | Void an `AUTHORIZED` payment before capture |
+| [GET /gl/v1/payments/{id}/status](/api-reference/payment/get-status) | GET | Check payment or refund status |
+| [POST /gl/v1/payments/{gid}/refund](/api-reference/payment/refund) | POST | Issue full or partial refund |
+
+### Auth and Capture APIs
+
+| Endpoint | Method | Use Case |
+|---|---|---|
+| [POST /gl/v1/payments/initiate](/api-reference/payment/auth-payment-initiation) | POST | **Post-authorization initiation** — Hold funds only (`captureTxn: false`). PayDirect path. |
+| [POST /gl/v1/payments/{gid}/capture](/api-reference/payment/standalone-capture) | POST | Capture authorized payment |
+| [POST /gl/v1/payments/{gid}/auth-reversal](/api-reference/payment/standalone-reversal) | POST | Void authorized payment |
 
 <Note>
-  Standalone auth & capture requires a special MID configuration. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to enable it.
+  Auth and Capture requires special MID configuration. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).
 </Note>
 
-### Standing Instructions (Recurring)
+### Recurring Payment APIs
 
-| Endpoint | Method | When to use |
+| Endpoint | Method | Use Case |
 |---|---|---|
-| [POST /gl/v1/payments/si/sale](/api-reference/standing-instructions/si-subsequent-payment) | POST | Charge a customer against an active mandate |
-| [PUT /gl/v1/payments/si/status](/api-reference/standing-instructions/si-cancellation) | PUT | Pause, activate, or permanently cancel a mandate |
-| [POST /gl/v1/payments/si/status](/api-reference/standing-instructions/si-status) | POST | Retrieve mandate status and payment history |
+| [POST /gl/v1/payments/initiate/paycollect](/api-reference/standing-instructions/si-payment-initiation) | POST | Create SI mandate with first payment (Fixed or Variable) |
+| [POST /gl/v1/payments/si/sale](/api-reference/standing-instructions/si-subsequent-payment) | POST | Charge against active mandate (Variable / on-demand) |
+| [POST /gl/v1/payments/si/status](/api-reference/standing-instructions/si-status) | POST | Retrieve mandate status and history |
+| [PUT /gl/v1/payments/si/status](/api-reference/standing-instructions/si-cancellation) | PUT | Pause, activate, or cancel mandate |
 
 ---
 
@@ -148,50 +156,47 @@ GPI Initiation (POST)
 
 Your MID is configured for one of two models:
 
-| Model | What happens during GPI redirect | Your next action |
+| Model | Behavior | Next Action |
 |---|---|---|
-| **Auth + Capture** (default) | Payment is authorized and captured automatically after 3DS | Poll status; ship on `SENT_FOR_CAPTURE` |
-| **Auth Only** | Only 3DS authentication completes | Send separate Capture or Reversal API calls |
+| **Auth + Capture** (default) | Payment authorized and captured automatically after 3DS | Poll status; fulfill on `SENT_FOR_CAPTURE` |
+| **Auth Only** | Only 3DS authentication completes | Send separate Capture or Reversal call |
 
-Contact PayGlocal merchant support to configure your preferred model.
+Contact merchant support to configure your model.
 
 ---
 
-## Understanding the Callback
+## Callback Handling
 
-After a payment completes, PayGlocal POSTs the result to your `merchantCallbackURL` as an encoded JWT (`x-gl-token`). You must decode it to read the payment status.
+After payment completion, PayGlocal POSTs the result to your `merchantCallbackURL` as an encoded JWT (`x-gl-token`).
 
 ```
 PayGlocal processes payment
-        │
-        ▼
-HTTP POST to your merchantCallbackURL
+      ↓
+POST to merchantCallbackURL
 Body: x-gl-token=<jwt>
-        │
-        ▼
-Your backend: split on ".", take index [1], base64url-decode
-        │
-        ▼
-{ "status": "SENT_FOR_CAPTURE", "gid": "...", "amount": "...", ... }
+      ↓
+Decode JWT (split on ".", take index [1], base64url-decode)
+      ↓
+{ "status": "SENT_FOR_CAPTURE", "gid": "...", "amount": "..." }
 ```
 
-See [Payment Response Handling](/merchant/payment-response-handling) and [Callback Handling (Node.js)](/api-reference/callback-handling) for full implementation details.
+See [Payment Response Handling](/merchant/payment-response-handling) for implementation.
 
 ---
 
-## Quick-Start Reference
+## Quick Links
 
 <CardGroup cols={2}>
   <Card title="Payment Flow" icon="shield" href="/merchant/payment-flow">
-    How raw payloads become JWE + JWS tokens — the full transformation explained.
+    Detailed JWE + JWS transformation guide
   </Card>
   <Card title="Key Management" icon="key" href="/getting-started/dashboard-and-key-management">
-    Download your PVT-KEY and PUBCERT from the GCC dashboard.
+    Download credentials from GCC dashboard
   </Card>
   <Card title="Payload Templates" icon="code" href="/api-reference/payload-templates">
-    Copy-ready raw JSON payloads for every use case (minimum, ecommerce, flights, hotels, SI).
+    Ready-to-use JSON payloads for all use cases
   </Card>
   <Card title="Response Handling" icon="arrow-right-from-bracket" href="/merchant/payment-response-handling">
-    How to decode and act on the callback JWT sent after payment completion.
+    Decode and process callback JWT
   </Card>
 </CardGroup>

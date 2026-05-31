@@ -1,129 +1,112 @@
 ---
-title: "SI — Cancel / Pause / Activate Mandate"
-sidebarTitle: "PUT  SI — Cancel / Pause / Activate"
-description: "Manage the lifecycle of a Standing Instruction mandate — pause, resume, or permanently cancel recurring debits."
+title: "SI Cancel, Pause or Activate Mandate"
+sidebarTitle: "SI Cancel, Pause or Activate"
+openapi: "PUT /gl/v1/payments/si/status"
 ---
 
-## When to Use
-
-| Action | When to use |
-|---|---|
-| **REVOKE** | Permanently cancel the mandate. Future debits will not be attempted. Cannot be undone. |
-| **PAUSE** | Temporarily suspend debits. Mandate remains and can be resumed. |
-| **ACTIVATE** | Resume a paused mandate to restart recurring charges. |
-
-<Note>
-  Mandates can also be managed through the PayGlocal Control Center using the mandate ID.
-</Note>
+Manage mandate lifecycle — pause, resume, or permanently cancel recurring debits.
 
 ---
 
-<Info>
-  **Endpoint:** `/gl/v1/payments/si/status`
+## Raw Payload
 
-  **Method:** `PUT`
-</Info>
+| Action | Description | Reversible? |
+|---|---|---|
+| `REVOKE` | Permanently cancel mandate | No. New mandate required via fresh GPI. |
+| `PAUSE` | Temporarily suspend debits | Yes — use `ACTIVATE` to resume. |
+| `ACTIVATE` | Resume a paused mandate | N/A |
 
-## Step 1 — Build Your Raw Business Payload
+### Revoke (Permanent Cancel)
 
-<Tabs>
-  <Tab title="Revoke (Permanent Cancel)">
-  Once revoked, a new mandate must be created via a fresh GPI request.
-
-  ```json
-  {
-    "merchantTxnId": "REVOKE-23AEE8CB6B62EE2AF07",
-    "standingInstruction": {
-      "action": "REVOKE",
-      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-    }
+```json
+{
+  "merchantTxnId": "REVOKE-TXN-456789-20260523",
+  "standingInstruction": {
+    "action": "REVOKE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
   }
-  ```
-  </Tab>
-  <Tab title="Pause (Temporary Suspend)">
-  Pauses recurring debits. Resume using `ACTIVATE`.
+}
+```
 
-  ```json
-  {
-    "merchantTxnId": "PAUSE-23AEE8CB6B62EE2AF07",
-    "standingInstruction": {
-      "action": "PAUSE",
-      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-    }
-  }
-  ```
-  </Tab>
-  <Tab title="Activate (Resume Paused)">
-  Reactivates a paused mandate.
+### Pause
 
-  ```json
-  {
-    "merchantTxnId": "ACTIVATE-23AEE8CB6B62EE2AF07",
-    "standingInstruction": {
-      "action": "ACTIVATE",
-      "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-    }
+```json
+{
+  "merchantTxnId": "PAUSE-TXN-456789-20260523",
+  "standingInstruction": {
+    "action": "PAUSE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
   }
-  ```
-  </Tab>
-</Tabs>
+}
+```
+
+### Activate (Resume Paused)
+
+```json
+{
+  "merchantTxnId": "ACTIVATE-TXN-456789-20260523",
+  "standingInstruction": {
+    "action": "ACTIVATE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
 
 ---
 
-## Step 2 — Encrypt, Sign, and Send
+## Token Generation
+
+<Warning>
+  **The raw payload above cannot be sent directly.** It must be encrypted and signed using the PayGlocal SDK.
+</Warning>
 
 ```javascript
 const { jweToken, jwsToken } = generateJWEAndJWS(
-  rawPayload, pubCert, pvtKey, merchantId, pubKeyId, pvtKeyId
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
+  merchantId,
+  pubKeyId,
+  pvtKeyId
 );
-
-// PUT /gl/v1/payments/si/status
-// Content-Type: text/plain
-// x-gl-token-external: jwsToken
-// Body: jweToken
 ```
 
-See [Payment Flow](/merchant/payment-flow) for the full encryption and signing explanation.
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X PUT https://api.uat.payglocal.in/gl/v1/payments/si/status \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
+```
+
+---
+
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantTxnId` | string | Yes | Unique transaction reference for this action. |
+| `standingInstruction.action` | string | Yes | `REVOKE`, `PAUSE`, or `ACTIVATE`. |
+| `standingInstruction.mandateId` | string | Yes | Masked mandate ID from Get Status response. |
 
 ---
 
 ## Response
 
-### Success — Mandate Revoked (`HTTP 200`)
+### Success
 
 ```json
 {
   "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
   "status": "SUCCESS",
   "message": "Successfully inactivated mandate",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "transactionCreationTime": "25/08/2021 14:24:12",
-  "data": null,
-  "errors": null
-}
-```
-
-### Error — Mandate Already Inactive
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "REQUEST_ERROR",
-  "message": "Mandate was inactive",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "data": null,
-  "errors": null
-}
-```
-
-### Error — Mandate Not Found
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "REQUEST_ERROR",
-  "message": "Mandate id not found",
-  "timestamp": "2021-04-12T07:47:18Z",
+  "timestamp": "2026-05-23T20:30:15Z",
   "data": null,
   "errors": null
 }
@@ -147,7 +130,7 @@ See [Payment Flow](/merchant/payment-flow) for the full encryption and signing e
   │ INACTIVE │          │ INACTIVE     │
   │ (paused) │          │ (permanent)  │
   └────┬─────┘          └──────────────┘
-       │                   (cannot be reactivated)
+       │                (cannot reactivate)
   ACTIVATE (PUT)
        │
        ▼
@@ -158,8 +141,17 @@ See [Payment Flow](/merchant/payment-flow) for the full encryption and signing e
 
 ---
 
+## Error Responses
+
+| Status | Message | Action |
+|---|---|---|
+| `REQUEST_ERROR` | Mandate was inactive | Already paused/revoked — check status |
+| `REQUEST_ERROR` | Mandate id not found | Verify mandate ID is correct |
+
+---
+
 ## Notes
 
-- A **REVOKED** mandate is permanent. A new mandate requires a new GPI payment with `standingInstruction` data.
-- `merchantTxnId` must be unique for each action request.
-- Use [Check Mandate Status](/api-reference/standing-instructions/si-status) to verify the result of any action.
+- **REVOKED** mandates are permanent. New mandate requires a new GPI payment with `standingInstruction` data
+- `merchantTxnId` must be unique for each action request
+- Use [SI Status](/api-reference/standing-instructions/si-status) to verify action result

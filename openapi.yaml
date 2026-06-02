@@ -765,12 +765,36 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CommonErrorResponse"
+          examples:
+            validationError:
+              summary: Validation error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: VALIDATION_ERROR
+                data: {}
+                errors: null
+                errorDetails:
+                  - fieldName: paymentData.totalAmount
+                    message: This field is required
     Unauthorized:
       description: Authentication failed — invalid API key or digest.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/CommonErrorResponse"
+          examples:
+            unauthorizedError:
+              summary: Unauthorized error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: UNAUTHORIZED
+                data: {}
+                errors: null
+                errorDetails:
+                  - fieldName: authorization
+                    message: Invalid x-gl-token-external
     Forbidden:
       description: The onboardingId does not belong to the authenticated partner.
       content:
@@ -1589,74 +1613,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # ======================== Payment APIs ========================
-
-  /gl/v1/payments/initiate:
-    servers:
-      - url: https://api.payglocal.in
-        description: Production
-      - url: https://api.uat.payglocal.in
-        description: Sandbox
-    post:
-      operationId: initiatePayDirectPayment
-      summary: Initiate PayDirect Transaction
-      description: |
-        Starts a card-on-file / raw-card payment flow (PayDirect). Call this once you've
-        collected card details from the customer. PayGlocal returns a `gid` plus a
-        redirect/step-up URL when 3DS is required.
-      tags:
-        - Payment
-      security:
-        - JwsTokenAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/TransactionRequest"
-                - type: object
-                  required:
-                    - merchantTxnId
-                    - paymentData
-              example:
-                merchantTxnId: order_1712345678
-                captureTxn: true
-                paymentData:
-                  totalAmount: "100.00"
-                  txnCurrency: INR
-                  cardData:
-                    number: "4111111111111111"
-                    expiryMonth: "12"
-                    expiryYear: "2030"
-                    securityCode: "123"
-                  billingData:
-                    firstName: John
-                    lastName: Doe
-                    emailId: john.doe@example.com
-                    addressCountry: IND
-                  authenticationData:
-                    type: "3DS"
-                merchantCallbackURL: https://merchant.example.com/callback
-      responses:
-        "200":
-          description: Transaction initiated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                gid: gl_9c2645ed09edb22e
-                status: INPROGRESS
-                timestamp: "10/01/2026 15:00:00"
-                reasonCode: ""
-                data:
-                  gid: gl_9c2645ed09edb22e
-                  redirectUrl: https://payments.payglocal.in/step-up/abc123
-                  status: INPROGRESS
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
 
   /gl/v1/payments/initiate/paycollect:
     servers:

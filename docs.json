@@ -167,6 +167,18 @@
               "api-reference/standing-instructions/si-cancellation",
               "api-reference/standing-instructions/si-status"
             ]
+          },
+          {
+            "group": "CodeDrop",
+            "pages": [
+              "api-reference/codedrop"
+            ]
+          },
+          {
+            "group": "Callback Handling",
+            "pages": [
+              "api-reference/callback-handling"
+            ]
           }
         ]
       }

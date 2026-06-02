@@ -179,6 +179,12 @@
             "pages": [
               "api-reference/callback-handling"
             ]
+          },
+          {
+            "group": "Payload Templates",
+            "pages": [
+              "api-reference/payload-templates"
+            ]
           }
         ]
       }
@@ -372,7 +378,10 @@
     }
   ],
   "api": {
-    "openapi": "openapi.yaml",
+    "openapi": [
+      "openapi.yaml",
+      "openapi-paydirect.yaml"
+    ],
     "playground": {
       "mode": "simple"
     },

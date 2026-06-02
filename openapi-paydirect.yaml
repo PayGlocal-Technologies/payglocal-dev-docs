@@ -456,12 +456,12 @@ components:
           example: "GL-400-001"
         data:
           type: object
-          example :
-            detailedMessage: Authentication failed, please contact support.
-            displayMessage: Something went wrong. We'll take you back to checkout so that you can try again.
+          nullable: true
         errors:
           type: object
-          nullable: true
+          example:
+            detailedMessage: Authentication failed, please contact support.
+            displayMessage: Something went wrong. We'll take you back to checkout so that you can try again.
         errorDetails:
           type: object
           nullable: true

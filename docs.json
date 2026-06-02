@@ -93,6 +93,7 @@
                     "icon": "layer-group",
                     "pages": [
                       "merchant/regular-payment",
+                      "api-reference/payment/upi",
                       "merchant/recurring-payment",
                       "merchant/auth-capture-guide",
                       "merchant/paycollect/codedrop"
@@ -147,6 +148,12 @@
             "group": "Merchant APIs: Payments",
             "pages": [
               "api-reference/payment/overview",
+              {
+                "group": "UPI",
+                "pages": [
+                  "api-reference/payment/upi-intent"
+                ]
+              },
               "api-reference/payment/gpi-paycollect",
               "api-reference/payment/gpi-initiate",
               "api-reference/payment/get-status",

@@ -1,0 +1,100 @@
+---
+title: "SI Status Check"
+description: "Check the current status and details of a standing instruction mandate."
+icon: "magnifying-glass"
+---
+
+## SI Status Check
+
+Retrieve comprehensive information about an SI mandate — its current state, payment history, and next scheduled payment.
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/si/status
+```
+
+---
+
+## Request
+
+```json
+{
+  "merchantTxnId": "STATUS-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "mandateId": "md_c87fcf0a-a62c-4dae-b001-ee69fee587c3"
+  }
+}
+```
+
+---
+
+## Response — Active Mandate
+
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "mandateData": {
+      "mandateStatus":             "ACTIVE",
+      "mandateCreateDate":         "20261204",
+      "maskedMandateId":           "md_94fxxxxxx3e15",
+      "siId":                      "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+      "numberOfPaymentsProcessed": "4",
+      "numberOfPaymentsRemaining": "2"
+    }
+  }
+}
+```
+
+---
+
+## Response — Exhausted Mandate
+
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "mandateData": {
+      "mandateStatus":             "EXHAUSTED",
+      "mandateCreateDate":         "20261204",
+      "mandateExhaustionDate":     "20261209",
+      "numberOfPaymentsProcessed": "6",
+      "numberOfPaymentsRemaining": "0"
+    }
+  }
+}
+```
+
+---
+
+## Mandate Statuses
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Mandate is active and available for subsequent payments |
+| `PAUSED` | Mandate temporarily suspended (instant or scheduled) |
+| `INACTIVE` | Mandate revoked via API or Control Center |
+| `EXHAUSTED` | All configured payments have been processed |
+
+---
+
+## When to Use
+
+- **Before making deductions** — verify the mandate is still active
+- **Customer service inquiries** — answer questions about subscription state
+- **Reporting and reconciliation** — track mandate lifecycle
+- **Monitoring mandate health** — flag mandates approaching exhaustion
+
+---
+
+## Key Information Returned
+
+- Current mandate status (`ACTIVE` / `PAUSED` / `INACTIVE` / `EXHAUSTED`)
+- Total debits processed and remaining
+- Next billing date
+- Mandate creation date
+- Masked Mandate ID for safe display
+- Internal SI ID for Control Center reference

@@ -1,0 +1,92 @@
+---
+title: "SI On-Demand"
+description: "Trigger a sale against an existing Variable standing instruction mandate by Mandate ID."
+icon: "hand-pointer"
+---
+
+## SI On-Demand Deduction
+
+Execute a payment against an existing mandate whenever you need to charge the customer. Used for **VARIABLE** SI mandates with `ONDEMAND` frequency, where YOU control both timing AND amount.
+
+<Note>
+  Only works with **VARIABLE** SI mandates. For Fixed mandates with Auto Debit enabled, PayGlocal initiates the debit automatically — no on-demand call needed.
+</Note>
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/si/sale
+```
+
+---
+
+## Request
+
+```json
+{
+  "merchantTxnId": "SALE-23AEE8CB6B62EE2AF07",
+  "paymentData":   { "totalAmount": "89" },
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+For **Fixed SI** mandates (where you're triggering a charge for the pre-set amount):
+
+```json
+{
+  "merchantTxnId": "SALE-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+---
+
+## When to Use
+
+- Billing cycle arrived
+- Service usage accumulated
+- Customer requested a top-up
+- Scheduled billing dates where you control timing
+
+---
+
+## Business Scenarios
+
+Perfect for variable utility bills, usage-based charging, one-time top-ups within subscription plans, or scheduled billing dates where you control timing.
+
+---
+
+## Response
+
+```json
+{
+  "gid":       "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":    "SENT_FOR_CAPTURE",
+  "message":   "Sent for Capture Successfully",
+  "timestamp": "2026-04-12T07:47:18Z"
+}
+```
+
+### Error Cases
+
+```json
+{ "status": "REQUEST_ERROR", "message": "Mandate is not found | Mandate is inactive | Mandate is exhausted" }
+```
+
+<Warning>
+  The API returns immediately with status. **Final payment confirmation comes via webhook** — always implement webhook handlers for production systems.
+</Warning>
+
+---
+
+## Constraints
+
+- For VARIABLE mandates: `totalAmount` must be ≤ `maxAmount` set during mandate creation.
+- Each call requires a unique `merchantTxnId`.
+- Mandate must be in `ACTIVE` status (not paused, revoked, or exhausted).

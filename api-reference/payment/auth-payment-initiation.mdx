@@ -1,0 +1,159 @@
+---
+title: "Post-Authorization Initiation"
+sidebarTitle: "Post-Authorization Initiation"
+openapi: "POST /gl/v1/payments/initiate"
+---
+
+Authorize a payment and **hold funds** on the customer’s card without capturing them. Use **PayDirect** (`POST /gl/v1/payments/initiate`) with `"captureTxn": false`. Funds stay in `AUTHORIZED` until you [capture](/api-reference/payment/standalone-capture) or [reverse](/api-reference/payment/standalone-reversal).
+
+Auth & Capture requires your MID to be configured for **Auth-Only** mode. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to enable.
+
+<Note>
+  You must collect card details on your site (**PCI DSS Level 1**). For hosted checkout without PCI scope, use [Pay Collect](/api-reference/payment/gpi-paycollect) with standard capture instead.
+</Note>
+
+---
+
+## Raw Payload
+
+Build this JSON payload first. This is the **human-readable** business data — it is **never sent directly**. It must be encrypted and signed before transmission.
+
+```json
+{
+  "merchantUniqueId": "AUTH-ORD-2026-05-23-001",
+  "merchantTxnId": "AUTH-TXN-20250122-001",
+  "paymentData": {
+    "totalAmount": "1000.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "4242424242424242",
+      "expiryMonth": "12",
+      "expiryYear": "2028",
+      "securityCode": "123"
+    },
+    "billingData": {
+      "firstName": "Michael",
+      "lastName": "Roberts",
+      "addressStreet1": "789 Pine Avenue",
+      "addressCity": "Austin",
+      "addressState": "TX",
+      "addressPostalCode": "78701",
+      "addressCountry": "US",
+      "emailId": "michael.roberts@example.com",
+      "callingCode": "+1",
+      "phoneNumber": "5125559876"
+    }
+  },
+  "captureTxn": false,
+  "merchantCallbackURL": "https://yourwebsite.com/payments/callback"
+}
+```
+
+<Warning>
+  **`"captureTxn": false`** is required. Without it, PayGlocal auto-captures after authorization and this flow does not apply.
+</Warning>
+
+---
+
+## Token Generation
+
+<Warning>
+  **The raw payload above cannot be sent directly.** It must be encrypted into a JWE token and signed into a JWS token using the PayGlocal SDK before any API call.
+</Warning>
+
+Use the SDK to generate both tokens from your raw payload:
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
+  merchantId,
+  pubKeyId,
+  pvtKeyId
+);
+```
+
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X POST https://api.uat.payglocal.in/gl/v1/payments/initiate \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
+```
+
+---
+
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantUniqueId` | string | Yes | Your unique order/transaction ID. Must not start with `gl-`. |
+| `merchantTxnId` | string | Yes | Internal transaction reference. |
+| `paymentData.totalAmount` | string | Yes | Amount to authorize (hold), e.g. `"1000.00"`. |
+| `paymentData.txnCurrency` | string | Yes | ISO 4217 currency code. |
+| `paymentData.cardData` | object | Yes | Card number, expiry, and CVV (PayDirect). |
+| `paymentData.billingData` | object | Recommended | Customer billing address. |
+| `captureTxn` | boolean | **Yes** | Must be `false` for authorization-only. |
+| `merchantCallbackURL` | string | Yes | HTTPS POST endpoint for authorization result. |
+
+---
+
+## Response
+
+### Success
+
+```json
+{
+  "gid": "gl-auth-3a2f9b1c-8d44-4f72-b91a-1c5a7e3d2f99",
+  "status": "AUTHORIZED",
+  "message": "Payment authorized. Capture required to collect funds.",
+  "timestamp": "2026-05-23T10:15:42Z",
+  "reasonCode": "GL-201-001",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/v1/payments/redirect?x-gl-token=eyJ...",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/status?x-gl-token=eyJ..."
+  },
+  "errors": null
+}
+```
+
+### After `AUTHORIZED`
+
+1. Save the `gid` — required for [Standalone Capture](/api-reference/payment/standalone-capture) and [Auth Reversal](/api-reference/payment/standalone-reversal)
+2. Complete 3DS if `redirectUrl` is returned (redirect via **HTTP GET**)
+3. Confirm status with [Get Status](/api-reference/payment/get-status) — expect `AUTHORIZED` before capture
+4. When ready to collect funds, call **Standalone Capture**; to cancel the hold, call **Auth Reversal**
+
+<Warning>
+  Authorization holds typically expire in **5–7 days** depending on card network and issuer. Capture or reverse before expiry.
+</Warning>
+
+---
+
+## Error Responses
+
+| HTTP | Reason Code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-002` | Invalid request data | Verify `captureTxn` and card fields |
+| `400` | `GL-400-003` | Missing `merchantTxnId` | Include required field |
+| `400` | `GL-400-007` | Invalid card number | Verify card details |
+| `201` | `GL-201-020` | MID not configured for Auth-Only | Contact PayGlocal support |
+| `501` | `GL-501-000` | System error | Retry after delay |
+
+---
+
+## Next in this flow
+
+```
+POST Authorization Initiation (captureTxn: false) → AUTHORIZED
+        │
+        ├── POST Standalone Capture → SENT_FOR_CAPTURE
+        └── POST Auth Reversal → REVERSED
+```

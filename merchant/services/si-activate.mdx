@@ -1,0 +1,69 @@
+---
+title: "SI Activate"
+description: "Resume a paused standing instruction mandate to restart recurring charges."
+icon: "circle-play"
+---
+
+## SI Activate
+
+Resume a paused mandate. The mandate becomes active immediately and the next scheduled charge proceeds as normal.
+
+---
+
+## Business Use Cases
+
+- Customer resolves payment issue
+- Dispute settled in your favor
+- Seasonal service resumes
+- Customer updates payment method successfully
+- Free trial or payment holiday ends
+
+---
+
+## Endpoint
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+### Request
+
+```json
+{
+  "merchantTxnId": "ACTIVATE-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "action":    "ACTIVATE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+---
+
+## What Happens After Activation
+
+- Mandate becomes active immediately
+- Next scheduled charge proceeds as normal
+- All original mandate details preserved
+- Billing cycle continues from where it left off
+
+---
+
+## When to Activate
+
+<Warning>
+  Only activate after confirming the reason for pause is resolved. Verify with the customer when appropriate. Ensure payment method is still valid and has sufficient funds.
+</Warning>
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Confirm with the customer" icon="comments" color="#1A6FE8">
+    Send a notification when reactivating so the customer knows charges will resume.
+  </Card>
+  <Card title="Schedule thoughtfully" icon="calendar" color="#10B981">
+    Don't surprise customers with an immediate charge. Plan the first post-reactivation debit carefully.
+  </Card>
+</CardGroup>

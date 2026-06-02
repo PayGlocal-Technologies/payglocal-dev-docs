@@ -1,0 +1,120 @@
+---
+title: "No-code products"
+sidebarTitle: "No-Code Integration"
+description: "One guide for Payment Link, Payment Invoice Link, and Payment Button — navigate with the outline on the right."
+icon: "sparkles"
+---
+
+Configure these products from **GCC** without building an API integration. Use the **right-hand outline** to jump between overview and each product. Screenshot placeholders are marked so you can drop assets later.
+
+---
+
+## No Code Overview {#no-code-overview}
+
+No-code PayGlocal lets you collect money through **hosted experiences** and dashboard-driven configuration:
+
+| Product | One-line purpose |
+|---------|------------------|
+| **Payment Link** | Share a URL; customer pays on PayGlocal-hosted checkout. |
+| **Payment Invoice Link** | Invoice-style request-for-payment with the same hosted checkout pattern. |
+| **Payment Button** | A button or snippet that launches checkout for a configured amount. |
+
+**Prerequisites:** GCC access for the right environment (UAT vs Production). See [Dashboard & key setup](/getting-started/dashboard-and-key-management).
+
+### Further reading (existing guides)
+
+<CardGroup cols={3}>
+  <Card title="Payment Link" icon="link" href="/no-code/payment-link" />
+  <Card title="Invoice Link" icon="file-invoice" href="/no-code/invoice-link" />
+  <Card title="Payment Button" icon="circle-play" href="/no-code/payment-button" />
+</CardGroup>
+
+---
+
+## Payment Link {#payment-link}
+
+### Why use Payment Link
+
+- You need to collect a **fixed amount** without backend integration.
+- You want PayGlocal to **host checkout** and handle payment method UX.
+- You share the link over **email, SMS, WhatsApp**, or any channel.
+
+### How it works
+
+1. In GCC, create a link with **amount**, **currency**, optional **customer contact**, and **expiry**.
+2. PayGlocal can **email/SMS** the link when contacts are provided.
+3. The customer completes payment on the **hosted page**.
+4. You track **status** in GCC (for example Active, Transacted, Exhausted, Expired, Disabled).
+
+### How to create it
+
+1. Sign in to **GCC** for the correct environment.
+2. Open the **Payment Links** (or equivalent) area — exact labels depend on your GCC version; your **account manager** can confirm the menu path.
+3. Fill required fields and **generate** the link.
+4. Copy or send the link; monitor status on the Payment Link dashboard.
+
+### Screenshots (coming soon)
+
+- Creation form (amount, currency, customer, expiry).
+- Customer checkout.
+- Status list and detail view.
+
+---
+
+## Payment Invoice Link {#payment-invoice-link}
+
+### Why use Payment Invoice Link
+
+- You are collecting against an **invoice** or formal **request for payment**.
+- You want copy and framing suited to **billed amounts** and invoice context while still using **hosted checkout**.
+
+### How it works
+
+- Same operational pattern as Payment Link: configure in GCC, share the link, customer pays on PayGlocal, you reconcile in the dashboard.
+- Exact fields and templates will match your GCC release — screenshots below will document the live UI.
+
+### How to create it
+
+1. In GCC, open the **invoice link** (or similarly named) product area.
+2. Enter **invoice / billing** details per your process (reference numbers, line narrative if applicable).
+3. Publish or send the link through your chosen channel.
+
+### Screenshots (coming soon)
+
+- Invoice link configuration.
+- Payer-facing page.
+- Reconciliation / reporting views.
+
+---
+
+## Payment Button {#payment-button}
+
+### Why use Payment Button
+
+- You want a **minimal embed** (button or snippet) on a landing page or storefront **without** a full API integration.
+- Checkout should still be **PayGlocal-hosted** after the click.
+
+### How it works
+
+1. Configure the payment in **GCC** and obtain the **button** or embed snippet PayGlocal provides.
+2. Place the control on your surface; the customer is sent to **hosted checkout** when they click.
+3. Track outcomes in GCC.
+
+### How to create it
+
+1. Sign in to GCC → open the **Payment Button** (or equivalent) product area.
+2. Set **amount**, **currency**, and any required metadata.
+3. Copy the **snippet** or download the asset your AM provides; deploy on your site within your CSP rules.
+
+### Screenshots (coming soon)
+
+- Button configuration screen.
+- Embed preview.
+- Checkout handoff.
+
+---
+
+## Support
+
+- **Product fit** — your PayGlocal **account manager**.
+- **Technical issues** — [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).

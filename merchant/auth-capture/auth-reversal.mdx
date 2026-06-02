@@ -1,0 +1,38 @@
+---
+title: "Auth Reversal"
+sidebarTitle: "Auth Reversal"
+description: "Cancel the authorization and release the hold before capturing."
+---
+
+Cancel the authorization before capturing. Funds are released back to the customer immediately. No charge occurs.
+
+```
+POST /gl/v1/payments/{gid}/reversal
+```
+
+```json
+{
+  "merchantTxnId": "REVERSAL-2026-0001"
+}
+```
+
+**Response:**
+```json
+{
+  "gid": "gl-auth-3a2f9b1c-...",
+  "status": "AUTH_REVERSED",
+  "message": "Authorization reversed. No funds collected.",
+  "timestamp": "2026-05-15T12:30:00Z"
+}
+```
+
+| Scenario | Action |
+|---|---|
+| Item cancelled before fulfilment | Auth Reversal |
+| Fraud suspected after auth | Auth Reversal |
+| Customer changed mind before ship | Auth Reversal |
+| Payment already captured | Refund (not reversal) |
+
+<Warning>
+  Auth Reversal is only possible on **AUTHORIZED** transactions that have not yet been captured. If a capture has already been initiated, use the standard refund flow instead.
+</Warning>

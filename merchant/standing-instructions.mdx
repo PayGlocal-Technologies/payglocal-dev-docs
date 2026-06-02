@@ -1,0 +1,191 @@
+---
+title: "Overview"
+description: "Recurring payments with pre-authorized mandates — subscriptions, EMIs, utility bills, and any scenario requiring automatic recurring charges."
+icon: "rotate"
+---
+
+## Standing Instructions (SI)
+
+Standing Instructions enable merchants to charge customers on a recurring basis with **pre-authorized mandates**. Perfect for subscriptions, EMI payments, utility bills, and any scenario requiring automatic recurring charges.
+
+> **Key Concept:** Customers authorize once during the initial payment, and the returned **Mandate ID** allows subsequent charges without re-authentication.
+
+<CardGroup cols={2}>
+  <Card title="Mandate-Based" icon="file-signature" color="#1A6FE8">
+    One-time authorization for multiple payments.
+  </Card>
+  <Card title="Flexible Types" icon="sliders" color="#F59E0B">
+    Fixed amount or Variable within ceiling.
+  </Card>
+  <Card title="Auto or Manual" icon="robot" color="#10B981">
+    AutoDebit or ONDEMAND merchant control.
+  </Card>
+  <Card title="Secure & Compliant" icon="shield-check" color="#8B5CF6">
+    PCI DSS compliant automated billing.
+  </Card>
+</CardGroup>
+
+<Note>
+  Standing Instructions are supported for **international cards only**. Available for both [PayCollect](/merchant/paycollect/overview) and [PayDirect](/merchant/paydirect/overview) integrations.
+</Note>
+
+---
+
+## Creating a Mandate (SI Initiate)
+
+SI Initiate is the foundation of recurring payments. It creates a mandate during the first payment, giving you permission for future charges. **Always the first step.**
+
+Include the `standingInstruction.data` block in your initial GPI request:
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "USD"
+  },
+  "standingInstruction": {
+    "data": {
+      "amount":           "89",
+      "maxAmount":        "500",
+      "numberOfPayments": "12",
+      "frequency":        "MONTHLY",
+      "type":             "FIXED",
+      "startDate":        "20260601"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+### Response
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://...",
+    "mandateId":   "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+<Warning>
+  **Store the Mandate ID** — you'll need it for all future operations: charging, pausing, activating, or checking status.
+</Warning>
+
+---
+
+## Fixed vs Variable Mandates
+
+<CardGroup cols={2}>
+  <Card title="Fixed SI" icon="lock" color="#1A6FE8">
+    Same amount charged every time. Perfect for subscriptions, EMIs, predictable recurring billing.
+
+    **Required:** `amount`, `numberOfPayments`, `frequency`
+  </Card>
+  <Card title="Variable SI" icon="chart-bar" color="#F59E0B">
+    Each charge can vary up to a ceiling. Perfect for utility bills, usage-based services.
+
+    **Required:** `maxAmount`, `numberOfPayments`, `frequency`
+  </Card>
+</CardGroup>
+
+### Frequency Options
+
+`ONDEMAND` · `DAILY` · `WEEKLY` · `BIWEEKLY` · `MONTHLY` · `QUARTERLY` · `HALFYEARLY` · `YEARLY`
+
+---
+
+## Auto Debit vs On-Demand
+
+<CardGroup cols={2}>
+  <Card title="Fixed + Auto Debit" icon="robot" color="#10B981">
+    **`frequency`: DAILY / WEEKLY / MONTHLY**
+
+    PayGlocal automatically debits the fixed amount on schedule. Zero merchant intervention after mandate setup.
+  </Card>
+  <Card title="Variable + On-Demand" icon="hand-pointer" color="#F59E0B">
+    **`frequency`: ONDEMAND**
+
+    YOU control both timing AND amount via the [SI On-Demand](/merchant/services/si-on-demand) API.
+  </Card>
+</CardGroup>
+
+<Note>
+  When Auto Debit is enabled for your MID: `ONDEMAND` frequency and `VARIABLE` type are not supported.
+</Note>
+
+---
+
+## Auto Debit Webhook Notifications
+
+When Auto Debit is enabled, PayGlocal POSTs to your webhook URL after each automatic debit.
+
+```json
+{
+  "gid":       "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":    "SUCCESS",
+  "type":      "STANDING_INSTRUCTION",
+  "siId":      "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
+  "timestamp": "2026-04-12T07:47:18Z",
+  "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+}
+```
+
+For `FAILURE`, the shape is identical with `"status": "FAILURE"`. Always call `statusUrl` for complete details.
+
+---
+
+## Cancel Mandate
+
+Permanently revoke a mandate.
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+```json
+{
+  "merchantTxnId": "REVOKE-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "action":    "REVOKE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+<Note>
+  Mandates can also be cancelled through the **PayGlocal Control Center**.
+</Note>
+
+---
+
+## Mandate Statuses
+
+| Status | Description |
+|--------|-------------|
+| `ACTIVE` | Mandate is active and available for subsequent payments |
+| `PAUSED` | Mandate temporarily suspended (instant or scheduled) |
+| `INACTIVE` | Mandate revoked via API or Control Center |
+| `EXHAUSTED` | All configured payments have been processed |
+
+---
+
+## Manage Your Mandates
+
+<CardGroup cols={2}>
+  <Card title="SI On-Demand" icon="hand-pointer" color="#1A6FE8" href="/merchant/services/si-on-demand">
+    Trigger a sale against an existing Variable mandate.
+  </Card>
+  <Card title="SI Status Check" icon="magnifying-glass" color="#8B5CF6" href="/merchant/services/si-status-check">
+    Check mandate status, payment history, and next billing date.
+  </Card>
+  <Card title="SI Pause" icon="circle-pause" color="#F59E0B" href="/merchant/services/si-pause">
+    Temporarily suspend a mandate — instantly or scheduled from a future date.
+  </Card>
+  <Card title="SI Activate" icon="circle-play" color="#10B981" href="/merchant/services/si-activate">
+    Resume a paused mandate.
+  </Card>
+</CardGroup>

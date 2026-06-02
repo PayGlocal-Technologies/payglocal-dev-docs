@@ -1,0 +1,144 @@
+---
+title: "PayDirect"
+description: "Direct payment integration for PCI DSS certified merchants — full control over card collection and checkout UI."
+icon: "code"
+---
+
+## Direct Payment Solution
+
+Process payments directly with full control. For PCI DSS certified merchants who collect card data on their own interface.
+
+<CardGroup cols={4}>
+  <Card title="25+" icon="credit-card" color="#1A6FE8">
+    **Payment methods**
+  </Card>
+  <Card title="100ms" icon="bolt" color="#F59E0B">
+    **Avg response time**
+  </Card>
+  <Card title="300M+" icon="chart-line" color="#10B981">
+    **Daily API requests**
+  </Card>
+  <Card title="99.9%" icon="circle-check" color="#8B5CF6">
+    **Success rate**
+  </Card>
+</CardGroup>
+
+<Warning>
+  PayDirect requires **PCI DSS Level 1 certification**. You collect, transmit, and handle card data on your own systems and are responsible for PCI compliance.
+</Warning>
+
+---
+
+## What is PayDirect?
+
+PayDirect is a direct payment integration solution for PCI DSS compliant merchants who collect card data on their own interface. You maintain full control over the payment flow and customer experience, while PayGlocal handles secure processing through our robust payment gateway. This approach is ideal for enterprises requiring maximum customization and direct card data handling.
+
+### Payment Flow
+
+```
+Merchant Interface  →  Card Data Collection  →  JWT Encryption  →  PayGlocal Gateway  →  Payment Processed
+```
+
+---
+
+## Key Benefits
+
+<CardGroup cols={2}>
+  <Card title="Full UI Customization" icon="palette" color="#1A6FE8">
+    Complete control over payment interface and user experience.
+  </Card>
+  <Card title="Direct Processing" icon="bolt" color="#F59E0B">
+    No redirects — payments processed on your domain.
+  </Card>
+  <Card title="Advanced API Access" icon="code" color="#8B5CF6">
+    Comprehensive APIs with full customization capability.
+  </Card>
+  <Card title="Real-time Analytics" icon="chart-line" color="#10B981">
+    Instant access to transaction data and insights.
+  </Card>
+</CardGroup>
+
+---
+
+## Payment Patterns
+
+<CardGroup cols={3}>
+  <Card title="JWT Authentication" icon="key" color="#1A6FE8" href="/merchant/paydirect/jwt-authentication">
+    Standard one-time payments with direct card data and JWT auth.
+  </Card>
+  <Card title="Standing Instructions" icon="rotate" color="#10B981" href="/merchant/standing-instructions">
+    Recurring payments with pre-authorized mandates.
+  </Card>
+  <Card title="Auth & Capture" icon="shield-check" color="#F59E0B" href="/merchant/auth-capture">
+    Two-step flow — authorize first, capture when ready.
+  </Card>
+</CardGroup>
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/initiate
+```
+
+### Minimum Required Payload
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "5132552222223470",
+      "expiryMonth": "12",
+      "expiryYear": "2030",
+      "securityCode": "123"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+<Note>
+  For international card transactions, `riskData` is **required**. For RuPay cards, `ipAddress`, `httpAccept`, and `httpUserAgent` are mandatory.
+</Note>
+
+---
+
+## Ideal For
+
+<CardGroup cols={3}>
+  <Card title="Enterprise Businesses" icon="building">
+    Large corporations requiring customized payment experiences and direct control.
+  </Card>
+  <Card title="Financial Institutions" icon="building-columns">
+    Banks and fintech requiring specialized integrations and compliance.
+  </Card>
+  <Card title="Retail Chains" icon="store">
+    Multi-location businesses needing unified payment processing.
+  </Card>
+  <Card title="Tech-First Companies" icon="code">
+    Development teams wanting full API control and custom implementations.
+  </Card>
+  <Card title="Payment Aggregators" icon="network-wired">
+    Platforms providing payment services to multiple merchants.
+  </Card>
+  <Card title="Healthcare Providers" icon="hospital">
+    Medical institutions requiring HIPAA-compliant payment processing.
+  </Card>
+</CardGroup>
+
+---
+
+## Ready to Get Started?
+
+<CardGroup cols={2}>
+  <Card title="View Payment Methods" icon="layer-group" href="/merchant/paydirect/jwt-authentication">
+    Explore JWT Authentication, Standing Instructions, and Auth & Capture.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/payment/gpi-initiate">
+    Full endpoint reference and interactive playground.
+  </Card>
+</CardGroup>

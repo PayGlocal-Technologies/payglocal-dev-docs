@@ -10,13 +10,13 @@ Built on [Mintlify](https://mintlify.com) (Sequoia theme). MDX for narrative, Op
 
 ```bash
 npm i -g mint         # one-time
-mintlify dev          # http://localhost:3000
+mint dev              # http://localhost:3000
 ```
 
-Node 20+. MDX edits hot-reload; **restart after editing `openapi.yaml`** (the spec is cached at startup).
+Node 20 or 22 (LTS). Node 25+ is not supported by the Mintlify CLI. MDX edits hot-reload; **restart after editing `openapi.yaml`** (the spec is cached at startup).
 
 ```bash
-mintlify broken-links # run before opening a PR
+mint broken-links     # run before opening a PR
 ```
 
 ---

@@ -1,0 +1,88 @@
+---
+title: "SI Pause"
+description: "Temporarily suspend a standing instruction mandate — instantly or scheduled from a future date."
+icon: "circle-pause"
+---
+
+## SI Pause
+
+Temporarily stop charges on a mandate without canceling it permanently. The mandate stays in your records and can be resumed later via [SI Activate](/merchant/services/si-activate).
+
+<CardGroup cols={2}>
+  <Card title="Instant Pause" icon="circle-pause" color="#F59E0B">
+    Mandate paused immediately from the current moment. Any scheduled payments from this moment onwards will not be processed.
+  </Card>
+  <Card title="Pause by Date" icon="calendar" color="#1A6FE8">
+    Specify a future date from which the mandate should be paused. Payments before this date continue normally.
+  </Card>
+</CardGroup>
+
+---
+
+## Business Scenarios
+
+- Customer requests a payment holiday
+- Account under dispute investigation
+- Seasonal service pause (e.g. gym membership freeze)
+- Insufficient funds — give customer time to add funds
+- Payment method update in progress
+- Planned service interruptions
+- Billing cycle adjustments
+
+---
+
+## Endpoint
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+### Instant Pause Request
+
+```json
+{
+  "merchantTxnId": "PAUSE-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "action":    "PAUSE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+### Pause by Date Request
+
+```json
+{
+  "merchantTxnId": "PAUSE-23AEE8CB6B62EE2AF07",
+  "standingInstruction": {
+    "action":         "PAUSE",
+    "mandateId":      "md_94f0bb40-2664-4851-ab83-b86c618d3e15",
+    "pauseStartDate": "20260601"
+  }
+}
+```
+
+<Note>
+  Verify the exact field name for scheduled pause (`pauseStartDate`) against your PayGlocal MID configuration. Field availability may be MID-specific.
+</Note>
+
+---
+
+## Impact on Billing
+
+- No charges occur while paused
+- Billing cycle does not advance during the pause window
+- All mandate details preserved so it's easy to resume when ready
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Communicate" icon="comments" color="#1A6FE8">
+    Inform customers when pausing. Explain the reason and expected resume date.
+  </Card>
+  <Card title="Don't cancel by mistake" icon="triangle-exclamation" color="#F59E0B">
+    Use pause when issue is temporary. For permanent cancellations, use [Revoke Mandate](/merchant/standing-instructions#cancel-mandate).
+  </Card>
+</CardGroup>

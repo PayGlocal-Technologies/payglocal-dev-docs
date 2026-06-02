@@ -1,0 +1,100 @@
+---
+title: "Initiate Refund"
+description: "Process full or partial refunds on successfully captured transactions."
+icon: "rotate-left"
+---
+
+## Initiate Refund
+
+Initiate a refund for an already-successful payment. PayGlocal supports both **full refunds** and **partial refunds**, and multiple partial refunds are allowed until the full transaction amount is refunded.
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/{gid}/refund
+```
+
+Replace `{gid}` with the PayGlocal GID returned in the original GPI response.
+
+---
+
+## Request
+
+```json
+{
+  "merchantTxnId":    "REFUND-23AEE8CB6B62EE2AF07-1",
+  "merchantUniqueId": "12345678",
+  "refundType":       "P",
+  "paymentData": {
+    "totalAmount": "10.00"
+  }
+}
+```
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `merchantTxnId` | String | Yes | Your unique reference for this refund |
+| `merchantUniqueId` | String | Recommended | Your internal unique ID |
+| `refundType` | String | Yes | `P` = Partial · `F` = Full |
+| `paymentData.totalAmount` | String | Conditional | Required when `refundType: "P"` |
+
+---
+
+## Partial vs Full
+
+| Scenario | `refundType` | `totalAmount` |
+|----------|-------------|---------------|
+| Refund full transaction amount | `F` | Not required |
+| Refund a specific amount | `P` | Required — ≤ original transaction amount |
+
+<CardGroup cols={2}>
+  <Card title="Partial Refund" icon="scissors" color="#F59E0B">
+    Multiple partials allowed until full amount is refunded. Each requires a unique `merchantTxnId`.
+  </Card>
+  <Card title="Full Refund" icon="rotate-left" color="#10B981">
+    One-shot complete refund. Only one full refund allowed per transaction.
+  </Card>
+</CardGroup>
+
+---
+
+## Response
+
+```json
+{
+  "gid":       "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":    "SENT_FOR_REFUND",
+  "message":   "Refund Initiated Successfully",
+  "timestamp": "2026-04-12T07:47:18Z",
+  "data": {
+    "Amount":        "10.00",
+    "Currency":      "INR",
+    "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07-1"
+  }
+}
+```
+
+---
+
+## Important Notes
+
+- Refunds can only be initiated for transactions with a `SENT_FOR_CAPTURE` status.
+- The `merchantTxnId` in the refund request must be unique — cannot be the same as the original GPI transaction ID.
+- Refund processing time depends on the card network and issuing bank; **typically 5–7 business days** for the customer to see the credit.
+- Webhook notification sent upon refund completion.
+
+---
+
+## Refund Statuses
+
+| Status | Description | Type |
+|--------|-------------|------|
+| `SENT_FOR_REFUND` | Refund initiated to processor | Final |
+| `REQUEST_ERROR` | Field-level issue — fix and retry | Final |
+| `SYSTEM_ERROR` | System issue — retry later | Final |
+
+To confirm whether a refund was successfully processed, use [Status Check](/merchant/services/status-check) with the GID of the original payment transaction.

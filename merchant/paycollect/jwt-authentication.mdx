@@ -1,0 +1,171 @@
+---
+title: "JWT Authentication"
+description: "PayCollect's JWT-based authentication — secure, stateless tokens for one-time payment scenarios with immediate capture."
+icon: "key"
+---
+
+## JWT Authentication — Overview
+
+JWT (JSON Web Token) authentication provides a secure, stateless way to handle payment transactions. PayGlocal uses JWT with **JWE** (encryption) and **JWS** (signature) to ensure your payment data remains secure throughout the transaction lifecycle.
+
+<CardGroup cols={2}>
+  <Card title="Immediate capture" icon="bolt" color="#1A6FE8">
+    Funds captured automatically upon successful authorization.
+  </Card>
+  <Card title="Token-based auth" icon="shield-check" color="#10B981">
+    Every API call signed with your private key — no shared secrets.
+  </Card>
+  <Card title="Real-time tracking" icon="chart-line" color="#F59E0B">
+    Status APIs provide live transaction visibility.
+  </Card>
+  <Card title="Full & partial refunds" icon="rotate-left" color="#8B5CF6">
+    Refund any portion of the original transaction.
+  </Card>
+</CardGroup>
+
+<Note>
+  Best for one-time payment scenarios. For recurring billing, use [Standing Instructions](/merchant/standing-instructions). For delayed fulfillment, use [Auth & Capture](/merchant/auth-capture).
+</Note>
+
+---
+
+## Payment Initiate
+
+Initiate a payment transaction with immediate capture. This API creates a payment session and redirects the customer to PayGlocal's secure payment interface. Upon successful payment, the amount is immediately captured and settled.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/initiate/paycollect
+```
+
+### Key Points
+
+- Creates a payment transaction with specified amount
+- Generates a redirect URL for customer payment
+- Immediate capture upon successful authorization
+- Returns Global ID (`gid`) for transaction tracking
+- Supports multiple payment methods (Cards, UPI, Net Banking)
+- Webhook notification sent to your callback URL
+
+### Minimum Payload
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+### Response
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://api.prod.payglocal.in/gl/v1/payments/redirect?x-gl-token=...",
+    "statusUrl":   "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
+  }
+}
+```
+
+Redirect the customer to `data.redirectUrl`. After completion, PayGlocal POSTs to your `merchantCallbackURL` with an `x-gl-token`.
+
+---
+
+## Status Check
+
+Check the current status of any payment transaction using its Global ID (`gid`). Returns real-time transaction status, payment method, amount details, and complete transaction history.
+
+### Endpoint
+
+```
+GET /gl/v1/payments/{gid}/status
+```
+
+### Key Points
+
+- Real-time transaction status updates
+- Returns payment method and amount details
+- Includes authorization codes and timestamps
+- Shows complete transaction lifecycle
+- Essential for reconciliation and reporting
+- Idempotent — safe to call multiple times
+
+See the [Status Check service](/merchant/services/status-check) for the full status reference.
+
+---
+
+## Partial Refund
+
+Refund a specific amount from a completed transaction. Useful for partial order cancellations, price adjustments, or discounts applied after payment.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/{gid}/refund
+```
+
+### Request
+
+```json
+{
+  "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07-1",
+  "refundType": "P",
+  "paymentData": { "totalAmount": "25.00" }
+}
+```
+
+### Key Points
+
+- Refund any amount up to the original transaction amount
+- Multiple partial refunds allowed until full amount is refunded
+- Requires `refundType: "P"` and `paymentData.totalAmount`
+- Each refund requires a unique `merchantTxnId`
+- Refund typically processes within **5–7 business days**
+- Webhook notification sent upon refund completion
+
+---
+
+## Full Refund
+
+Refund the entire transaction amount in one operation. Quickest path for complete cancellations or returns.
+
+### Request
+
+```json
+{
+  "merchantTxnId": "REFUND-23AEE8CB6B62EE2AF07",
+  "refundType": "F"
+}
+```
+
+### Key Points
+
+- Refunds the complete original transaction amount
+- Requires `refundType: "F"` only, no amount needed
+- Simpler payload than partial refund
+- Only one full refund allowed per transaction
+- Refund typically processes within 5–7 business days
+- Webhook notification sent upon refund completion
+
+---
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="CodeDrop" icon="square-code" href="/merchant/paycollect/codedrop">
+    Embed the PayCollect form as Modal, Drawer, or Inline.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/merchant/webhooks">
+    Receive real-time notifications for every payment event.
+  </Card>
+  <Card title="Payment Response" icon="arrow-right-from-bracket" href="/merchant/payment-response-handling">
+    Decode the `x-gl-token` callback after payment completion.
+  </Card>
+</CardGroup>

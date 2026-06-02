@@ -1,183 +1,60 @@
 ---
-title: "Choose for Integration"
-sidebarTitle: "Choose for Integration"
+title: "Choose Your Integration"
+sidebarTitle: "Choose Your Integration"
 description: "Choose between No-Code and API integration based on how your business collects payments."
 icon: "map"
 ---
 
-PayGlocal supports two ways to accept payments. The right one depends on a single question: **do you want to manage payments from a dashboard, or from your own website/app?**
-
----
-
-## No-Code Integration
-
-**Best for:** Businesses that want to start collecting payments immediately — no developers needed.
-
-With No-Code, you create and manage everything from the **GCC dashboard**. No API calls, no backend setup. PayGlocal hosts the payment experience for you.
+PayGlocal supports three ways to accept payments. The right one depends on how you want to collect money — and, if it's on your own site, who handles the card details.
 
 <CardGroup cols={3}>
-  <Card title="Payment Link" icon="link" color="#10B981">
-    Generate a URL and share it over email, SMS, or WhatsApp. Customer pays on a PayGlocal-hosted page.
+  <Card title="No-Code" icon="sparkles" color="#10B981" href="/no-code/overview">
+    **Collect without writing code.** Create Payment Links, Invoice Links, and Payment Buttons from the GCC dashboard. PayGlocal hosts the checkout.
   </Card>
-  <Card title="Payment Invoice Link" icon="file-invoice" color="#10B981">
-    Request payment against a specific invoice. Same hosted checkout, invoice-style framing.
+  <Card title="PayCollect" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+    **API — PayGlocal-hosted checkout.** Your backend sends a request; PayGlocal collects the card details on a secure hosted page. No PCI DSS certification needed.
   </Card>
-  <Card title="Payment Button" icon="computer-mouse" color="#10B981">
-    Embed a button on your website. Customer clicks and lands on PayGlocal-hosted checkout.
+  <Card title="PayDirect" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
+    **API — your own checkout.** You collect card details in your own UI and send them to PayGlocal. Requires PCI DSS certification.
   </Card>
 </CardGroup>
 
-**When to choose this:**
-- You want to collect payments without touching code
-- You manage transactions and reports entirely from the dashboard
-- You don't have a dedicated checkout flow on your website
-
-<Card title="Explore No-Code Products →" icon="sparkles" href="/no-code/overview">
-  Payment Link, Invoice Link, and Payment Button — all dashboard-driven.
-</Card>
+<Note>
+  **PayCollect** and **PayDirect** are the two modes of API integration. See the [API Integration overview](/integration/api-overview) to compare them in detail.
+</Note>
 
 ---
 
-## API Integration
+## Still Deciding?
 
-**Best for:** Businesses with a website or app that has its own checkout flow and wants payments embedded directly into it.
+Follow the path that matches how you want to accept payments:
 
-With API integration, your backend calls PayGlocal's APIs. You control the payment experience; PayGlocal handles the processing, 3DS authentication, and security.
+```mermaid
+graph TD
+    A[How do you want to accept payments?] --> B[From the GCC dashboard only]
+    A --> C[From your own website or app]
+    B --> D[No-Code Integration<br/>Payment Link / Invoice / Button]
+    C --> E{PCI DSS certified?}
+    E -->|No| F[PayCollect<br/>PayGlocal hosts the payment page]
+    E -->|Yes| G[PayDirect<br/>You collect card data on your own page]
+```
 
-**When to choose this:**
-- You have a dedicated checkout or cart flow on your website or app
-- You want payments to feel native to your product
-- You need programmatic control over transaction logic
+<Note>
+  No-Code and API integration aren't mutually exclusive. Many merchants use Payment Links for quick ad-hoc collections while their checkout runs on PayCollect or PayDirect.
+</Note>
 
 ---
 
-## PayCollect vs PayDirect
-
-PayGlocal offers two API integration modes. The single question that decides which one you need:
-**Who collects the card details — you or PayGlocal?**
+## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="PayCollect" icon="window" color="#1A6FE8">
-    **PayGlocal collects card details.**
-
-    You send a payment request. PayGlocal redirects the customer to a secure hosted checkout. You never touch card data.
-
-    → No PCI DSS certification needed.
-
-    - Hosted secure payment page
-    - Built-in 3DS authentication
-    - No PCI DSS compliance required
+  <Card title="No-Code Integration" icon="sparkles" href="/no-code/overview">
+    Payment Link, Invoice Link, and Payment Button — all dashboard-driven.
   </Card>
-  <Card title="PayDirect" icon="code" color="#8B5CF6">
-    **You collect card details.**
-
-    Your frontend has its own payment form. Your backend sends the card data directly to PayGlocal. No redirect ever happens.
-
-    → Requires PCI DSS Level 1 certification.
-
-    - Custom UI integration
-    - Full control over UX
-    - Merchant based payment flows
+  <Card title="API Integration" icon="code" href="/integration/api-overview">
+    Compare PayCollect and PayDirect, then build payments into your own product.
   </Card>
 </CardGroup>
-
----
-
-### PayCollect — Hosted Payment Page
-
-**What is PayCollect?**
-
-PayCollect is a **hosted payment page** solution where PayGlocal manages the entire collection experience. Customers are redirected to a **secure PayGlocal page** to enter card details, which significantly reduces your security and compliance obligations compared to collecting card data on your own domain.
-
-**Payment Flow**
-
-1. **Merchant initiates** — Your backend calls the PayCollect API
-2. **PayGlocal hosted page** — Customer is redirected to PayGlocal's secure checkout
-3. **Customer enters details** — Card information collected on PayGlocal's interface
-4. **Payment processed** — PayGlocal handles 3DS authentication and processing
-5. **Merchant callback** — Result sent to your callback URL
-
-**Key Benefits**
-
-- **Lower PCI scope** — Card data captured on PayGlocal-hosted surfaces
-- **Faster go-live** — Redirect-based integration with fewer moving parts
-- **Operational clarity** — Clear handoff between your order system and checkout
-- **Consistent payer UX** — Hosted page optimized for completion and 3DS
-
-No card data in the payload — PayGlocal collects it on the hosted page. PayGlocal returns a `redirectUrl`; send the customer there to complete payment.
-
-**Supported Payment Methods:** Cards, Apple Pay, UPI, Net Banking and other Alternative Payment sections
-
----
-
-### PayDirect — Direct Integration
-
-**What is PayDirect?**
-
-PayGlocal **PayDirect** is a **direct payment integration** for **PCI DSS compliant** merchants who collect card data on **their own interface**. You maintain complete control of the payment flow and customer experience while PayGlocal processes securely through the gateway. Suited for enterprises that need maximum customization and direct card handling.
-
-**Payment Flow**
-
-1. **Merchant interface** — Customer enters card details on your checkout page
-2. **Card data collection** — Your frontend captures card information
-3. **Submit to PayGlocal** — Your backend sends card data via API
-4. **PayGlocal gateway** — Processes the payment securely
-5. **Payment processed** — Result returned to your system
-
-**Key Benefits**
-
-- **Full UI customization** — Own the entire checkout layout and validation UX
-- **Direct processing** — Submit payment instructions from your controlled environment
-- **Advanced API access** — Compose richer flows when your MID supports them
-- **Real-time analytics** — Tie gateway responses back to your order and risk stack
-
-Card data collected on your own UI and sent directly. No redirect. Payment processed on your domain.
-
----
-
-### Continue to Your Payment Mode
-
-<CardGroup cols={3}>
-  <Card title="Regular Payment" icon="credit-card" href="/merchant/regular-payment">
-    One-time, immediate payments — status tracking and refunds.
-  </Card>
-  <Card title="Recurring Payment" icon="rotate" href="/merchant/recurring-payment">
-    Standing Instructions — Auto Debit and On-Demand mandate flows.
-  </Card>
-  <Card title="Auth & Capture" icon="shield-check" href="/merchant/auth-capture-guide">
-    Hold funds now, capture when you're ready to fulfill.
-  </Card>
-</CardGroup>
-
----
-
-## Not Sure? Use Both.
-
-No-Code and API integration are not mutually exclusive. Many merchants use Payment Links for quick ad-hoc collections while their checkout uses PayCollect or PayDirect for their core flow.
-
----
-
-## Quick Decision Guide
-
-```
-How do you want to accept payments?
-│
-├─ From the GCC dashboard only (no code)
-│   └─ → No-Code Integration
-│         (Payment Link / Invoice Link / Payment Button)
-│
-└─ From your own website or app
-    │
-    ├─ Are you PCI DSS certified?
-    │   │
-    │   ├─ NO  → PayCollect
-    │   │         PayGlocal hosts the payment page.
-    │   │
-    │   └─ YES → PayDirect
-    │             You collect card data on your own page.
-    │
-    └─ Need both? Use No-Code for ad-hoc + API for checkout.
-```
 
 ---
 

@@ -1,25 +1,25 @@
 ---
 title: "PayGlocal Dashboards"
-description: "Learn about the Glocal Command Centre (GCC) — PayGlocal's merchant dashboard — and how to access each environment."
+description: "Learn about the Glocal Command Center (GCC) — PayGlocal's merchant dashboard — and how to access each environment."
 icon: "gauge"
 ---
 
 ## What is GCC?
 
-At PayGlocal, the merchant dashboard is called the **Glocal Command Center (GCC)**. It is the control panel where merchants can:
+At PayGlocal, the merchant dashboard is called the **Glocal Command Center (GCC)**. Use it to:
 
 - Track transactions and download reports
 - Manage cryptographic keys and credentials
 - Configure payment products and settings
-- Monitor integration health
+- Monitor recent transaction and API activity
 
-Obtaining access to the GCC is a prerequisite for completing any PayGlocal integration.
+You'll need GCC access before you can complete any PayGlocal integration.
 
 ---
 
 ## Two GCC Environments
 
-PayGlocal operates **two completely separate GCC instances** — one for testing, one for live operations. Always use the environment that matches your current phase.
+PayGlocal operates **two separate GCC instances** — one for testing, one for live operations. Use the environment that matches what you're doing — building/testing or going live.
 
 <CardGroup cols={2}>
   <Card title="GCC UAT" icon="flask" color="#10B981">
@@ -41,20 +41,12 @@ PayGlocal operates **two completely separate GCC instances** — one for testing
 </Warning>
 
 <Note>
-  Your account manager may reference alternate hostnames such as `merchant.uat.payglocal.in` or `merchant.payglocal.in`. Use whichever URL you were given during onboarding — both point to the same environment.
+  These are **dashboard** URLs for logging in — not the API base endpoints your code calls. For API base URLs, see [Authentication](/authentication).
 </Note>
 
----
-
-## Dashboard Screenshots
-
-### GCC Login Page
-
-When you access the GCC dashboard, you'll see the login screen:
-
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom">
-  <img src="/images/dashboard/gcc-login-page.png" alt="PayGlocal GCC Login Page" />
-</div>
+<Note>
+  Your account manager may reference alternate hostnames such as `merchant.uat.payglocal.in` or `merchant.payglocal.in`. Use whichever URL you were given during onboarding — each points to the same environment as its matching GCC URL.
+</Note>
 
 ---
 
@@ -62,15 +54,19 @@ When you access the GCC dashboard, you'll see the login screen:
 
 <Steps>
   <Step title="Open the correct GCC URL">
-    Go to the GCC URL for your environment — **UAT** for testing, **Production** for live. Use the links in the table above.
+    Go to the GCC URL for your environment — **UAT** for testing, **Production** for live. Use the links in the cards above.
   </Step>
   <Step title="Enter your credentials">
     Sign in with the **username and password** issued by PayGlocal during onboarding.
   </Step>
   <Step title="Complete second-factor authentication">
-    Complete any **second factor** (OTP) if your tenant requires it.
+    Complete any **second factor** (OTP) if your account requires it.
   </Step>
 </Steps>
+
+<Frame caption="GCC login page">
+  <img src="/images/dashboard/gcc-login-page.png" alt="PayGlocal GCC Login Page" />
+</Frame>
 
 <Note>
   If you do not have credentials yet, contact your **PayGlocal account manager** or reach out at [sales@payglocal.in](mailto:sales@payglocal.in).
@@ -78,18 +74,18 @@ When you access the GCC dashboard, you'll see the login screen:
 
 ---
 
-### Business Overview Dashboard
+## Business Overview Dashboard
 
-After successful login, you'll land on the **Business Overview** page where you can:
+After you log in, you'll land on the **Business Overview** page, where you can:
 
 - View successful payments and settlements
 - Track funds on hold and open disputes
 - Access quick actions like creating payment links and viewing API keys
 - Monitor recent transaction activity
 
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+<Frame caption="GCC Business Overview dashboard">
   <img src="/images/dashboard/gcc-business-overview.png" alt="GCC Business Overview Dashboard" />
-</div>
+</Frame>
 
 ---
 

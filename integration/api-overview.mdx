@@ -1,0 +1,84 @@
+---
+title: "How API Integration Works"
+sidebarTitle: "How API Integration Works"
+description: "Understand PayGlocal's two API integration modes — PayCollect and PayDirect — and the payment types that work with both."
+icon: "code"
+---
+
+With API integration, your backend calls PayGlocal's APIs, and PayGlocal handles processing, 3DS authentication, and security. Building an integration means two independent choices:
+
+<CardGroup cols={2}>
+  <Card title="1. Integration mode" icon="shuffle" color="#1A6FE8">
+    **How you collect card details** — on PayGlocal's hosted page (**PayCollect**) or in your own UI (**PayDirect**).
+  </Card>
+  <Card title="2. Payment type" icon="layer-group" color="#10B981">
+    **What kind of payment you run** — Regular, Recurring, Auth & Capture, or CodeDrop. These work with **either** mode.
+  </Card>
+</CardGroup>
+
+The two axes are independent: pick the mode that matches your PCI status, then implement whichever payment types your business needs.
+
+---
+
+## Step 1 — Choose an Integration Mode
+
+The deciding question: **who collects the card details — you or PayGlocal?**
+
+<CardGroup cols={2}>
+  <Card title="PayCollect" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+    **PayGlocal collects card details** on a secure hosted page. You send a request and never touch card data.
+
+    → No PCI DSS certification needed.
+
+    [PayCollect details →](/merchant/paycollect/overview)
+  </Card>
+  <Card title="PayDirect" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
+    **You collect card details** in your own checkout UI and send them to PayGlocal. No redirect.
+
+    → Requires PCI DSS certification.
+
+    [PayDirect details →](/merchant/paydirect/overview)
+  </Card>
+</CardGroup>
+
+---
+
+## Step 2 — Choose Your Payment Types
+
+Payment types are **mode-agnostic** — each works with PayCollect or PayDirect.
+
+<CardGroup cols={2}>
+  <Card title="Regular Payment" icon="credit-card" href="/merchant/regular-payment">
+    One-time, immediate payments — status tracking and refunds.
+  </Card>
+  <Card title="Recurring Payment" icon="rotate" href="/merchant/recurring-payment">
+    Standing Instructions — Auto Debit and On-Demand mandate flows.
+  </Card>
+  <Card title="Auth & Capture" icon="shield-check" href="/merchant/auth-capture-guide">
+    Hold funds now, capture when you're ready to fulfill.
+  </Card>
+  <Card title="CodeDrop" icon="square-code" href="/merchant/paycollect/codedrop">
+    Embed the payment form on your page — no full-page redirect.
+  </Card>
+</CardGroup>
+
+---
+
+## How the Two Axes Fit Together
+
+Any payment type can run on either mode:
+
+| Payment type | PayCollect | PayDirect |
+|---|:---:|:---:|
+| Regular Payment | ✓ | ✓ |
+| Recurring (SI) | ✓ | ✓ |
+| Auth & Capture | ✓ | ✓ |
+| CodeDrop | ✓ | ✓ |
+
+<Note>
+  New here? Start with [Choose Your Integration](/integration/overview) for a high-level comparison of No-Code vs API, then come back to pick a mode and payment types.
+</Note>
+
+---
+
+Questions? Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).

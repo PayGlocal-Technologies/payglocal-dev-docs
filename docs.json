@@ -22,7 +22,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Getting Started",
+        "tab": "Guides",
         "groups": [
           {
             "group": "Introduction",
@@ -75,47 +75,25 @@
                 "group": "API Integration",
                 "icon": "code",
                 "pages": [
+                  "integration/api-overview",
                   {
-                    "group": "Regular Payment",
-                    "icon": "credit-card",
+                    "group": "Integration Modes",
+                    "icon": "shuffle",
+                    "pages": [
+                      "merchant/paycollect/overview",
+                      "merchant/paydirect/overview"
+                    ]
+                  },
+                  {
+                    "group": "Payment Types",
+                    "icon": "layer-group",
                     "pages": [
                       "merchant/regular-payment",
-                      "merchant/regular-payment/payment-initiation",
-                      "merchant/regular-payment/transaction-management"
-                    ]
-                  },
-                  {
-                    "group": "Recurring Payment SI",
-                    "icon": "rotate",
-                    "pages": [
                       "merchant/recurring-payment",
-                      "merchant/recurring-payment/si-payment-initiation",
-                      "merchant/recurring-payment/si-transaction-management",
-                      {
-                        "group": "SI Mandate Management",
-                        "icon": "list-check",
-                        "pages": [
-                          "merchant/recurring-payment/si-mandate-management",
-                          "merchant/recurring-payment/si-pause-mandate",
-                          "merchant/recurring-payment/si-activate-mandate",
-                          "merchant/recurring-payment/si-cancel-mandate"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "group": "Auth & Capture",
-                    "icon": "shield-check",
-                    "pages": [
                       "merchant/auth-capture-guide",
-                      "merchant/auth-capture/auth-payment-initiation",
-                      "merchant/auth-capture/authorization-management",
-                      "merchant/auth-capture/auth-full-capture",
-                      "merchant/auth-capture/auth-partial-capture",
-                      "merchant/auth-capture/auth-reversal"
+                      "merchant/paycollect/codedrop"
                     ]
-                  },
-                  "merchant/paycollect/codedrop"
+                  }
                 ]
               }
             ]

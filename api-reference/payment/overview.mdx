@@ -14,18 +14,18 @@ The **Payment APIs** handle the full transaction lifecycle: initiating payments,
 
 ---
 
-## Authentication: Key-Based Signing (RSA/JWE)
+## Authentication: RSA-signed JWS
 
 <Warning>
-  **The Payment APIs use RSA/JWE key-based signing — not the HmacSHA256 used by the Onboarding API.** These are two different auth systems.
+  **The Payment APIs use RSA-signed JWS (and optionally JWE payload encryption) — not the HmacSHA256 used by the Onboarding API.** These are two different auth systems.
 </Warning>
 
-| API Area | Auth Method | Headers |
-|----------|-------------|---------|
+| API Area | Auth method | Primary headers |
+|----------|-------------|-----------------|
 | Merchant Onboarding API | HmacSHA256 | `x-api-key`, `x-gl-digest` |
-| Payment APIs | RSA + JWE payload encryption | `x-gl-merchantid`, `x-gl-kid` |
+| Payment APIs | RSA-signed JWS in `x-gl-token-external` | `x-gl-token-external` (see [Key Management](/key-management/overview)) |
 
-For the Payment APIs, you use your **PVT-KEY** to sign requests and **PUBCERT** to encrypt the payload. See [Key Management](/key-management/overview) for setup.
+You use your **PVT-KEY** to sign requests; **PUBCERT** verifies responses and may encrypt the body when your integration requires JWE. See [Key Management](/key-management/overview) and [Constructing API Requests](/key-management/request-construction) for setup.
 
 ---
 
@@ -47,6 +47,21 @@ GPI (POST /initiate)
         ├── POST /payments/{gid}/capture   ← Standalone Capture
         └── POST /payments/{gid}/auth-reversal  ← Reversal
 ```
+
+---
+
+## UPI (India)
+
+Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overview, screenshots, and a funds-flow diagram live on **[UPI](/api-reference/payment/upi)**. Request and response shapes (minimal vs enriched body, initiation vs `statusData` after success, headers, callbacks) are documented on **[UPI Intent](/api-reference/payment/upi-intent)**—also linked from the sidebar under **Merchant APIs: Payments → UPI**.
+
+<CardGroup cols={2}>
+  <Card title="UPI" icon="wallet" href="/api-reference/payment/upi">
+    Checkout experience and how money moves from customer to settlement.
+  </Card>
+  <Card title="UPI Intent" icon="bolt" href="/api-reference/payment/upi-intent">
+    PayCollect payloads, two response phases, headers, and post-success `statusData`.
+  </Card>
+</CardGroup>
 
 ---
 

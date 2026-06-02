@@ -1,0 +1,251 @@
+---
+title: "UPI Intent"
+description: "PayCollect UPI Intent flow — minimal and enriched requests, initiation response (redirectUrl), post-success statusData, headers, and merchant callback."
+icon: "bolt"
+openapi: "POST /gl/v1/payments/initiate/paycollect"
+---
+
+## When to Use
+
+Use **UPI Intent** when your merchant uses hosted PayCollect for **INR UPI** and wants PayGlocal to collect the approval flow on its hosted checkout. Your backend calls **[Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect)** (`POST /gl/v1/payments/initiate/paycollect`); the JSON body is the **payment intent**. PayGlocal returns a **hosted `redirectUrl`** so the shopper completes **UPI_INTENT** via QR or in-flow approval.
+
+<Note>
+  This page documents **two response shapes** you will see in practice: (1) right after **initiation** — nested envelope with `redirectUrl` / `statusUrl` (session created, customer not finished); (2) after **successful authorization** on a status or payflow payload — `data.statusData` with `paymentMethod: "UPI_INTENT"` and UI-oriented blocks.
+</Note>
+
+## UPI (India)
+
+Hosted PayCollect is the standard entry point for **UPI** in India: your server calls this endpoint with amount and callback URL, then sends the customer to `redirectUrl`. For the customer journey and funds flow see [UPI](/api-reference/payment/upi). This page covers UPI Intent request/response details, including optional `billingData` / `riskData` and the post-success `statusData` payload.
+
+---
+
+## Merchant Endpoint
+
+| Environment | Base URL | Initiate (PayCollect) |
+|---------------|----------|------------------------|
+| Sandbox | `https://api.uat.payglocal.in` | `POST /gl/v1/payments/initiate/paycollect` |
+| Production | `https://api.payglocal.in` | `POST /gl/v1/payments/initiate/paycollect` |
+
+<Note>
+  Traffic captured from **`gcc.uat.payglocal.in`** (merchant console “Test transaction”) may use a different path and **browser cookies**. For production integrations, call only **`api.uat.payglocal.in`** or **`api.payglocal.in`** with [RSA-signed JWS](/key-management/overview) in `x-gl-token-external`.
+</Note>
+
+---
+
+## Request Body
+
+The JSON is the **plaintext your client signs** (or wraps per your encryption settings). You can send a **minimal** body for UPI or add **`paymentData.billingData`** and **`riskData`** for richer risk scoring and display.
+
+### Minimal (UPI-ready)
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "10",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.example.com/payglocal/callback"
+}
+```
+
+### With optional billing and risk data
+
+The example below matches a **fuller integration**: billing contact lines, customer history, line-item `orderData`, and `shippingData` (required patterns for some alternate payment methods may still apply globally—validate with your integration spec for UPI-only traffic).
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "1044",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "TestName",
+      "addressStreet1": "HelloAddress1",
+      "addressStreet2": "Address2",
+      "emailId": "test@payglocal.in",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "riskData": {
+    "customerData": {
+      "merchantAssignedCustomerId": "11230092",
+      "customerAccountType": "1",
+      "customerSuccessOrderCount": "32",
+      "customerAccountCreationDate": "20180412"
+    },
+    "orderData": [
+      {
+        "productDescription": "AppleAirPodsPro",
+        "productSKU": "MNO00390",
+        "productType": "Electronics",
+        "itemUnitPrice": "12000.00",
+        "itemQuantity": "1"
+      },
+      {
+        "productDescription": "BeatsHeadphones",
+        "productSKU": "MNO004929",
+        "productType": "Electronics",
+        "itemUnitPrice": "14000.00",
+        "itemQuantity": "2"
+      }
+    ],
+    "shippingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "福建省,福州市-鼓楼区,杨桥中路231号星城国际大厦824室",
+      "addressStreet2": "Punctualitylane",
+      "addressCity": "Bangalore",
+      "addressState": "Karnataka",
+      "addressPostalCode": "560094",
+      "addressCountry": "IT",
+      "emailId": "test@payglocal.in",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "merchantCallbackURL": "https://www.example.com/payglocal/callback"
+}
+```
+
+## What the fields mean (plain language)
+
+- `merchantTxnId`: Your unique order reference. It appears in the hosted checkout, the `redirectUrl` session, and the callback so you can match UI screenshots and server logs to an order.
+- `paymentData.totalAmount` / `paymentData.txnCurrency`: The amount and currency for this session (e.g. `1044` / `INR`).
+- `paymentData.billingData`: Optional shopper contact and address lines used for receipts and richer display on the hosted page, and for fraud scoring when allowed.
+- `riskData.customerData`: Merchant-provided signals about the shopper (merchant-assigned id, account age, successful-order count) used to improve risk decisions.
+- `riskData.orderData`: Line items and unit prices to help reconciliation and give context to fraud engines.
+- `riskData.shippingData`: Shipping/delivery address info; required for some alternate payment methods and uses ISO-style country codes for `addressCountry`.
+- `merchantCallbackURL`: HTTPS endpoint PayGlocal POSTs to after checkout completes; verify the `x-gl-token` in the callback before trusting the payload (see [Payment Initiation Flow](/integration/payment-flow)).
+
+---
+
+## Response A — After initiation (session / QR phase)
+
+Immediately after a successful **PayCollect** API call, the envelope may nest twice inside `data`. Use the **innermost** object for the hosted session links.
+
+```json
+{
+  "gid": "gl_9f9ff90dfc95c19a",
+  "status": "SUCCESS",
+  "message": "Got the response from txn server",
+  "timestamp": "11/05/2026 14:26:52",
+  "reasonCode": "GL-201-001",
+  "data": {
+    "gid": "gl_o-9f9ff90e82cfafb07515k0ZX2",
+    "status": "INPROGRESS",
+    "message": "Transaction Created Successfully",
+    "timestamp": "11/05/2026 14:26:52",
+    "reasonCode": "200",
+    "data": {
+      "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=eyJ...truncated",
+      "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-9f9ff90e82cfafb07515k0ZX2/status?x-gl-token=eyJ...truncated",
+      "merchantTxnId": "23AEE8CB6B62EE2AF07"
+    },
+    "errors": null
+  },
+  "errors": null
+}
+```
+
+- Outer `gid` / `status` / `reasonCode`: Outcome of the **initiate** HTTP call.
+- `data.gid`: PayGlocal order / payflow id (`gl_o-...`) for the hosted session.
+- `data.data.redirectUrl`: HTTP GET target for the browser; customer completes UPI here.
+- `data.data.statusUrl`: Optional browser or integration URL carrying a status token; prefer server **Get Status** and validated callbacks for truth.
+- `data.data.merchantTxnId`: Echo of your transaction id.
+
+---
+
+## Response B — After successful payment (status / payflow UI payload)
+
+After the customer completes UPI and the transaction moves to a captured (or sent-for-capture) state, some responses return **`data.statusData`** — a **UI-oriented** block for confirmation screens and deep links. `paymentMethod` is set to **`UPI_INTENT`** for this rail.
+
+```json
+{
+  "gid": "gl_9fa080c916c547d2f37l2k0uQX2",
+  "status": "200 OK",
+  "message": "Transaction is sent_for_capture",
+  "timestamp": "11/05/2026 15:59:45",
+  "reasonCode": "GL-201-001",
+  "data": {
+    "statusData": {
+      "headerInfo": {
+        "mid": "nagsmiduat",
+        "merchantTxnId": "23AEE8CB6B62EE2AF07",
+        "merchantShortName": "PayGlocal",
+        "merchantLogo": "null",
+        "productDescription": null,
+        "productData": null
+      },
+      "amountInfo": {
+        "currency": "INR",
+        "amount": "1044",
+        "currencySymbol": "₹"
+      },
+      "themeInfo": null,
+      "merchantCustomizedFlow": null,
+      "dccInfo": null,
+      "paymentMethod": "UPI_INTENT",
+      "messageBlock": {
+        "displayMessage": "Your transaction of SYMBOL AMOUNT CURRENCY was successful!",
+        "reasonCode": "GL-201-001",
+        "status": "SENT_FOR_CAPTURE",
+        "message": null
+      },
+      "plData": null,
+      "merchantCallback": "https://api.uat.payglocal.in/gl/v1/payments/merchantCallback?x-gl-token=eyJ...truncated",
+      "isEmbedFlow": null,
+      "forms": {}
+    }
+  },
+  "errors": null
+}
+```
+
+### How to read `statusData`
+
+- `headerInfo`: Display metadata such as `mid`, `merchantTxnId`, and `merchantShortName` (optional logo/product fields appear when present).
+- `amountInfo`: `amount`, `currency`, and `currencySymbol` for the success UI (e.g. ₹ + **1044** + INR).
+- `paymentMethod`: `UPI_INTENT` identifies the rail used for this session.
+- `messageBlock.displayMessage`: Template string for the success line; replace SYMBOL/AMOUNT/CURRENCY with `amountInfo` when rendering.
+- `messageBlock.status`: Lifecycle state returned to the UI (e.g. `SENT_FOR_CAPTURE`).
+- `messageBlock.reasonCode`: PayGlocal reason code aligned with the message (e.g. `GL-201-001`).
+- `merchantCallback`: Full callback URL (including `x-gl-token`) for redirect-style handoff to your domain — treat the token as a secret and always validate server-side.
+- `forms`: Reserved/extended fields; often an empty `{}` for standard UPI Intent.
+
+<Warning>
+  Never log or persist full **`x-gl-token`** values from `redirectUrl`, `statusUrl`, or `merchantCallback`. Truncate in logs and rotate sessions if a token leaks.
+</Warning>
+
+---
+
+## HTTP Headers (server-to-server)
+
+| Header | Required? | Notes |
+|--------|-----------|--------|
+| `Content-Type` | Yes | `application/json` for JSON bodies (unless your client sends encrypted content per JWE setup). |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** for the Payment API per [Key Management](/key-management/overview). |
+| `x-gl-merchantid`, `x-gl-kid` | Often | Added by official sample clients alongside signing. |
+| `:authority`, `:method`, `:path`, `:scheme` | No | HTTP/2 pseudo-headers set by the client stack. |
+| `cookie`, `origin`, `referer`, `sec-*`, `user-agent` | No | Typical **browser-only** noise when copying DevTools from the GCC console—not part of your merchant server contract. |
+
+---
+
+## After `redirectUrl`
+
+1. **HTTP GET** redirect the shopper to `redirectUrl` from Response A ([Payment Initiation Flow](/integration/payment-flow)).
+2. Customer completes **UPI** on the hosted page.
+3. PayGlocal **POSTs** to your `merchantCallbackURL` with **`x-gl-token`**; validate and show your confirmation page.
+4. Use **[Get Transaction Status](/api-reference/payment/get-status)** with the payflow / order `gid` whenever you need authoritative state.
+
+---
+
+## Error Scenarios
+
+| Scenario | Typical signal | Action |
+|----------|----------------|--------|
+| Initiate validation failure | HTTP 4xx, `errors` populated | Fix body fields per OpenAPI / support feedback and retry. |
+| Auth / signing failure | HTTP 401 | Check `x-gl-token-external`, key id, and clock skew. |
+| Customer abandons hosted page | No callback | Poll **Get Status** and expire your own checkout session. |
+| Token validation fails on callback | Invalid `x-gl-token` | Use **Get Status** with stored `gid` / `merchantTxnId` before showing success. |

@@ -1,114 +1,16 @@
 ---
 title: "Standalone Capture"
-sidebarTitle: "Standalone Capture"
+description: "Capture an authorized payment to trigger settlement."
 openapi: "POST /gl/v1/payments/{gid}/capture"
 ---
 
-Capture funds authorized during a payment initiated with `captureTxn: false`.
+## When to Use
 
----
+Capture an `AUTHORIZED` transaction (i.e., one initiated with `captureTxn=false`). Until captured, the authorization holds funds on the customer's card but does not settle them to you.
 
-## Raw Payload
+## Full vs Partial
 
-| Type | `captureType` | `paymentData.totalAmount` | Notes |
-|---|---|---|---|
-| Full capture | Omit | Omit | Captures entire authorized amount |
-| Partial capture | `"P"` | Required | Must be ≤ authorized amount. One capture per authorization. |
+- `captureType=F` — full capture of the authorized amount. Omit `paymentData.totalAmount`.
+- `captureType=P` — partial capture. `paymentData.totalAmount` is required and must be ≤ the authorized amount.
 
-### Full Capture
-
-```json
-{
-  "merchantTxnId": "CAP-TXN-456789-20260523"
-}
-```
-
-### Partial Capture
-
-```json
-{
-  "merchantTxnId": "CAP-TXN-456789-20260523-PARTIAL",
-  "captureType": "P",
-  "paymentData": {
-    "totalAmount": "1500.00"
-  }
-}
-```
-
----
-
-## Token Generation
-
-<Warning>
-  **The raw payload above cannot be sent directly.** It must be encrypted and signed using the PayGlocal SDK.
-</Warning>
-
-```javascript
-const { jweToken, jwsToken } = generateJWEAndJWS(
-  rawPayload,   // JSON payload built above
-  pubCert,      // PayGlocal's public certificate (from GCC)
-  pvtKey,       // Your private key (from GCC)
-  merchantId,
-  pubKeyId,
-  pvtKeyId
-);
-```
-
-| Token | What it is | Where it goes |
-|---|---|---|
-| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
-| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
-
-**Generated cURL request:**
-
-```bash
-curl -X POST https://api.uat.payglocal.in/gl/v1/payments/{gid}/capture \
-  -H "Content-Type: text/plain" \
-  -H "x-gl-token-external: <your-jws-token>" \
-  -d "<your-jwe-token>"
-```
-
----
-
-## Request Fields
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `merchantTxnId` | string | Yes | Your internal capture transaction reference. |
-| `captureType` | string | Conditional | `"P"` for partial capture. Omit for full capture. |
-| `paymentData.totalAmount` | string | Conditional | Required for partial capture. Must not exceed authorized amount. |
-
----
-
-## Response
-
-### Success
-
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "SENT_FOR_CAPTURE",
-  "message": "Sent for Capture Successfully",
-  "timestamp": "2026-05-23T15:30:22Z",
-  "errors": null
-}
-```
-
----
-
-## Error Responses
-
-| HTTP | Reason Code | Description | Action |
-|---|---|---|---|
-| `400` | `GL-400-006` | Capture amount exceeds authorized amount | Reduce `paymentData.totalAmount` |
-| `400` | `GL-400-999` | Transaction not found | Verify the `gid` |
-| `400` | `GL-400-002` | Invalid request data | Check required fields |
-| `501` | `GL-501-000` | System error | Retry after delay |
-
----
-
-## Notes
-
-- After capture, issue refunds using the [Refund API](/api-reference/payment/refund)
-- To void instead of capturing, use [Auth Reversal](/api-reference/payment/standalone-reversal)
-- Only **one capture** is allowed per authorization
+Only one capture is allowed per authorization. The remaining authorized amount is released after the first capture.

@@ -1516,66 +1516,7 @@ paths:
 
   # ======================== Payment APIs ========================
   # PayDirect (POST /gl/v1/payments/initiate) is defined in openapi-paydirect.yaml
-
-  /gl/v1/payments/initiate/paycollect:
-    servers:
-      - url: https://api.payglocal.in
-        description: Production
-      - url: https://api.uat.payglocal.in
-        description: Sandbox
-    post:
-      operationId: initiatePayCollect
-      summary: Initiate PayCollect Transaction
-      description: |
-        Starts a hosted payment-page flow (PayCollect). PayGlocal returns a redirect URL
-        to its hosted checkout where the customer supplies payment details.
-      tags:
-        - Payment
-      security:
-        - JwsTokenAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/TransactionRequest"
-                - $ref: "#/components/schemas/TransactionRequestInitiateOptions"
-                - type: object
-                  required:
-                    - merchantTxnId
-                    - paymentData
-              example:
-                merchantTxnId: order_1712345678
-                paymentData:
-                  totalAmount: "100.00"
-                  txnCurrency: INR
-                  billingData:
-                    firstName: John
-                    lastName: Doe
-                    emailId: john.doe@example.com
-                    addressCountry: IND
-                merchantCallbackURL: https://merchant.example.com/callback
-      responses:
-        "200":
-          description: Transaction initiated; redirect the customer to the hosted page.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                gid: gl_9c2645ed09edb22e
-                status: INPROGRESS
-                timestamp: "10/01/2026 15:00:00"
-                reasonCode: ""
-                data:
-                  gid: gl_9c2645ed09edb22e
-                  redirectUrl: https://payments.payglocal.in/checkout/abc123
-                  status: INPROGRESS
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+  # PayCollect (POST /gl/v1/payments/initiate/paycollect) is defined in openapi-paycollect.yaml
 
   /gl/v1/payments/{id}/status:
     servers:

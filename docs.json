@@ -160,7 +160,7 @@
     ]
   },
   "api": {
-    "openapi": ["openapi.yaml", "openapi-paydirect.yaml"],
+    "openapi": ["openapi.yaml", "openapi-paydirect.yaml", "openapi-paycollect.yaml"],
     "playground": {
       "mode": "simple"
     },

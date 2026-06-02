@@ -17,29 +17,33 @@ The GPI service performs:
 
 ### PayCollect Flow — For Non-PCI DSS Certified Entities
 
-You send minimal transaction data (amount, currency, merchant identifiers). PayGlocal collects card details and preferred payment method directly from the customer on its hosted page.
+<Snippet file="paycollect/when-to-use.mdx" />
 
 **Endpoint:** `POST /gl/v1/payments/initiate/paycollect`
 
-**Minimum required payload:**
-```json
-{
-  "merchantTxnId": "23AEE8CB6B62EE2AF07",
-  "paymentData": {
-    "totalAmount": "89",
-    "txnCurrency": "INR"
-  },
-  "merchantCallbackURL": "https://www.yoursite.com/callback"
-}
-```
+## Minimum Required Payload
 
-<Note>
-  PayCollect supports **Global Alternative Payment Methods** (iDeal, Sofort, Trustly, giropay, EPS, bank transfers, wallets, BNPL) for merchants exporting goods/services outside India. For these methods, `shippingData.addressCountry` and `customerData.emailId` are required.
-</Note>
+<Snippet file="paycollect/minimum-payload.mdx" />
 
-<Warning>
-  PayCollect flow does **not** support setting up Standing Instructions for cards.
-</Warning>
+## Full Request Payload
+
+<Snippet file="paycollect/full-payload.mdx" />
+
+## Response
+
+<Snippet file="paycollect/response.mdx" />
+
+## Risk Data Requirements
+
+<Snippet file="paycollect/risk-data.mdx" />
+
+## Alternative Payment Methods
+
+<Snippet file="paycollect/alt-payment-methods.mdx" />
+
+## Industry-Specific Data
+
+<Snippet file="paycollect/industry-data.mdx" />
 
 ### PayDirect Flow — For PCI DSS Certified Entities
 

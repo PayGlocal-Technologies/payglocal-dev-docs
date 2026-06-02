@@ -1,0 +1,21 @@
+The three top-level fields below are always required. All other blocks are optional unless
+noted (e.g. `riskData` is required for international card transactions).
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+| Field | Type | Required | Constraints | Notes |
+|---|---|---|---|---|
+| `merchantTxnId` | string | Yes | 4–50 chars, alphanumeric | Your unique transaction reference |
+| `merchantUniqueId` | string | No | 15–40 chars, alphanumeric | Stable merchant-side ID for idempotency and reconciliation |
+| `paymentData.totalAmount` | string | Yes | Up to 4 decimal places | Decimal string, e.g. `"89"` or `"89.0000"` |
+| `paymentData.txnCurrency` | string | Yes | Uppercase ISO 4217 | e.g. `INR`, `USD`, `EUR` |
+| `merchantCallbackURL` | string | Yes | Valid URI | PayGlocal redirects the customer here after payment |

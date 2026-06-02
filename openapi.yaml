@@ -334,26 +334,6 @@ components:
         authenticationData:
           $ref: "#/components/schemas/Authentication"
 
-    PaymentPayDirectInitiate:
-      type: object
-      required:
-        - totalAmount
-        - txnCurrency
-        - cardData
-      properties:
-        totalAmount:
-          type: string
-          description: Transaction amount as a string (preserves decimal precision).
-          example: "100.00"
-        txnCurrency:
-          type: string
-          description: ISO 4217 currency code.
-          example: INR
-        cardData:
-          $ref: "#/components/schemas/Card"
-        billingData:
-          $ref: "#/components/schemas/Billing"
-
     Customer:
       type: object
       description: Payer identity for risk evaluation.
@@ -497,14 +477,6 @@ components:
           items:
             $ref: "#/components/schemas/RiskFlightPassenger"
 
-    RiskPayDirectInitiate:
-      type: object
-      properties:
-        flightData:
-          type: array
-          items:
-            $ref: "#/components/schemas/RiskFlightBooking"
-
     SIData:
       type: object
       description: Standing-instruction (subscription) configuration.
@@ -613,32 +585,12 @@ components:
       properties:
         merchantTxnId:
           type: string
-          description: |
-            Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
-            Expected length: 19 characters.
+          description: Merchant's unique transaction identifier. Required for `/initiate` and SI sale. No length constraint.
           example: "23AEE8CB6B62EE2AF07"
         paymentData:
           $ref: "#/components/schemas/Payment"
         riskData:
           $ref: "#/components/schemas/Risk"
-        merchantCallbackURL:
-          type: string
-          format: uri
-          description: URL PayGlocal redirects to after payment completion.
-
-    TransactionRequestPayDirectInitiate:
-      type: object
-      properties:
-        merchantTxnId:
-          type: string
-          description: |
-            Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
-            Expected length: 19 characters.
-          example: "23AEE8CB6B62EE2AF07"
-        paymentData:
-          $ref: "#/components/schemas/PaymentPayDirectInitiate"
-        riskData:
-          $ref: "#/components/schemas/RiskPayDirectInitiate"
         merchantCallbackURL:
           type: string
           format: uri
@@ -665,16 +617,6 @@ components:
         dccReferenceGid:
           type: string
           description: PayGlocal DCC quote reference (when `dcc_indicator=true`).
-
-    TransactionRequestInitiateOptionsPayDirect:
-      type: object
-      properties:
-        merchantUniqueId:
-          type: string
-          description: Merchant's secondary unique reference.
-        captureTxn:
-          type: boolean
-          description: If true on `/initiate`, the transaction is auto-captured post-auth.
 
     ApiResponse:
       type: object
@@ -1573,93 +1515,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # ======================== Payment APIs ========================
-
-  /gl/v1/payments/initiate:
-    servers:
-      - url: https://api.payglocal.in
-        description: Production
-      - url: https://api.uat.payglocal.in
-        description: Sandbox
-    post:
-      operationId: initiatePayDirectPayment
-      summary: Initiate PayDirect Transaction
-      description: |
-        Starts a card-on-file / raw-card payment flow (PayDirect). Call this once you've
-        collected card details from the customer. PayGlocal returns a `gid` plus a
-        redirect/step-up URL when 3DS is required.
-      tags:
-        - Payment
-      security:
-        - JwsTokenAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/TransactionRequestPayDirectInitiate"
-                - $ref: "#/components/schemas/TransactionRequestInitiateOptionsPayDirect"
-                - type: object
-                  required:
-                    - merchantTxnId
-                    - paymentData
-              example:
-                merchantTxnId: "23AEE8CB6B62EE2AF07"
-                merchantUniqueId: "GRAESXCGNJHGFGFAJVY"
-                paymentData:
-                  totalAmount: "10"
-                  txnCurrency: INR
-                  billingData:
-                    firstName: TestName
-                    addressStreet1: HelloAddress1
-                    addressStreet2: Address2
-                    emailId: test@payglocal.in
-                    callingCode: "+91"
-                    phoneNumber: "9999999999"
-                  cardData:
-                    number: "1111 1111 1111 1111"
-                    expiryMonth: "05"
-                    expiryYear: "2026"
-                    securityCode: "111"
-                riskData:
-                  flightData:
-                    - agentCode: AgentCode
-                      agentName: AgentName
-                      reservationCode: NQM2SR
-                      legData:
-                        - flightNumber: flight123
-                          departureAirportCode: AUH
-                          departureDate: "20230905"
-                          arrivalAirportCode: BLR
-                          carrierCode: AI
-                      passengerData:
-                        - firstName: Sam
-                          lastName: Thomas
-                          email: sam.thomas@gmail.com
-                        - firstName: Nag
-                          lastName: Thomas
-                          email: nag.thomas@gmail.com
-                merchantCallbackURL: https://api.uat.payglocal.in/gl/v1/payments/merchantCallback
-      responses:
-        "200":
-          description: Transaction initiated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                gid: gl_9c2645ed09edb22e
-                status: INPROGRESS
-                timestamp: "10/01/2026 15:00:00"
-                reasonCode: ""
-                data:
-                  gid: gl_9c2645ed09edb22e
-                  redirectUrl: https://payments.payglocal.in/step-up/abc123
-                  status: INPROGRESS
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+  # PayDirect (POST /gl/v1/payments/initiate) is defined in openapi-paydirect.yaml
 
   /gl/v1/payments/initiate/paycollect:
     servers:

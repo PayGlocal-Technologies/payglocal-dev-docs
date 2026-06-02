@@ -16,6 +16,23 @@ Think of **UPI** as “pay straight from a bank account using a phone app,” ma
 
 ---
 
+## How it gets paid
+
+The payment is completed on PayGlocal’s hosted checkout. Your server starts the flow, PayGlocal shows the UPI experience, the customer approves the request in their bank app, and the UPI/NPCI network moves the money.
+
+- Your backend opens a PayCollect session for UPI and receives a hosted `redirectUrl`.
+- The shopper chooses UPI on the PayGlocal page and generates a QR or follows the in-app approval path.
+- They complete the payment in their bank app using UPI PIN; your merchant site never sees the PIN or bank credentials.
+- NPCI/bank settlement moves the funds, and PayGlocal updates the hosted checkout with success or failure.
+- PayGlocal then notifies your server via `merchantCallbackURL`, and you can also verify the outcome by polling Get Status.
+- Actual settlement into your account happens later through your normal bank payout process.
+
+<Note>
+  This is the same product-level path as PayCollect: PayGlocal mediates the checkout; UPI apps move the money; your backend receives a trusted result.
+</Note>
+
+---
+
 ## What your customer sees (step by step)
 
 Each step below matches what you see in the **UAT screenshots** (blue header, white body). In production the layout stays the same; only copy and branding may differ.

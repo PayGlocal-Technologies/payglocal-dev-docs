@@ -57,6 +57,7 @@
             "group": "Merchant: Accept Payments",
             "pages": [
               "integration/payment-flow",
+              "api-reference/payment/upi",
               "payment-services/gpi-service",
               "payment-services/get-status-service",
               "payment-services/refund-service",
@@ -126,7 +127,6 @@
               {
                 "group": "UPI",
                 "pages": [
-                  "api-reference/payment/upi",
                   "api-reference/payment/upi-intent"
                 ]
               },

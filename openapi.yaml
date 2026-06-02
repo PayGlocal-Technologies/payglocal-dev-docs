@@ -633,12 +633,36 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/CommonErrorResponse"
+          examples:
+            validationError:
+              summary: Validation error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: VALIDATION_ERROR
+                data: {}
+                errors: null
+                errorDetails:
+                  - fieldName: paymentData.totalAmount
+                    message: This field is required
     Unauthorized:
       description: Authentication failed — invalid API key or digest.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/CommonErrorResponse"
+          examples:
+            unauthorizedError:
+              summary: Unauthorized error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: UNAUTHORIZED
+                data: {}
+                errors: null
+                errorDetails:
+                  - fieldName: authorization
+                    message: Invalid x-gl-token-external
     Forbidden:
       description: The onboardingId does not belong to the authenticated partner.
       content:

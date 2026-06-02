@@ -1,0 +1,115 @@
+---
+title: "Uploading Transaction Documents"
+description: "How to attach a supporting invoice to an MCA transaction using the presigned upload flow."
+icon: "file-arrow-up"
+---
+
+## Overview
+
+When funds arrive in a merchant's virtual account, PayGlocal requires a supporting document — typically an invoice — before processing settlement. You upload this document using a **two-step presigned URL flow**:
+
+1. **Request** a presigned upload URL from PayGlocal
+2. **Upload** the file directly to that URL
+
+This keeps your API key out of the file upload and lets clients upload large files efficiently without routing through your backend.
+
+---
+
+## When to Trigger This
+
+Upload the document as soon as you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. Extract the `gid` from the webhook payload — that is what you pass to the upload API.
+
+```
+MCA_FUND_RECEIVED webhook received
+         │
+         ▼
+  Extract gid from payload
+         │
+         ▼
+  POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned
+         │
+         ▼
+  Receive presignedUrl
+         │
+         ▼
+  PUT <presignedUrl> with file binary
+         │
+         ▼
+  Upload complete — PayGlocal processes settlement
+```
+
+---
+
+## Step 1: Request the Presigned URL
+
+Make a POST request with the transaction and invoice details. The key required fields are:
+
+| Field | What to send |
+|-------|-------------|
+| `gid` | From the path — the transaction ID from the webhook |
+| `amount` | The transaction amount from the webhook |
+| `currency` | The transaction currency from the webhook |
+| `merchantId` | The merchant's ID — must match the transaction |
+| `invoiceType` | The type of document you are uploading (e.g. `INVOICE`) |
+| `paymentType` | The payment type (e.g. `CARD`) |
+| `fileName` | The file name including extension (e.g. `invoice_001.pdf`) |
+
+Optional fields like `invoiceNumber`, `customerFullName`, `purposeCode`, and `fxRate` provide additional context that helps PayGlocal's compliance processing.
+
+**Example request body:**
+```json
+{
+  "amount": "1000.00",
+  "currency": "USD",
+  "invoiceType": "INVOICE",
+  "paymentType": "CARD",
+  "merchantId": "<merchant_id>",
+  "invoiceNumber": "INV-2026-00321",
+  "customerFullName": "John Doe",
+  "purposeCode": "P0102",
+  "fxRate": "83.12",
+  "fileName": "invoice_INV-2026-00321.pdf"
+}
+```
+
+The response gives you a `presignedUrl` to use in Step 2.
+
+---
+
+## Step 2: Upload the File
+
+Use the `presignedUrl` from Step 1 to upload the file with an HTTP **PUT**. No authentication headers are needed — the presigned URL is self-authorising.
+
+```bash
+curl -X PUT "<presignedUrl>" \
+  --upload-file invoice_INV-2026-00321.pdf
+```
+
+A `200 OK` response from the PUT confirms the upload succeeded.
+
+<Warning>
+  The presigned URL is **temporary**. Upload the file immediately after receiving it in Step 1 — do not cache or reuse the URL.
+</Warning>
+
+---
+
+## File Naming Tips
+
+- Use the invoice number in the filename so it is traceable (e.g. `invoice_INV-2026-00321.pdf`)
+- Keep the file extension to 10 characters or fewer
+- Supported formats: PDF is recommended for invoices
+
+---
+
+## After the Upload
+
+Once the file is uploaded, PayGlocal will:
+
+1. Validate the invoice against the transaction
+2. Send you a `TXN_SENT_FOR_SETTLEMENT` webhook when processing begins
+3. Send you a `TXN_SETTLED` webhook when funds hit the merchant's account
+4. Send you a `FIRC_RECEIVED` webhook with the compliance certificate
+
+You do not need to call any further API — just listen for the subsequent webhooks.
+
+For the full API spec and interactive playground, see [Get Upload Presigned URL](/api-reference/mca/document-upload).

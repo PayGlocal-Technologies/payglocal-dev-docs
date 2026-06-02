@@ -121,6 +121,15 @@
               "plugins/opencart",
               "plugins/wix"
             ]
+          },
+          {
+            "group": "MCA Integration",
+            "pages": [
+              "mca/overview",
+              "mca/account-fetch",
+              "mca/webhooks",
+              "mca/document-upload"
+            ]
           }
         ]
       },
@@ -178,6 +187,14 @@
             "group": "Callback Handling",
             "pages": [
               "api-reference/callback-handling"
+            ]
+          },
+          {
+            "group": "Partner APIs: MCA",
+            "pages": [
+              "api-reference/mca/overview",
+              "api-reference/mca/account-fetch",
+              "api-reference/mca/document-upload"
             ]
           }
         ]

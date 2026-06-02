@@ -1,0 +1,83 @@
+---
+title: "Fetching Account Details"
+description: "How to retrieve the global virtual accounts assigned to an activated merchant."
+icon: "bank"
+---
+
+## Overview
+
+Once a merchant completes onboarding and is activated by PayGlocal, one or more **global virtual accounts** are provisioned for them — one per enabled currency. These accounts are what the merchant shares with their overseas customers to receive payments.
+
+As a partner, you call the Account Fetch API to retrieve these details and surface them in your own dashboard or send them to the merchant.
+
+---
+
+## When to Call This
+
+- After you receive confirmation that a merchant's onboarding status is `APPROVED`
+- When a merchant requests to view or refresh their account details
+- When you need to display account details in your partner dashboard
+
+<Note>
+  Calling this endpoint for a merchant whose onboarding is still in progress will return HTTP 401. Only call it once you have confirmed the merchant is activated.
+</Note>
+
+---
+
+## What You Get Back
+
+The response is organised by **collection label** (a label PayGlocal assigns during provisioning, for example `general`) and within each label by **currency code**.
+
+For each account you receive:
+
+| Detail | What to show the merchant |
+|--------|---------------------------|
+| `accountNumber` | The account number to share with their customer |
+| `accountHolderName` | The name their customer should address the transfer to |
+| `bankName` + `bankAddress` | The bank receiving the funds |
+| `routingCode` + `routingCodeType` | The routing number (ABA for USD, BSB for AUD, Sort Code for GBP, etc.) |
+| `currency` | The currency of this account |
+
+---
+
+## Example: Displaying USD Account Details
+
+If your merchant has a USD collection account, the account block looks like this:
+
+```json
+{
+  "accountNumber": "XXXXXXXXXX4490",
+  "accountHolderName": "Acme Exports",
+  "bankName": "Citibank, N.A.",
+  "bankAddress": "One Penns Way, New Castle, DE 19720",
+  "bankCountry": "US",
+  "currency": "USD",
+  "routingCode": "31100209",
+  "routingCodeType": "ABA Number"
+}
+```
+
+Your merchant would share this with a US-based customer who can then initiate a domestic ACH or wire transfer.
+
+---
+
+## Routing Codes by Currency
+
+Different currencies use different routing code types. Here is what to expect:
+
+| Currency | Routing Code Type | Example |
+|----------|------------------|---------|
+| USD | ABA Number | 031100209 |
+| GBP | Sort Code | 20-00-00 |
+| EUR | BIC / IBAN | CITIUS33 |
+| AUD | BSB Number | 252000 |
+
+---
+
+## What to Do with This Data
+
+1. **Store it** — Cache the account details in your system so you can display them without making a live API call every time.
+2. **Display it** — Show the merchant their collection accounts per currency in a readable format.
+3. **Refresh on demand** — Allow merchants to refresh in case details change (account provisioning updates).
+
+For the full API spec and interactive playground, see [Fetch Virtual Accounts](/api-reference/mca/account-fetch).

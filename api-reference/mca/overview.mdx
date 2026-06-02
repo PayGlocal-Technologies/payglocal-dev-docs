@@ -1,0 +1,46 @@
+---
+title: "MCA APIs"
+description: "API reference for Merchant Collection Accounts — virtual account fetch and transaction document upload."
+icon: "globe"
+---
+
+<Note>
+  These APIs are for **Partners** managing Merchant Collection Accounts. Merchants must be fully activated before the Account Fetch API returns data.
+</Note>
+
+## Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| [Fetch Virtual Accounts](/api-reference/mca/account-fetch) | `GET` | Retrieve all global accounts assigned to a merchant, keyed by currency |
+| [Get Upload Presigned URL](/api-reference/mca/document-upload) | `POST` | Generate a presigned URL to upload a transaction document |
+
+---
+
+## Authentication
+
+Both endpoints authenticate via the `x-api-key` header. No request signing is required — API key only.
+
+---
+
+## Servers
+
+| Environment | Base URL |
+|-------------|----------|
+| Production | `https://gcc.prod.payglocal.in` |
+| Sandbox | `https://gcc.uat.payglocal.in` |
+
+---
+
+## Integration Guide
+
+For the conceptual walkthrough — lifecycle states, webhook events, and the full upload flow — see the [MCA Integration Guide](/mca/overview).
+
+<CardGroup cols={2}>
+  <Card title="MCA Overview" icon="book" href="/mca/overview">
+    What MCA is, how it works, and how to integrate.
+  </Card>
+  <Card title="MCA Webhooks Guide" icon="bell" href="/mca/webhooks">
+    All four lifecycle events and how to handle them.
+  </Card>
+</CardGroup>

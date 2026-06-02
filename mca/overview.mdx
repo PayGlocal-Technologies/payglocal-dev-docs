@@ -1,0 +1,82 @@
+---
+title: "MCA Overview"
+description: "What Merchant Collection Accounts are, how they work, and how to integrate them."
+icon: "globe"
+---
+
+## What is MCA?
+
+**Merchant Collection Accounts (MCA)** are virtual bank accounts provisioned by PayGlocal that allow merchants to receive international payments in multiple currencies — USD, EUR, GBP, AUD, and more — directly into accounts held in those countries.
+
+Instead of asking foreign customers to make a cross-border wire, your merchant shares a local bank account in the customer's currency and country. The customer pays locally; PayGlocal handles settlement back to the merchant in INR.
+
+---
+
+## How It Works
+
+<CardGroup cols={3}>
+  <Card title="1. Global Accounts Assigned" icon="bank" color="#1A6FE8">
+    After a merchant is fully onboarded and activated, PayGlocal assigns virtual bank accounts across enabled currencies. Each account has local routing details (ABA, BSB, Sort Code, etc.).
+  </Card>
+  <Card title="2. Merchant Shares Details" icon="share-nodes" color="#10B981">
+    The merchant shares the relevant account details with their overseas buyer. The buyer sends a local bank transfer — no SWIFT fees, no cross-border friction.
+  </Card>
+  <Card title="3. PayGlocal Settles" icon="arrows-rotate" color="#F59E0B">
+    PayGlocal receives the funds, collects a supporting invoice from the partner, and settles the INR equivalent to the merchant's bank account.
+  </Card>
+</CardGroup>
+
+---
+
+## Integration Overview
+
+As a partner, your integration involves three surfaces:
+
+| Surface | What you do |
+|---------|-------------|
+| **Account Fetch** | After merchant activation, call the API to retrieve their assigned virtual account details and surface them in your dashboard. |
+| **Webhooks** | Listen for lifecycle events — fund receipt, settlement, FIRC — to keep your system in sync without polling. |
+| **Document Upload** | When funds arrive, upload the supporting invoice so PayGlocal can process settlement. |
+
+---
+
+## Transaction Lifecycle
+
+```
+Customer sends funds to virtual account
+              │
+              ▼
+    DOCUMENT_PENDING ──── partner uploads invoice
+              │
+              ▼
+    SENT_FOR_SETTLEMENT
+              │
+              ▼
+           SETTLED
+              │
+              ▼
+       FIRC_RECEIVED
+```
+
+| Status | What it means |
+|--------|---------------|
+| `DOCUMENT_PENDING` | Funds received into the virtual account; PayGlocal is waiting for the supporting invoice |
+| `SENT_FOR_SETTLEMENT` | Invoice accepted; transaction is being processed for settlement |
+| `SETTLED` | Funds settled to the merchant's INR bank account |
+| `FIRC_RECEIVED` | Foreign Inward Remittance Certificate generated and available |
+
+---
+
+## Guides
+
+<CardGroup cols={3}>
+  <Card title="Fetch Account Details" icon="bank" href="/mca/account-fetch">
+    Retrieve the virtual account details assigned to an onboarded merchant.
+  </Card>
+  <Card title="Webhook Events" icon="bell" href="/mca/webhooks">
+    Handle lifecycle notifications for fund receipt, settlement, and FIRC.
+  </Card>
+  <Card title="Upload Documents" icon="file-arrow-up" href="/mca/document-upload">
+    Generate a presigned URL and upload the supporting invoice.
+  </Card>
+</CardGroup>

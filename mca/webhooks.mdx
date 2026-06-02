@@ -1,0 +1,155 @@
+---
+title: "MCA Webhook Events"
+description: "Understanding and handling PayGlocal's MCA lifecycle notifications."
+icon: "bell"
+---
+
+## Overview
+
+PayGlocal sends webhook notifications to your configured endpoint at every stage of an MCA transaction. You do not need to poll for status — PayGlocal calls you.
+
+Each notification is a **HTTP POST** with a JSON body. Your endpoint must respond with **HTTP 200** immediately. Process any business logic after acknowledging.
+
+---
+
+## Setting Up Your Webhook Endpoint
+
+Your webhook endpoint is a publicly accessible POST endpoint on your backend. Share the URL with your PayGlocal account manager to have it configured against your partner account.
+
+**Rules for a valid webhook URL:**
+- Must be HTTPS
+- Must be publicly reachable (no localhost or private IPs)
+- Must accept HTTP POST requests
+- Must return HTTP 200 within a few seconds of receiving the request
+
+---
+
+## The Four Events
+
+### `MCA_FUND_RECEIVED`
+
+Fired when funds land in the merchant's virtual account. This is your trigger to upload the supporting invoice.
+
+```json
+{
+  "gid": "glm123456789",
+  "paymentRail": "ACH",
+  "merchantId": "<merchant_id>",
+  "amount": "1000.00",
+  "currency": "USD",
+  "sender_name": "John D***",
+  "sender_address": "New York, USA",
+  "sender_country": "US",
+  "sender_accountno": "XXXX1234",
+  "timestamp": "2024-10-21T10:15:30Z",
+  "status": "DOCUMENT_PENDING"
+}
+```
+
+**What to do:** Extract the `gid` and trigger your invoice upload flow. See [Uploading Documents](/mca/document-upload).
+
+---
+
+### `TXN_SENT_FOR_SETTLEMENT`
+
+Fired when PayGlocal has accepted the invoice and submitted the transaction for settlement. No action required from your side.
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<merchant_id>",
+  "amount": "1000.00",
+  "currency": "USD",
+  "sender_name": "John D***",
+  "sender_country": "US",
+  "timestamp": "2024-10-21T10:15:30Z",
+  "status": "SENT_FOR_SETTLEMENT"
+}
+```
+
+**What to do:** Update the transaction status in your system. Notify the merchant that settlement is in progress.
+
+---
+
+### `TXN_SETTLED`
+
+Fired when the funds have been settled to the merchant's INR bank account.
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<merchant_id>",
+  "transaction_amount": "1000.00",
+  "transaction_currency": "USD",
+  "settled_at": "2024-10-23",
+  "fxRate": "91.39",
+  "settlement_amount": "998.00",
+  "settlement_currency": "USD",
+  "status": "SETTLED"
+}
+```
+
+**What to do:** Mark the transaction as complete. Notify the merchant with settlement details including the FX rate applied and the final settled amount.
+
+---
+
+### `FIRC_RECEIVED`
+
+Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. The FIRC is the official proof of receipt for cross-border payments and is required for compliance.
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<merchant_id>",
+  "transaction_amount": "1000.00",
+  "transaction_currency": "USD",
+  "settled_at": "2024-10-23",
+  "settlement_amount": "998.00",
+  "settlement_currency": "USD",
+  "fircUrl": "https://<bucket>.s3.amazonaws.com/FIRC.pdf",
+  "status": "FIRC_RECEIVED"
+}
+```
+
+**What to do:** Download the FIRC immediately from `fircUrl` and store it in your own system. The URL expires after 10 minutes.
+
+<Warning>
+  The `fircUrl` is valid for **10 minutes only**. Download and store the document as soon as you receive this webhook — do not save the URL and fetch later.
+</Warning>
+
+---
+
+## Event Summary
+
+| Event | Status | Your Action |
+|-------|--------|-------------|
+| `MCA_FUND_RECEIVED` | `DOCUMENT_PENDING` | Upload the invoice |
+| `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
+| `TXN_SETTLED` | `SETTLED` | Mark complete, share settlement details |
+| `FIRC_RECEIVED` | `FIRC_RECEIVED` | Download and store the FIRC document |
+
+---
+
+## Handling Best Practices
+
+**Respond first, process second**
+
+Return HTTP 200 immediately before running any business logic. Long-running operations in the webhook handler will cause timeouts.
+
+```
+→ Receive POST
+→ Return HTTP 200
+→ Queue or async: process event
+```
+
+**Make your handler idempotent**
+
+The same event may be retried if your endpoint did not acknowledge in time. Use the `gid` as an idempotency key — check whether you have already processed that event before acting on it.
+
+**Verify the merchantId**
+
+Always confirm that the `merchantId` in the payload belongs to your partner account before acting on the event.
+
+**Store the FIRC immediately**
+
+Do not cache the `fircUrl` — download the file to your own storage (S3, GCS, etc.) the moment you receive the `FIRC_RECEIVED` event.

@@ -1,13 +1,108 @@
 ---
 title: "Auth Reversal"
-description: "Reverse (void) an authorized payment before it is captured."
+sidebarTitle: "Auth Reversal"
 openapi: "POST /gl/v1/payments/{gid}/auth-reversal"
 ---
 
-## When to Use
+Void an authorized payment and release held funds back to the customer's card.
 
-Void an `AUTHORIZED` transaction that has not yet been captured. This releases the hold on the customer's card.
+<Warning>
+  Only **full reversals** are supported. For captured payments, use [Refund](/api-reference/payment/refund) instead.
+</Warning>
 
-<Note>
-  Only **full reversals** are supported. If the payment has already been captured, use the [Refund](/api-reference/payment/refund) service instead.
-</Note>
+---
+
+## Raw Payload
+
+```json
+{
+  "merchantTxnId": "REV-TXN-456789-20260523"
+}
+```
+
+No amount needed — reversal always releases the full authorized hold.
+
+---
+
+## Token Generation
+
+<Warning>
+  **The raw payload above cannot be sent directly.** It must be encrypted and signed using the PayGlocal SDK.
+</Warning>
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
+  merchantId,
+  pubKeyId,
+  pvtKeyId
+);
+```
+
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X POST https://api.uat.payglocal.in/gl/v1/payments/{gid}/auth-reversal \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
+```
+
+---
+
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantTxnId` | string | Yes | Your internal reversal transaction reference. |
+
+---
+
+## Response
+
+### Success
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "REVERSED",
+  "message": "Authorization Reversed Successfully",
+  "timestamp": "2026-05-23T16:45:33Z",
+  "errors": null
+}
+```
+
+---
+
+## Auth & Capture Decision
+
+```
+GPI (captureTxn: false) → AUTHORIZED
+        │
+        ├── Proceed → POST /capture      → SENT_FOR_CAPTURE
+        └── Cancel  → POST /auth-reversal → REVERSED
+```
+
+---
+
+## Error Responses
+
+| HTTP | Reason Code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-999` | Transaction not found | Verify the `gid` |
+| `400` | `GL-400-002` | Invalid request or already captured | Check status via Get Status |
+| `501` | `GL-501-000` | System error | Retry after delay |
+
+---
+
+## Notes
+
+- Once reversed, the transaction is **final** — it cannot be captured or refunded
+- Requires the same Auth-Only MID configuration as Standalone Capture

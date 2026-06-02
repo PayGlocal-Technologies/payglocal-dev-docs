@@ -1,0 +1,41 @@
+---
+title: "SI Pause Mandate"
+sidebarTitle: "SI Pause Mandate"
+description: "Temporarily suspend a mandate — instantly or from a scheduled future date."
+---
+
+Pause stops recurring charges without permanently cancelling the mandate.
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+<CardGroup cols={2}>
+  <Card title="Instant Pause" icon="circle-pause" color="#F59E0B">
+    Stops all deductions from this moment onward.
+
+    ```json
+    {
+      "merchantTxnId": "PAUSE-TXN-001",
+      "standingInstruction": {
+        "action": "PAUSE",
+        "mandateId": "md_94f0bb40-..."
+      }
+    }
+    ```
+  </Card>
+  <Card title="Pause by Date" icon="calendar-minus" color="#1A6FE8">
+    Billing continues until the specified date, then pauses.
+
+    ```json
+    {
+      "merchantTxnId": "PAUSE-TXN-002",
+      "standingInstruction": {
+        "action": "PAUSE",
+        "mandateId": "md_94f0bb40-...",
+        "pauseStartDate": "20260701"
+      }
+    }
+    ```
+  </Card>
+</CardGroup>

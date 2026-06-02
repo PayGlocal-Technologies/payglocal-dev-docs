@@ -1,0 +1,96 @@
+---
+title: "PayCollect"
+description: "Hosted payment solution with zero PCI compliance burden — PayGlocal collects card details on a secure hosted page."
+icon: "window"
+---
+
+## PayCollect Payment Solutions
+
+Empowering non-PCI DSS certified merchants with secure, flexible, and seamless payment methods. PayGlocal handles card details, ensuring compliance and simplicity.
+
+<CardGroup cols={2}>
+  <Card title="Zero PCI burden" icon="shield-check" color="#10B981">
+    PayGlocal collects and stores card data on a PCI-compliant hosted page.
+  </Card>
+  <Card title="5-minute integration" icon="bolt" color="#1A6FE8">
+    Send a minimal payload; PayGlocal handles the rest.
+  </Card>
+  <Card title="Built-in 3DS" icon="lock-keyhole" color="#8B5CF6">
+    3D Secure authentication included automatically.
+  </Card>
+  <Card title="Alt payment methods" icon="globe" color="#F59E0B">
+    iDeal, Sofort, Trustly, giropay, wallets, BNPL — for international flows.
+  </Card>
+</CardGroup>
+
+---
+
+## Payment Patterns
+
+Choose the pattern that fits your transaction model.
+
+<CardGroup cols={3}>
+  <Card title="JWT Authentication" icon="key" color="#1A6FE8" href="/merchant/paycollect/jwt-authentication">
+    Standard one-time payments with secure token-based auth. Supports all PayCollect APIs.
+  </Card>
+  <Card title="Standing Instructions" icon="rotate" color="#10B981" href="/merchant/standing-instructions">
+    Automate recurring payments. Flexible FIXED / VARIABLE mandates with JWE/JWS encryption.
+  </Card>
+  <Card title="Auth & Capture" icon="shield-check" color="#F59E0B" href="/merchant/auth-capture">
+    Flexible authorization and capture. Prevents premature charges — ideal for delayed fulfillment.
+  </Card>
+</CardGroup>
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/initiate/paycollect
+```
+
+### Minimum Required Payload
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+### Response
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://api.prod.payglocal.in/gl/v1/payments/redirect?x-gl-token=...",
+    "statusUrl":   "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
+  }
+}
+```
+
+Redirect the customer to `data.redirectUrl`. PayGlocal completes the payment and POSTs back to your `merchantCallbackURL`.
+
+<Note>
+  For Global Alternative Payment Methods (iDeal, Sofort, Trustly, giropay, EPS, wallets, BNPL), `shippingData.addressCountry` and `customerData.emailId` are required in the payload.
+</Note>
+
+<Warning>
+  PayCollect does **not** support setting up Standing Instructions for cards through the hosted page. To create a recurring mandate, use the [Standing Instructions](/merchant/standing-instructions) flow.
+</Warning>
+
+---
+
+## Embedding Options
+
+Don't want a full-page redirect? Embed the PayCollect form directly:
+
+<Card title="CodeDrop — Modal, Drawer, or Inline" icon="square-code" href="/merchant/paycollect/codedrop">
+  Three display modes for the hosted form — Modal dialog, side Drawer, or fully Inline.
+</Card>

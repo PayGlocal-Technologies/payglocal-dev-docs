@@ -1,0 +1,165 @@
+---
+title: "JWT Authentication"
+description: "PayDirect's JWT-based authentication — process direct card payments on your own PCI-compliant interface."
+icon: "key"
+---
+
+## JWT Authentication — Overview
+
+JWT (JSON Web Token) authentication for PayDirect enables PCI DSS certified merchants to securely process direct payments with card data collection on their own interface. You maintain full control over the payment flow while PayGlocal handles secure processing.
+
+<CardGroup cols={2}>
+  <Card title="Direct card collection" icon="credit-card" color="#1A6FE8">
+    Card data captured on your own UI — no redirect required.
+  </Card>
+  <Card title="Full UX control" icon="palette" color="#F59E0B">
+    Complete control over checkout layout, copy, and styling.
+  </Card>
+  <Card title="Token-based auth" icon="shield-check" color="#10B981">
+    Every API call signed with your private key.
+  </Card>
+  <Card title="Real-time tracking" icon="chart-line" color="#8B5CF6">
+    Status APIs provide live transaction visibility.
+  </Card>
+</CardGroup>
+
+<Warning>
+  PayDirect requires **PCI DSS Level 1 certification**. You are responsible for the security of card data captured on your interface.
+</Warning>
+
+---
+
+## Payment Initiate
+
+Initiate a direct payment transaction where you collect card details on your own interface. This API processes the payment directly without any redirect, giving you complete control over the customer experience.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/initiate
+```
+
+### Key Points
+
+- Collect card data directly on your interface
+- Process payments without customer redirect
+- Full customization of payment UI/UX
+- Immediate capture upon successful authorization
+- Returns Global ID (`gid`) for transaction tracking
+- Webhook notification sent to your callback URL
+
+### Minimum Payload
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "5132552222223470",
+      "expiryMonth": "12",
+      "expiryYear": "2030",
+      "securityCode": "123"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+### Response
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Sent for Capture Successfully",
+  "data": {
+    "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/.../status"
+  }
+}
+```
+
+<Note>
+  For **international card** transactions, `riskData` is **required**. For RuPay cards, `ipAddress`, `httpAccept`, and `httpUserAgent` are mandatory.
+</Note>
+
+---
+
+## Status Check
+
+Check the current status of any payment transaction using its Global ID (`gid`).
+
+### Endpoint
+
+```
+GET /gl/v1/payments/{gid}/status
+```
+
+### Key Points
+
+- Real-time transaction status updates
+- Returns payment method and amount details
+- Includes authorization codes and timestamps
+- Shows complete transaction lifecycle
+- Essential for reconciliation and reporting
+- Idempotent — safe to call multiple times
+
+See [Status Check service](/merchant/services/status-check) for the full status reference.
+
+---
+
+## Partial Refund
+
+```
+POST /gl/v1/payments/{gid}/refund
+```
+
+```json
+{
+  "merchantTxnId": "REFUND-...-1",
+  "refundType": "P",
+  "paymentData": { "totalAmount": "25.00" }
+}
+```
+
+- Refund any amount up to the original transaction amount
+- Multiple partial refunds allowed until full amount is refunded
+- Requires `refundType: "P"` and `paymentData.totalAmount`
+- Each refund requires a unique `merchantTxnId`
+- Refund typically processes within 5–7 business days
+- Webhook notification sent upon refund completion
+
+---
+
+## Full Refund
+
+```json
+{
+  "merchantTxnId": "REFUND-...",
+  "refundType": "F"
+}
+```
+
+- Refunds the complete original transaction amount
+- Requires `refundType: "F"` only, no amount needed
+- Simpler payload than partial refund
+- Only one full refund allowed per transaction
+- 5–7 business day processing
+- Webhook notification sent upon refund completion
+
+---
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Standing Instructions" icon="rotate" href="/merchant/standing-instructions">
+    Add recurring billing to your PayDirect integration.
+  </Card>
+  <Card title="Auth & Capture" icon="shield-check" href="/merchant/auth-capture">
+    Hold funds first, capture when ready.
+  </Card>
+  <Card title="Payment Response" icon="arrow-right-from-bracket" href="/merchant/payment-response-handling">
+    Decode the `x-gl-token` callback after payment completion.
+  </Card>
+</CardGroup>

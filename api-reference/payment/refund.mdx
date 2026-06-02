@@ -1,16 +1,125 @@
 ---
-title: "Refund"
-description: "Initiate a full or partial refund for a successfully captured transaction."
+title: "Refund API"
+sidebarTitle: "Refund API"
 openapi: "POST /gl/v1/payments/{gid}/refund"
 ---
 
-## When to Use
+Issue a full or partial refund against a captured transaction.
 
-Refund all or part of a captured transaction. If the transaction is still in `AUTHORIZED` state (not yet captured), use [Auth Reversal](/api-reference/payment/standalone-reversal) instead.
+---
 
-## Full vs Partial
+## Raw Payload
 
-- `refundType=F` — full refund. Omit `paymentData.totalAmount`.
-- `refundType=P` — partial refund. `paymentData.totalAmount` is required and must be ≤ the captured amount.
+| Type | Description | `refundType` | `paymentData.totalAmount` |
+|---|---|---|---|
+| **Full Refund** | Refunds entire captured amount | `"F"` | **Omit** |
+| **Partial Refund** | Refunds specific amount | `"P"` | **Required** (≤ captured amount) |
 
-Multiple partial refunds are allowed as long as the cumulative refunded amount does not exceed the original capture.
+### Full Refund
+
+```json
+{
+  "merchantUniqueId": "REFUND-ORD-2026-05-23-456789",
+  "merchantTxnId": "REFUND-TXN-456789-20260523",
+  "refundType": "F"
+}
+```
+
+### Partial Refund
+
+```json
+{
+  "merchantUniqueId": "REFUND-ORD-2026-05-23-456789-1",
+  "merchantTxnId": "REFUND-TXN-456789-20260523-1",
+  "refundType": "P",
+  "paymentData": {
+    "totalAmount": "500.00"
+  }
+}
+```
+
+---
+
+## Token Generation
+
+<Warning>
+  **The raw payload above cannot be sent directly.** It must be encrypted and signed using the PayGlocal SDK.
+</Warning>
+
+```javascript
+const { jweToken, jwsToken } = generateJWEAndJWS(
+  rawPayload,   // JSON payload built above
+  pubCert,      // PayGlocal's public certificate (from GCC)
+  pvtKey,       // Your private key (from GCC)
+  merchantId,
+  pubKeyId,
+  pvtKeyId
+);
+```
+
+| Token | What it is | Where it goes |
+|---|---|---|
+| `jweToken` | Your payload, AES-256 encrypted with PayGlocal's public cert | **Request body** (`text/plain`) |
+| `jwsToken` | RSA signature over the JWE token using your private key | **`x-gl-token-external` header** |
+
+**Generated cURL request:**
+
+```bash
+curl -X POST https://api.uat.payglocal.in/gl/v1/payments/{gid}/refund \
+  -H "Content-Type: text/plain" \
+  -H "x-gl-token-external: <your-jws-token>" \
+  -d "<your-jwe-token>"
+```
+
+---
+
+## Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `merchantUniqueId` | string | Yes | Unique refund identifier. Must differ from original payment IDs. |
+| `merchantTxnId` | string | Yes | Your internal refund reference. |
+| `refundType` | string | Yes | `"F"` for full refund, `"P"` for partial refund. |
+| `paymentData.totalAmount` | string | Conditional | Required for partial refunds. Must not exceed captured amount. |
+
+---
+
+## Response
+
+### Success
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_REFUND",
+  "message": "Refund Initiated Successfully",
+  "timestamp": "2026-05-23T12:30:45Z",
+  "reasonCode": "GL-201-002",
+  "data": {
+    "Amount": "500.00",
+    "Currency": "USD",
+    "merchantTxnId": "REFUND-TXN-456789-20260523-1"
+  },
+  "errors": null
+}
+```
+
+---
+
+## Error Responses
+
+| HTTP | Reason Code | Description | Action |
+|---|---|---|---|
+| `400` | `GL-400-006` | Refund amount exceeds captured amount | Reduce `paymentData.totalAmount` |
+| `400` | `GL-400-999` | Transaction not found | Verify the `gid` |
+| `400` | `GL-400-002` | Invalid request data | Check required fields |
+| `201` | `GL-201-000` | Declined by system | Contact support |
+| `501` | `GL-501-000` | System error | Retry after delay |
+
+---
+
+## Notes
+
+- Multiple partial refunds allowed until cumulative total reaches original captured amount
+- `merchantUniqueId` and `merchantTxnId` for refunds must be unique and differ from original payment IDs
+- Use [Get Status](/api-reference/payment/get-status) with the original `gid` to verify final refund state

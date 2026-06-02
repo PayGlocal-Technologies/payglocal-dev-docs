@@ -1,0 +1,101 @@
+---
+title: "overview"
+description: "Accept payments without writing code using PayGlocal's hosted solutions."
+icon: "sparkles"
+---
+
+## What is No-Code Integration?
+
+No-code integration allows you to start accepting payments through PayGlocal **without any API integration or technical development**. All configuration is done through the **GCC (Glocal Command Center) dashboard**, and PayGlocal handles the entire payment experience.
+
+These solutions are ideal for:
+- Businesses that need to start accepting payments quickly
+- Teams without dedicated development resources
+- Use cases requiring simple, one-time, or ad-hoc payments
+- Sharing payment requests via email, SMS, or WhatsApp
+
+## How No-Code Integration Works
+
+<Steps>
+  <Step title="Log in & Choose Product">
+    Log in to the [GCC dashboard](https://merchant.payglocal.in) and select the product that fits your use case — **Payment Link**, **Invoice Link**, or **Payment Button**.
+  </Step>
+
+  <Step title="Configure & Generate">
+    Fill in the payment amount, currency, customer details, and any optional settings. Click **Create** to generate your link or button embed code.
+  </Step>
+
+  <Step title="Share & Track">
+    Share the link via email, SMS, or WhatsApp — or embed the Payment Button on your website. Monitor payment status and reconcile transactions directly from the GCC dashboard.
+  </Step>
+</Steps>
+
+## Key Benefits
+
+| Benefit | Description |
+|---------|-------------|
+| **No Development Required** | Create and share payment requests through a simple web interface |
+| **Quick Setup** | Start accepting payments in minutes, not weeks |
+| **Secure & PCI Compliant** | PayGlocal handles all payment security and compliance |
+| **Multiple Channels** | Share links via email, SMS, WhatsApp, or social media |
+| **Real-time Tracking** | Monitor all payment statuses from the GCC dashboard |
+| **Customer Notifications** | Automatic email and SMS notifications to customers |
+
+## Payment Flow
+
+```mermaid
+sequenceDiagram
+    participant Merchant
+    participant GCC Dashboard
+    participant Customer
+    participant PayGlocal Checkout
+    
+    Merchant->>GCC Dashboard: Create payment link/button
+    GCC Dashboard->>Merchant: Returns shareable link
+    Merchant->>Customer: Share link (Email/SMS/WhatsApp)
+    Customer->>PayGlocal Checkout: Click link & enter details
+    PayGlocal Checkout->>Customer: Payment confirmation
+    PayGlocal Checkout->>Merchant: Update status in GCC
+```
+
+## Comparison: Which Product to Use?
+
+| Use Case | Recommended Product |
+|----------|---------------------|
+| Share a one-time payment request | **Payment Link** |
+| Send formal billing/invoice requests | **Invoice Link** |
+| Add payment to your website without coding | **Payment Button** |
+| Request payment after service delivery | **Payment Link** or **Invoice Link** |
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card 
+    title="Create a Payment Link" 
+    icon="link" 
+    href="/no-code/payment-link"
+  >
+    Learn how to generate and share payment links
+  </Card>
+  
+  <Card 
+    title="Invoice Link Setup" 
+    icon="file-invoice" 
+    href="/no-code/invoice-link"
+  >
+    Send professional invoice payment requests
+  </Card>
+  
+  <Card 
+    title="Payment Button" 
+    icon="circle-play" 
+    href="/no-code/payment-button"
+  >
+    Embed payment buttons on your website
+  </Card>
+</CardGroup>
+
+## Support
+
+- **Product selection and business queries**: Contact your PayGlocal account manager
+- **Technical issues**: Email [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in)

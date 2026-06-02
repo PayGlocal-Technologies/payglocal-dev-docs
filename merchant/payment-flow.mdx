@@ -1,0 +1,126 @@
+---
+title: "Payment Flow"
+description: "Understand how a payment request is built — from raw payload to encrypted, signed API call."
+icon: "shield"
+---
+
+Before making any API call, it helps to understand **what actually happens** when you send a payment request to PayGlocal. This page explains the full flow — no code, just the logic.
+
+---
+
+## Why Can't I Send a Raw Payload?
+
+PayGlocal never accepts a plain JSON request. Every request must be:
+
+- **Encrypted** — so no one in transit can read your payment data
+- **Signed** — so PayGlocal can verify the request genuinely came from you
+
+These two steps produce two tokens — a **JWE** and a **JWS** — which travel together in every API call.
+
+---
+
+## Flow: From Payload to Request
+
+```
+Your Payment Data (plain JSON)
+         │
+         ▼
+  [ generateJWE ]
+  Encrypts your payload using PayGlocal's public key
+  Returns → JWE Token (encrypted, unreadable string)
+         │
+         ▼
+  [ generateJWS ]
+  Hashes the JWE and signs it using your private key
+  Returns → JWS Token (signed proof string)
+         │
+         ▼
+  [ POST Request ]
+  Body    →  JWE Token
+  Header  →  x-gl-token-external: JWS Token
+         │
+         ▼
+  PayGlocal receives the request
+  → Verifies JWS (confirms it came from you)
+  → Decrypts JWE (reads your payload)
+  → Processes the payment
+```
+
+---
+
+## What Each Function Does
+
+### `generateJWE` — Encrypt the Payload
+
+**Takes in:** Your payment payload + PayGlocal's public key + your Merchant ID + Public Key ID
+
+**What it does:** Converts your JSON payload into an encrypted token. Once encrypted, the data is completely unreadable — only PayGlocal can decrypt it using their private key.
+
+**Returns:** A JWE token — a compact encrypted string that becomes the **body of your API request**.
+
+---
+
+### `generateJWS` — Sign the JWE
+
+**Takes in:** The JWE token + your private key + your Merchant ID + Private Key ID
+
+**What it does:** Takes the JWE token, hashes it with SHA-256, and signs that hash using your private key. This signature is proof that the request was sent by you and has not been modified in transit.
+
+**Returns:** A JWS token — a compact signed string that goes into the **`x-gl-token-external` header of your API request**.
+
+---
+
+### `generateJWEAndJWS` — The Single Entry Point
+
+**Takes in:** Your payload + all five credentials (public key, private key, Merchant ID, Public Key ID, Private Key ID)
+
+**What it does:** Calls `generateJWE` first, then passes its output to `generateJWS`. Validates all your credentials before running.
+
+**Returns:** Both tokens together — `{ jweToken, jwsToken }`.
+
+This is the **only function you need to call**. Everything else happens internally.
+
+---
+
+## Assembling the Request
+
+Once you have both tokens, your request is:
+
+```
+POST  https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect
+
+Header:  Content-Type         →  text/plain
+Header:  x-gl-token-external  →  JWS Token
+
+Body:  JWE Token
+```
+
+That's it. PayGlocal handles the rest.
+
+---
+
+## Why Two Tokens?
+
+| Token | Sent as | Key used | What it protects |
+|---|---|---|---|
+| **JWE** | Request body | PayGlocal's **public** key | Confidentiality — data cannot be read in transit |
+| **JWS** | Request header | **Your** private key | Authenticity — PayGlocal confirms the request is from you |
+
+One without the other is incomplete. JWE alone means PayGlocal can read the data, but cannot trust it came from you. JWS alone means PayGlocal can verify the sender, but cannot read the payload.
+
+---
+
+## Credentials You Need
+
+| Credential | Purpose |
+|---|---|
+| **PayGlocal Public Key** | Used by `generateJWE` to encrypt the payload |
+| **Your Private Key** | Used by `generateJWS` to sign the JWE |
+| **Merchant ID** | Embedded in both token headers to identify you |
+| **Public Key ID** | Tells PayGlocal which key was used to encrypt |
+| **Private Key ID** | Tells PayGlocal which key to use for signature verification |
+
+<Note>
+  See [Key Management](/getting-started/dashboard-and-key-management) for step-by-step instructions on fetching all five credentials.
+</Note>
+

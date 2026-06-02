@@ -1,0 +1,23 @@
+---
+title: "SI Mandate Management"
+sidebarTitle: "Overview"
+description: "Pause, activate, or cancel a Standing Instruction mandate after it has been created."
+---
+
+Manage the lifecycle of an existing mandate using `PUT /gl/v1/payments/si/status`. Use **Pause** for temporary stops, **Activate** to resume, and **Cancel** (revoke) when the recurring relationship ends permanently.
+
+<CardGroup cols={3}>
+  <Card title="SI Pause Mandate" icon="circle-pause" href="/merchant/recurring-payment#si-pause-mandate">
+    Suspend charges instantly or from a future date.
+  </Card>
+  <Card title="SI Activate Mandate" icon="play" href="/merchant/recurring-payment#si-activate-mandate">
+    Resume a paused mandate.
+  </Card>
+  <Card title="SI Cancel Mandate" icon="ban" href="/merchant/recurring-payment#si-cancel-mandate">
+    Permanently revoke a mandate.
+  </Card>
+</CardGroup>
+
+<Note>
+  Check mandate status before changing state. See [SI Status Check](/merchant/recurring-payment#si-status-check) for the current mandate state.
+</Note>

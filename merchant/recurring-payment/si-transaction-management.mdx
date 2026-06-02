@@ -1,0 +1,39 @@
+---
+title: "SI Transaction Management"
+sidebarTitle: "SI Transaction Management"
+description: "Trigger On-Demand deductions against an existing Variable SI mandate."
+---
+
+For **Variable + On-Demand** mandates, you trigger each charge manually when a billing cycle is due. For Fixed + Auto Debit mandates, PayGlocal handles deductions automatically — no call needed.
+
+## On-Demand Deduction
+
+```
+POST /gl/v1/payments/si/sale
+```
+
+```json
+{
+  "merchantTxnId": "SALE-23AEE8CB6B62EE2AF07",
+  "paymentData": { "totalAmount": "89" },
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "gid": "gl-13bbd3c4-...",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Sent for Capture Successfully",
+  "timestamp": "2026-04-12T07:47:18Z"
+}
+```
+
+**Rules:**
+- `totalAmount` must be ≤ `maxAmount` set during mandate creation
+- Each call requires a unique `merchantTxnId`
+- Mandate must be in `ACTIVE` status — check before calling
+- Final confirmation always comes via webhook

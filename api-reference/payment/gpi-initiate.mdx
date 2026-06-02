@@ -4,7 +4,7 @@ description: "Initiate a payment transaction for PCI DSS certified merchants who
 openapi: "openapi-paydirect.yaml POST /gl/v1/payments/initiate"
 ---
 
-## When to Use
+## Raw Payload
 
 Use this endpoint when your integration is **PayDirect** — you collect full card details from
 the customer on your own page and send them directly in the API request.
@@ -19,7 +19,9 @@ PayGlocal collects card details on its hosted page.
   for international card transactions and is dependent on merchant line of business.
 </Info>
 
-## Notes
+<Note>
+  For auth-only flows, add `"captureTxn": false`. For Standing Instructions, include the `standingInstruction` object. See [Payload Templates](/api-reference/payload-templates) for all variants.
+</Note>
 
 - `merchantCallbackURL`: Payers are redirected to this URL post payment completion.
 - Include standingInstruction to set up a recurring mandate alongside this payment, for more details refer to standing instructions section.

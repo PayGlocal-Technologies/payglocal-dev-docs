@@ -1,0 +1,125 @@
+---
+title: "Overview"
+description: "Two-step payment process — authorize and hold funds first, then capture when ready. Ideal for hotels, pre-orders, and delayed fulfillment."
+icon: "shield-check"
+---
+
+## Auth & Capture
+
+A two-step payment process that gives you maximum flexibility. First, you authorize and hold funds on the customer's payment method. Then, you capture the funds when you're ready to complete the transaction. Ideal for businesses that need time between order placement and fulfillment.
+
+<CardGroup cols={2}>
+  <Card title="Hold without charge" icon="hourglass" color="#1A6FE8">
+    Authorize funds without immediately moving them.
+  </Card>
+  <Card title="Capture full or partial" icon="scissors" color="#F59E0B">
+    Charge any amount up to the authorized total when ready.
+  </Card>
+  <Card title="Cancel via reversal" icon="rotate-left" color="#10B981">
+    Release held funds with auth reversal if order is cancelled.
+  </Card>
+  <Card title="Reduce chargebacks" icon="shield" color="#8B5CF6">
+    Capture only what you actually ship.
+  </Card>
+</CardGroup>
+
+<Note>
+  Authorization typically holds **7–30 days** depending on the issuer and card network. Actual hold window may vary.
+</Note>
+
+Available for both [PayCollect](/merchant/paycollect/overview) and [PayDirect](/merchant/paydirect/overview) integrations.
+
+---
+
+## The 3-Stage Flow
+
+```
+Auth Payment       →     Capture (full or partial)     →     [optional] Auth Reversal
+  hold funds              charge customer                       release held funds
+(captureTxn: false)
+```
+
+**Step 1.** Authorize payment to hold funds (`captureTxn: false`)
+**Step 2.** Capture the authorized amount (full or partial)
+**Step 3.** Release remaining funds automatically or via reversal
+
+Multiple partial captures are allowed until the full authorized amount is captured. Auth reversal cancels the authorization and releases all held funds. Webhook notifications are sent at each stage.
+
+---
+
+## Step 1: Auth Payment
+
+Authorize and hold funds on the customer's payment method without immediate capture.
+
+### Endpoint
+
+```
+POST /gl/v1/payments/auth
+```
+
+### Request
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "100.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number":       "4242424242424242",
+      "expiryMonth":  "05",
+      "expiryYear":   "2028",
+      "securityCode": "173"
+    }
+  },
+  "captureTxn": false
+}
+```
+
+### Key Points
+
+- Hold funds without charging the customer immediately
+- Requires `captureTxn: false` in the request payload
+- Returns Global ID (`gid`) for subsequent capture / reversal operations
+- Customer sees the amount as "pending" on their statement
+- Use [Status Check](/merchant/services/status-check) to monitor authorization status
+
+### Response
+
+```json
+{
+  "gid":     "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":  "AUTHORIZED",
+  "message": "Authorization Successful"
+}
+```
+
+<Warning>
+  **Store the GID** — you'll use it in the Capture or Reversal request.
+</Warning>
+
+---
+
+## Step 2 & 3: Capture or Reverse
+
+After the auth, choose one of:
+
+<CardGroup cols={2}>
+  <Card title="Capture Payment" icon="circle-down" color="#10B981" href="/merchant/services/capture-payment">
+    Charge the customer — full or partial amount. Use when you're ready to fulfill the order.
+  </Card>
+  <Card title="Auth Reversal" icon="ban" color="#EF4444" href="/merchant/services/auth-reversal">
+    Release all held funds. Use when the order is cancelled before fulfillment.
+  </Card>
+</CardGroup>
+
+---
+
+## When to Use Each Operation
+
+| Scenario | Operation |
+|----------|-----------|
+| Authorize a payment now, ship later | **Auth Payment** (above) |
+| Customer payment approved, ready to ship | [Capture Payment](/merchant/services/capture-payment) (full or partial) |
+| Order cancelled before shipping | [Auth Reversal](/merchant/services/auth-reversal) |
+| Already captured, customer wants money back | [Initiate Refund](/merchant/services/initiate-refund) |

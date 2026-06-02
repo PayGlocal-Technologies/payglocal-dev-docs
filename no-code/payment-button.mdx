@@ -1,0 +1,146 @@
+---
+title: "Payment Button"
+description: "Embed payment buttons on your website for dynamic amount payments."
+icon: "circle-play"
+---
+
+## What is a Payment Button?
+
+A **Payment Button** is a no-code solution that allows you to add a payment button to your website without any API integration. When you create a payment button in the GCC dashboard, you receive JavaScript and HTML scripts that you can simply paste into your website.
+
+## When to Use Payment Button?
+
+Payment Button is ideal when:
+
+- **Dynamic Amounts**: The payment amount needs to be entered by the customer (not fixed)
+- **Quick Website Integration**: You want to add payment functionality without backend development
+- **No API Knowledge Required**: You can embed payments by just copying and pasting code
+
+Unlike Payment Links (which have fixed amounts), Payment Buttons allow customers to enter the amount they want to pay.
+
+## How to Create a Payment Button
+
+<Steps>
+  <Step title="Navigate to Payment Button">
+    Log in to the [GCC dashboard](https://merchant.payglocal.in), click on **Payment Products** in the left sidebar, then select **Payment Button**.
+
+    <div className="payg-screenshot-tile">
+      <img src="/images/payment-button/navigate-payment-button.png" alt="Navigate to Payment Button" />
+    </div>
+  </Step>
+
+  <Step title="Click Create">
+    Click the **Create** button in the top right corner to open the payment button creation form.
+  </Step>
+
+  <Step title="Configure Payment Button">
+    Fill in the required details:
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/payment-button/create-payment-button-form.png" alt="Create Payment Button Form" />
+    </div>
+
+    **Configuration Options:**
+    - **ISO3 Currency Code**: Select the currency (e.g., INR for Indian Rupee)
+    - **Website URL**: Enter your website URL where the button will be embedded
+    - **Customer Phone Number**: Toggle on/off to collect customer phone number
+    - **Customer Email ID**: Toggle on/off to collect customer email
+  </Step>
+
+  <Step title="Submit">
+    Click the **Submit** button to generate your payment button.
+  </Step>
+
+  <Step title="Copy the Scripts">
+    After submission, open the button from the **Payment Button** dashboard. The **Payment Button is retrieved** panel shows your **Button ID** and **Embed Code**.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom">
+      <img src="/images/payment-button/payment-button-retrieved.png" alt="Payment Button retrieved with Button ID and embed code" />
+    </div>
+
+    - Click **Copy Button ID** to save the button reference for search and status checks
+    - Click **Copy Embed Code** and paste the snippet into your website HTML where customers will pay
+  </Step>
+
+  <Step title="Embed on Your Website">
+    1. Copy the JavaScript script and add it to your website
+    2. Copy the HTML button code and place it where you want the button
+    3. Test the button to ensure it works correctly
+    4. The customer will be able to enter the payment amount when they click the button
+  </Step>
+</Steps>
+
+## How Payment Button Works
+
+When a customer clicks your payment button:
+
+1. **Button Click**: Customer clicks the payment button on your website
+2. **Enter Amount**: Customer enters the payment amount (dynamic)
+3. **Enter Details**: Customer fills in required information (email/phone if enabled)
+4. **Payment Page**: Customer is directed to PayGlocal's secure checkout
+5. **Complete Payment**: Customer completes payment using their preferred method
+6. **Confirmation**: Customer receives payment confirmation and returns to your website
+
+## Customer Experience
+
+<img src="/images/payment-button/customer-experience-placeholder.png" alt="Customer Experience - Coming Soon" />
+
+_Screenshot showing customer entering amount and making payment - Coming soon_
+
+## Managing Payment Buttons
+
+From the Payment Button dashboard, you can:
+
+- **View All Buttons**: See all payment buttons you've created
+- **Check Status**: Monitor which buttons are active
+- **View Transactions**: See all payments made through each button
+- **Edit Button**: Update button configuration
+- **Enable/Disable**: Activate or deactivate buttons as needed
+
+## Button Embed Preview
+
+<img src="/images/payment-button/embed-preview-placeholder.png" alt="Button Embed Preview - Coming Soon" />
+
+_Screenshot showing how the button appears on a website - Coming soon_
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card 
+    title="Payment Link" 
+    icon="link" 
+    href="/no-code/payment-link"
+  >
+    For fixed amount payments with shareable links
+  </Card>
+  
+  <Card 
+    title="Invoice Link" 
+    icon="file-invoice" 
+    href="/no-code/invoice-link"
+  >
+    For formal invoice-style payments
+  </Card>
+  
+  <Card 
+    title="API Integration" 
+    icon="code" 
+    href="/merchant/regular-payment"
+  >
+    For full API integration and customization
+  </Card>
+  
+  <Card 
+    title="Webhooks" 
+    icon="webhook" 
+    href="/merchant/webhooks"
+  >
+    Set up real-time payment notifications
+  </Card>
+</CardGroup>
+
+## Support
+
+- **Technical integration help**: Email [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in)
+- **Business inquiries**: Contact your PayGlocal account manager
+- **Dashboard access**: Reach out to your account manager for credentials

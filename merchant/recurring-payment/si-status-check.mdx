@@ -1,0 +1,43 @@
+---
+title: "SI Status Check"
+sidebarTitle: "SI Status Check"
+description: "Retrieve current status and full details of a standing instruction mandate."
+icon: "magnifying-glass"
+---
+
+Always check mandate status before making a deduction or responding to a customer inquiry.
+
+```
+POST /gl/v1/payments/si/status
+```
+
+```json
+{
+  "merchantTxnId": "STATUS-TXN-001",
+  "standingInstruction": {
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "SUCCESS",
+  "data": {
+    "mandateData": {
+      "mandateStatus": "ACTIVE",
+      "mandateCreateDate": "20261204",
+      "numberOfPaymentsProcessed": "4",
+      "numberOfPaymentsRemaining": "2"
+    }
+  }
+}
+```
+
+| Mandate Status | Meaning |
+|---|---|
+| `ACTIVE` | Live — deductions enabled |
+| `PAUSED` | Temporarily suspended |
+| `INACTIVE` | Permanently cancelled |
+| `EXHAUSTED` | All configured payments completed |

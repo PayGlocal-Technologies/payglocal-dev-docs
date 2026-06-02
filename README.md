@@ -71,7 +71,7 @@ Different audiences, different schemes. They never cross-reference directly.
 
 | Audience | Scheme | Headers | Base URL |
 |----------|--------|---------|----------|
-| **Partner** (Onboarding) | API Key + HMAC-SHA256 | `x-api-key`, `x-gl-digest` | `api.onboard.payglocal.in` |
+| **Partner** (Onboarding) | API Key + HMAC-SHA256 | `x-gl-auth`, `x-gl-digest` | `api.onboard.payglocal.in` |
 | **Merchant** (Payment / SI) | RSA-signed JWS | `x-gl-token-external` | `api.payglocal.in` |
 
 Each path in `openapi.yaml` has its own `servers:` block that overrides the top-level list.

@@ -1,0 +1,62 @@
+---
+title: "Get Verification Redirect"
+openapi: "PUT /gcc/v2/partner/merchant/verification/{onboardingId}/redirect"
+---
+
+## When to Use
+
+Call this endpoint after all data-collection steps are complete to obtain a `redirectLink` for the merchant verification iFrame. The URL loads the PayGlocal partner onboarding experience where the merchant completes T&C acknowledgement, DigiLocker, and VKYC.
+
+Use this as **step 8** in the onboarding sequence — after [Configure Products](/api-reference/configure-products) and before polling [Get Onboarding Status](/api-reference/get-status).
+
+<Warning>
+  This endpoint can only be called when every pre-verification checklist step is complete. Calling it earlier returns `400 Bad Request`. It cannot be called again after DigiLocker, VKYC, and T&C are all complete.
+</Warning>
+
+## Preconditions
+
+The following checklist fields must **not** be `INCOMPLETE` before calling this endpoint:
+
+| Checklist field | Step |
+|-----------------|------|
+| `businessDetails` | [Update Business Details](/api-reference/update-business-details) |
+| `beneficialOwners` | [Add Beneficial Owner](/api-reference/add-beneficial-owner) |
+| `bankDetails` | [Update Bank Details](/api-reference/update-bank-details) |
+| `authorisedSignatory` | [Update Auth Signatory](/api-reference/update-auth-signatory) |
+| `documents` | [Upload Documents](/api-reference/upload-documents) |
+| `productsAndFees` | [Configure Products](/api-reference/configure-products) |
+
+Poll `GET /status` and confirm `documentsToBeUploaded` is empty before calling redirect.
+
+## Notes
+
+- Authenticate with `x-gl-auth` and `x-gl-digest` — sign the **raw JSON request body** (same as other PUT endpoints). See [Authentication](/authentication).
+- Request field is `callBackUrl` (camelCase with capital **B**).
+- Response field is `redirectLink`, not `redirectUrl`.
+- `redirectLink` format: `{baseUrl}?token={sessionToken}&onboardingId={onboardingId}`. The session token is valid for **24 hours** and must not be cached or reused.
+- `callBackUrl` is persisted on the merchant record and used as the post-verification redirect target. Its domain must be [whitelisted](/guides/iframe-integration#step-1-domain-whitelisting-action-required).
+- Environment base URLs for `redirectLink`:
+
+| Environment | Base URL |
+|-------------|----------|
+| UAT | `https://uat.dashboard.payglocal.in/app/partner-onboarding` |
+| Production | `https://dashboard.payglocal.in/app/partner-onboarding` |
+
+## What Happens Server-Side
+
+1. Validates the onboarding checklist via `isVerificationAllowed()`.
+2. Stores `callBackUrl` on the merchant record.
+3. Generates a single-use session token (24-hour TTL).
+4. Returns the composed `redirectLink` for iFrame embedding.
+
+See [iFrame Integration](/guides/iframe-integration) for embed instructions and [Partner Onboarding Events](/guides/partner-onboarding-events) for completion signals.
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| One or more pre-verification checklist steps are incomplete | `400` |
+| Verification already completed (DigiLocker + VKYC + T&C all complete) | `400` |
+| Missing or invalid `callBackUrl` | `400` |
+| Invalid or missing `x-gl-auth` / `x-gl-digest` | `401` |
+| `onboardingId` does not exist | `404` |

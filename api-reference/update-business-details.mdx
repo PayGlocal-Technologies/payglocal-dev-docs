@@ -8,13 +8,14 @@ openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/business-details"
 Submits or updates business information for a merchant onboarding record. Must be called after [Create Onboarding](/api-reference/create-onboarding).
 
 <Warning>
-  Business details cannot be updated after the merchant has acknowledged the Terms & Conditions. Ensure all information is accurate before triggering [Verify Merchant](/api-reference/verify-merchant).
+  Business details cannot be updated after the merchant has acknowledged the Terms & Conditions. Ensure all information is accurate before triggering [Get Verification Redirect](/api-reference/get-verification-redirect).
 </Warning>
 
 ## Notes
 
-- `address.businessOperatingAddress` is required **only when** `address.isOperatingSameAsRegistered` is `false`.
+- `address.businessOperatingAddress` is required **only when** `address.isOperatingSameAsRegistered` is `false`. When addresses differ, `OPERATING_ADDRESS_PROOF` is added to `documentsToBeUploaded`.
 - `natureOfBusiness` must be a subcategory code from [Get Business Categories](/api-reference/get-business-categories). State codes follow the 2-letter format — see [State Codes](/reference/state-codes).
+- For Partnership Firm entities, set `noPartnershipRegistrationCheck: true` when the partnership is not registered. This exempts `PARTNERSHIP_REGISTRATION_CERTIFICATE` from required documents.
 
 ## Error Scenarios
 

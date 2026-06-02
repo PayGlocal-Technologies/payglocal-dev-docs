@@ -10,7 +10,7 @@ All Payment APIs use **JWS + JWE** authentication (different from Onboarding API
 
 | API Area | Auth Mechanism | Key Header |
 |---|---|---|
-| Merchant Onboarding | HMAC-SHA256 (`x-gl-digest`) | `x-api-key` |
+| Merchant Onboarding | HMAC-SHA256 (`x-gl-digest`) | `x-gl-auth` |
 | Payment / SI APIs | RSA-signed JWS + JWE-encrypted body | `x-gl-token-external` |
 
 <Warning>

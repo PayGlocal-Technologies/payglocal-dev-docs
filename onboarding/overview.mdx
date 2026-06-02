@@ -7,10 +7,32 @@ icon: "user-plus"
 This portal serves two distinct audiences. Pick the path that matches your role:
 
 <CardGroup cols={2}>
-  <Card title="I'm a Partner — onboarding sub-merchants" icon="building-columns" color="#1A6FE8" href="/requirements">
-    You operate a platform and onboard sub-merchants onto PayGlocal programmatically. Use the **Partner: Merchant Onboarding API** to submit KYC data, upload documents, configure products, and trigger VKYC verification.
+  <Card title="I'm a Partner — onboarding sub-merchants" icon="building-columns" color="#1A6FE8" href="/api-reference/onboarding-overview">
+    You operate a platform and onboard sub-merchants onto PayGlocal programmatically. Use the **Partner Merchant Onboarding API** to submit KYC data, upload documents, configure products, and trigger verification.
   </Card>
   <Card title="I'm a Merchant — accepting payments" icon="credit-card" color="#10B981" href="/onboarding/merchant">
     You accept payments from your customers. Use the **Merchant Payment APIs**, **Payment Links** (no-code), or an **E-commerce Plugin** (Shopify, WooCommerce, Magento, OpenCart, Wix).
+  </Card>
+</CardGroup>
+
+---
+
+## Partner onboarding quick links
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    API key setup and HmacSHA256 digest generation.
+  </Card>
+  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
+    Step-by-step onboarding sequence.
+  </Card>
+  <Card title="Merchant Requirements" icon="clipboard-check" href="/guides/merchant-requirements">
+    Entity types, documents, and dynamic pendencies.
+  </Card>
+  <Card title="Events & Webhooks" icon="bell" href="/guides/partner-onboarding-events">
+    UI postMessage and webhook notifications.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/onboarding-overview">
+    All onboarding endpoints with interactive explorer.
   </Card>
 </CardGroup>

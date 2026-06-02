@@ -1,0 +1,12 @@
+Use this endpoint when your integration is **PayDirect** — you collect full card details from
+the customer on your own page and send them directly in the API request.
+
+**You must be PCI DSS certified** to use this flow. If you are not PCI certified, use
+[Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect) instead, where
+PayGlocal collects card details on its hosted page.
+
+<Info>
+  The request body structure is **identical for domestic and international cards**. Which nested
+  fields become mandatory still depends on the transaction — for example, `riskData` is required
+  for international card transactions.
+</Info>

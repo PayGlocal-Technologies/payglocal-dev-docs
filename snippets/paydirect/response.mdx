@@ -1,0 +1,42 @@
+A successful GPI call returns a `gid` and a `redirectUrl`. Redirect the customer's browser
+to the `redirectUrl` via HTTP GET to complete 3DS / step-up authentication.
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "message": "Transaction Created Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "reasonCode": "GL-200",
+  "data": {
+    "redirectUrl": "https://api.prod.payglocal.in/gl/v1/payments/redirect?x-gl-token=...",
+    "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
+  },
+  "errors": null
+}
+```
+
+**When `standingInstruction` is included**, the response also returns a `mandateId`:
+
+```json
+{
+  "data": {
+    "redirectUrl": "...",
+    "statusUrl": "...",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+| Response Field | Description |
+|---|---|
+| `gid` | PayGlocal's unique transaction ID — use this to poll status, refund, or capture |
+| `reasonCode` | `GL-200` on success; other codes indicate errors or decline reasons |
+| `data.redirectUrl` | Redirect the customer here to complete 3DS |
+| `data.statusUrl` | Convenience URL for polling transaction status |
+| `data.mandateId` | Returned only when `standingInstruction` was sent; use for subsequent SI charges |
+
+<Note>
+  After redirecting the customer, poll [Get Status](/api-reference/payment/get-status) using
+  the `gid` until the transaction reaches a terminal state (`SUCCESS`, `FAILED`, or `DECLINED`).
+</Note>

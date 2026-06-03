@@ -1,0 +1,30 @@
+---
+title: "Fetch Virtual Accounts"
+openapi: "GET /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts"
+---
+
+## When to Use
+
+Call this after a merchant is **fully activated** on PayGlocal to retrieve their assigned global virtual accounts. Accounts are grouped by collection label (e.g. `general`) and within each label by currency code.
+
+<Note>
+  Returns data only for activated merchants. Calling for a merchant still in onboarding or pending review returns HTTP 401.
+</Note>
+
+## Response Structure
+
+The `data` object is a two-level map:
+
+```
+data
+└── <collection_label>        (e.g. "general")
+    └── <currency_code>       (e.g. "USD", "AUD", "GBP")
+        └── VirtualAccount    (account number, bank name, routing code, etc.)
+```
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| `merchantId` is not valid | `400` |
+| Merchant is not activated | `401` |

@@ -19,6 +19,10 @@ servers:
     description: Payments — Production
   - url: https://api.uat.payglocal.in
     description: Payments — Sandbox
+  - url: https://gcc.prod.payglocal.in
+    description: MCA — Production
+  - url: https://gcc.uat.payglocal.in
+    description: MCA — Sandbox
 
 security:
   - ApiKeyAuth: []
@@ -604,6 +608,134 @@ components:
           type: string
           description: Human-readable error message.
           example: Required field is missing
+
+    VirtualAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the account record.
+          example: acct_abc123
+        accountId:
+          type: string
+          nullable: true
+          description: Account identifier (nullable).
+        accountNumber:
+          type: string
+          description: Account number to share with the payer.
+          example: XXXXXXXXXX4490
+        accountNumberType:
+          type: string
+          description: Type of account number (e.g. Local).
+          example: Local
+        accountHolderName:
+          type: string
+          description: Name the payer addresses the transfer to.
+          example: Acme Exports
+        accountType:
+          type: string
+          description: Payment tier.
+          enum: [Regular, Priority]
+          example: Regular
+        bankName:
+          type: string
+          description: Name of the receiving bank.
+          example: Citibank, N.A.
+        bankAddress:
+          type: string
+          description: Address of the receiving bank.
+          example: One Penns Way, New Castle, DE 19720
+        bankCountry:
+          type: string
+          description: ISO 3166-1 alpha-2 country code of the bank.
+          example: US
+        currency:
+          type: string
+          description: Account currency.
+          enum: [USD, EUR, GBP, CAD, AUD, GLOBAL]
+          example: USD
+        paymentType:
+          type: string
+          nullable: true
+        routingCode:
+          type: string
+          description: Routing value (ABA, BSB, Sort Code, etc.).
+          example: "31100209"
+        routingCodeType:
+          type: string
+          description: Type of routing code.
+          example: ABA Number
+        paymentRailType:
+          type: string
+          description: Payment rail for this account.
+          enum: [SEPA, ACH, EFT, FPS, SWIFT]
+        createdAt:
+          type: string
+          description: Account creation timestamp (epoch milliseconds).
+          example: "1752649980511"
+        updatedAt:
+          type: string
+          nullable: true
+          description: Last update timestamp (epoch milliseconds, nullable).
+
+    DocumentUploadRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - invoiceType
+        - paymentType
+        - merchantId
+        - fileName
+      properties:
+        amount:
+          type: string
+          description: Transaction amount.
+          example: "1000.00"
+        currency:
+          type: string
+          description: ISO 4217 currency code.
+          example: USD
+        invoiceType:
+          type: string
+          description: Type of document being uploaded.
+          example: INVOICE
+        paymentType:
+          type: string
+          description: Payment type classification.
+          example: CARD
+        merchantId:
+          type: string
+          description: Merchant identifier. Must match the transaction.
+          example: "merchant_001"
+        customerFullName:
+          type: string
+          description: Full name of the customer (3–150 characters).
+          example: John Doe
+          minLength: 3
+          maxLength: 150
+        shippingDetails:
+          type: string
+          description: Shipping information (1–120 characters).
+          example: Bangalore, India
+          maxLength: 120
+        invoiceNumber:
+          type: string
+          description: Invoice reference number (1–100 characters).
+          example: INV-2026-00321
+          maxLength: 100
+        purposeCode:
+          type: string
+          description: Purpose code for remittance reporting.
+          example: P0102
+        fxRate:
+          type: string
+          description: Foreign exchange rate applied.
+          example: "83.12"
+        fileName:
+          type: string
+          description: File name including extension (extension max 10 characters).
+          example: invoice_INV-2026-00321.pdf
 
     CommonErrorResponse:
       type: object
@@ -1929,6 +2061,253 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  # ======================== MCA APIs ========================
+
+  /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts:
+    servers:
+      - url: https://gcc.prod.payglocal.in
+        description: MCA — Production
+      - url: https://gcc.uat.payglocal.in
+        description: MCA — Sandbox
+    get:
+      operationId: fetchVirtualAccounts
+      summary: Fetch Virtual Accounts
+      description: |
+        Returns all global virtual account details assigned to a fully activated merchant,
+        grouped by collection label and settlement currency.
+      tags:
+        - MCA
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifier of the onboarded merchant.
+          example: "merchant_001"
+      responses:
+        "200":
+          description: Virtual accounts retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    example: REQ-XXXXX
+                  status:
+                    type: string
+                    example: "201 CREATED"
+                  timestamp:
+                    type: string
+                    example: "08/10/2025 16:25:33"
+                  reasonCode:
+                    type: string
+                    example: GL-201-001
+                  data:
+                    type: object
+                    description: Keyed by collection label, then by currency code.
+                    additionalProperties:
+                      type: object
+                      additionalProperties:
+                        $ref: "#/components/schemas/VirtualAccount"
+                  errors:
+                    type: object
+                    nullable: true
+              example:
+                gid: REQ-XXXXX
+                status: "201 CREATED"
+                timestamp: "08/10/2025 16:25:33"
+                reasonCode: GL-201-001
+                data:
+                  general:
+                    USD:
+                      id: acct_abc123
+                      accountId: null
+                      accountNumber: XXXXXXXXXX4490
+                      accountNumberType: Local
+                      accountHolderName: Acme Exports
+                      bankName: Citibank, N.A.
+                      bankAddress: One Penns Way, New Castle, DE 19720
+                      bankCountry: US
+                      currency: USD
+                      paymentType: null
+                      routingCode: "31100209"
+                      routingCodeType: ABA Number
+                      createdAt: "1752649980511"
+                      updatedAt: null
+                    AUD:
+                      id: acct_def456
+                      accountId: null
+                      accountNumber: XXXXXX4490
+                      accountNumberType: Local
+                      accountHolderName: Acme Exports
+                      bankName: BC Payments
+                      bankAddress: Level 11/10 Carrington St, Sydney NSW 2000, Australia
+                      bankCountry: AU
+                      currency: AUD
+                      paymentType: null
+                      routingCode: "252000"
+                      routingCodeType: BSB Number
+                      createdAt: "1752649980511"
+                      updatedAt: null
+                errors: null
+        "400":
+          description: Merchant ID is not valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: REQUEST_ERROR
+                  message:
+                    type: string
+                    example: MERCHANT ID NOT VALID
+                  gid:
+                    type: string
+                    example: REQ-XXXXX
+                  timestamp:
+                    type: string
+                    example: "2024-11-18T12:34:56Z"
+        "401":
+          description: Merchant is not activated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: REQUEST_ERROR
+                  message:
+                    type: string
+                    example: MERCHANT NOT ACTIVATED
+                  gid:
+                    type: string
+                    example: REQ-XXXXX
+                  timestamp:
+                    type: string
+                    example: "2024-11-18T12:34:56Z"
+
+  /gcc/v1/ffms/external/transaction/{gid}/upload-presigned:
+    servers:
+      - url: https://gcc.prod.payglocal.in
+        description: MCA — Production
+      - url: https://gcc.uat.payglocal.in
+        description: MCA — Sandbox
+    post:
+      operationId: getUploadPresignedUrl
+      summary: Get Upload Presigned URL
+      description: |
+        Generates a presigned upload URL for attaching a supporting document (e.g. invoice)
+        to an FFMS transaction. Upload the file to the returned URL via HTTP PUT.
+      tags:
+        - MCA
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: gid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique FFMS transaction identifier (from the MCA_FUND_RECEIVED webhook).
+          example: glm123456789
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUploadRequest"
+            example:
+              amount: "1000.00"
+              currency: USD
+              invoiceType: INVOICE
+              paymentType: CARD
+              merchantId: "merchant_001"
+              customerFullName: John Doe
+              shippingDetails: Bangalore, India
+              invoiceNumber: INV-2026-00321
+              purposeCode: P0102
+              fxRate: "83.12"
+              fileName: invoice_INV-2026-00321.pdf
+      responses:
+        "200":
+          description: Presigned URL generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    description: Transaction identifier.
+                    example: gl_XXXXXXXXXXXXXXXX
+                  status:
+                    type: string
+                    example: "201 CREATED"
+                  message:
+                    type: string
+                    example: Request completed
+                  timestamp:
+                    type: string
+                    example: "05/03/2026 17:35:10"
+                  reasonCode:
+                    type: string
+                    example: GL-201-001
+                  presignedUrl:
+                    type: string
+                    format: uri
+                    description: Temporary URL — upload the file immediately via HTTP PUT.
+                  fileName:
+                    type: string
+                    example: invoice_INV-2026-00321.pdf
+                  invoiceType:
+                    type: string
+                    example: INVOICE
+                  paymentType:
+                    type: string
+                    example: CARD
+                  data:
+                    type: object
+                    nullable: true
+                  errors:
+                    type: object
+                    nullable: true
+              example:
+                gid: gl_XXXXXXXXXXXXXXXX
+                status: "201 CREATED"
+                message: Request completed
+                timestamp: "05/03/2026 17:35:10"
+                reasonCode: GL-201-001
+                data: null
+                errors: null
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Document already uploaded for this transaction.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResponse"
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonErrorResponse"
+
 tags:
   - name: Merchant Onboarding
     description: Endpoints to create and manage merchant onboarding records.
@@ -1938,3 +2317,5 @@ tags:
     description: Payment initiation, refund, capture, reversal, and status endpoints.
   - name: Standing Instructions
     description: Subscription / recurring-payment mandate operations.
+  - name: MCA
+    description: Merchant Collection Account — virtual account fetch and transaction document upload.

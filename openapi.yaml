@@ -33,15 +33,15 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: x-api-key
-      description: Static API Key downloaded from the PayGlocal partner dashboard.
+      name: x-gl-auth
+      description: Static API Key generated from the PayGlocal Partner Dashboard.
     DigestAuth:
       type: apiKey
       in: header
       name: x-gl-digest
       description: |
-        Per-request HmacSHA256 signature, Base64-encoded.
-        - For GET requests: sign the full request URL.
+        Per-request HmacSHA256 signature, Base64-encoded, using your API Secret as the HMAC key.
+        - For GET requests: sign the request URI path (e.g. `/gcc/v2/partner/merchant/onboard/business-category`), including query string if present.
         - For POST/PUT requests: sign the exact raw request body.
     JwsTokenAuth:
       type: apiKey
@@ -177,36 +177,32 @@ components:
               type: string
               enum: [CURRENT, SAVINGS]
 
+    PartnerMerchantStepStatus:
+      type: string
+      enum: [COMPLETE, INCOMPLETE, NOT_APPLICABLE]
+      description: Per-step completion state for an onboarding checklist field.
+
     ChecklistStatus:
       type: object
       properties:
         businessDetails:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         beneficialOwners:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         bankDetails:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         authorisedSignatory:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         vkyc:
-          type: string
-          enum: [PENDING, SUCCESS, PENDING_REVIEW, FAILED]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         digiLocker:
-          type: string
-          enum: [PENDING, SUCCESS, PENDING_REVIEW, FAILED]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         tncAcknowledged:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         documents:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         products:
-          type: string
-          enum: [PENDING, COMPLETE]
+          $ref: "#/components/schemas/PartnerMerchantStepStatus"
         documentsToBeUploaded:
           type: array
           items:
@@ -2019,8 +2015,8 @@ paths:
                     beneficialOwners: COMPLETE
                     bankDetails: COMPLETE
                     authorisedSignatory: COMPLETE
-                    vkyc: PENDING_REVIEW
-                    digiLocker: SUCCESS
+                    vkyc: COMPLETE
+                    digiLocker: COMPLETE
                     tncAcknowledged: COMPLETE
                     documents: COMPLETE
                     products: COMPLETE

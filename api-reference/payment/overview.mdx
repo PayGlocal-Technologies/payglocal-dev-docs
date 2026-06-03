@@ -22,7 +22,7 @@ The **Payment APIs** handle the full transaction lifecycle: initiating payments,
 
 | API Area | Auth method | Primary headers |
 |----------|-------------|-----------------|
-| Merchant Onboarding API | HmacSHA256 | `x-api-key`, `x-gl-digest` |
+| Merchant Onboarding API | HmacSHA256 | `x-gl-auth`, `x-gl-digest` |
 | Payment APIs | RSA-signed JWS in `x-gl-token-external` | `x-gl-token-external` (see [Key Management](/key-management/overview)) |
 
 You use your **PVT-KEY** to sign requests; **PUBCERT** verifies responses and may encrypt the body when your integration requires JWE. See [Key Management](/key-management/overview) and [Constructing API Requests](/key-management/request-construction) for setup.

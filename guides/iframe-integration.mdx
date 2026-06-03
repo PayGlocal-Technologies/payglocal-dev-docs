@@ -36,14 +36,17 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
 
 <Steps>
   <Step title="Initialize — Generate the verification session URL">
-    Before rendering the iFrame, call the [Verify Merchant API](/api-reference/verify-merchant) to generate a unique, time-limited session URL for the merchant.
+    Before rendering the iFrame, call the [Get Verification Redirect API](/api-reference/get-verification-redirect) from your **backend** to generate a session URL for the merchant.
 
     ```bash
-    curl -X PUT https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/{onboardingId}/verify \
+    BODY='{"callBackUrl":"https://your-domain.com/onboarding-success"}'
+    DIGEST=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | base64)
+
+    curl -X PUT "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/verification/{onboardingId}/redirect" \
       -H "Content-Type: application/json" \
-      -H "x-api-key: YOUR_API_KEY" \
-      -H "x-gl-digest: YOUR_DIGEST" \
-      -d '{"callbackUrl": "https://your-domain.com/onboarding-success"}'
+      -H "x-gl-auth: $API_KEY" \
+      -H "x-gl-digest: $DIGEST" \
+      -d "$BODY"
     ```
 
     Response:
@@ -53,27 +56,29 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
       "gid": "gl_9c2645ed09edb22e",
       "timestamp": "10/01/2026 15:00:00",
       "reasonCode": "",
+      "message": "digilocker redirect url generated successfully",
       "data": {
-        "redirectUrl": "https://verify.payglocal.in/session/auth_123abc..."
+        "redirectLink": "https://uat.dashboard.payglocal.in/app/partner-onboarding?token=abc123&onboardingId=pg_onboard_abc123",
+        "onboardingId": "pg_onboard_abc123"
       }
     }
     ```
 
-    Save the `data.redirectUrl` value — this is the `src` for your iFrame.
+    Save the `data.redirectLink` value — this is the `src` for your iFrame. The URL includes a single-use session token valid for 24 hours.
 
     <Note>
-      The `callbackUrl` is where PayGlocal redirects the iFrame after the merchant completes verification. It must be a full HTTPS URL on your whitelisted domain.
+      The `callBackUrl` is stored on the merchant record and used as the redirect target after verification completes. It must be a full HTTPS URL on your whitelisted domain.
     </Note>
   </Step>
 
-  <Step title="Embed — Load the redirectUrl in an iFrame">
-    Inject the `redirectUrl` as the `src` of an iFrame on your page. The `allow` attributes below are **mandatory** — without them, the browser will block camera and microphone access during VKYC.
+  <Step title="Embed — Load the redirectLink in an iFrame">
+    Inject the `redirectLink` as the `src` of an iFrame on your page. The `allow` attributes below are **mandatory** — without them, the browser will block camera and microphone access during VKYC.
 
     ```html
     <div id="pg-iframe-wrapper" style="width: 100%; max-width: 1000px; height: 800px; margin: auto;">
       <iframe
         id="payglocal-onboarding-ui"
-        src="INSERT_REDIRECT_URL_HERE"
+        src="INSERT_REDIRECT_LINK_HERE"
         width="100%"
         height="700px"
         allow="camera; microphone; geolocation"
@@ -84,9 +89,9 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
     ```
 
     ```javascript
-    // Dynamically set the src after fetching the redirectUrl from your backend
+    // Dynamically set the src after fetching the redirectLink from your backend
     const iframe = document.getElementById("payglocal-onboarding-ui");
-    iframe.src = redirectUrl; // value returned by the Verify Merchant API
+    iframe.src = redirectLink; // value returned by the Get Verification Redirect API
     ```
   </Step>
 
@@ -95,26 +100,32 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
 
     **Option A — postMessage (recommended for real-time UX)**
 
-    Listen for `message` events from the iFrame. PayGlocal posts a message when the merchant finishes the flow.
+    Listen for `message` events from the iFrame. When verification completes, PayGlocal posts `PARTNER_MERCHANT_VERIFICATION_COMPLETE`.
 
     ```javascript
     window.addEventListener("message", function(event) {
-      // Always validate the origin to prevent spoofed messages
-      if (event.origin !== "https://verify.payglocal.in") return;
+      // Validate origin — UAT or Production dashboard domain
+      const allowedOrigins = [
+        "https://uat.dashboard.payglocal.in",
+        "https://dashboard.payglocal.in"
+      ];
+      if (!allowedOrigins.includes(event.origin)) return;
 
-      if (event.data.status === "COMPLETED") {
-        console.log("Merchant has finished the verification flow.");
-        // Update your UI, e.g., show a success screen or redirect the parent window
+      if (event.data === "PARTNER_MERCHANT_VERIFICATION_COMPLETE") {
+        console.log("Merchant verification completed.");
+        // Trigger server-side GET /status to confirm final state
       }
     }, false);
     ```
 
-    **Option B — callbackUrl redirect**
+    During intermediate steps (e.g. DigiLocker redirect), the iFrame may also post structured events such as `PARTNER_MERCHANT_VERIFICATION_REDIRECT`. See [Partner Onboarding Events](/guides/partner-onboarding-events) for the full event reference.
 
-    After the merchant finishes, PayGlocal also redirects the iFrame to the `callbackUrl` you provided. Your page at that URL can render a completion screen.
+    **Option B — callBackUrl redirect**
+
+    After the merchant finishes, PayGlocal redirects the iFrame to the `callBackUrl` you provided. Your page at that URL can render a completion screen.
 
     <Warning>
-      After the iFrame callback, **always perform a server-to-server status check** by calling `GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status` to confirm that `vkyc` and `digiLocker` statuses are `SUCCESS` or `PENDING_REVIEW`. Do not rely on the callback redirect alone to confirm completion.
+      After the iFrame callback, **always perform a server-to-server status check** by calling `GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status` to confirm that `vkyc` and `digiLocker` statuses are `COMPLETE`. Do not rely on the callback redirect alone to confirm completion.
     </Warning>
   </Step>
 </Steps>
@@ -132,8 +143,9 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
 | **HTTPS** | Parent page must use HTTPS. HTTP origins will block camera/microphone access. |
 | **Minimum height** | Set the iFrame container to at least **700px** height to prevent internal scrollbars during the VKYC video call. |
 | **Permissions Policy header** | Ensure your server does not send a `Permissions-Policy: camera=()` or similar header that conflicts with iFrame permissions. |
-| **Origin validation** | Always check `event.origin === "https://verify.payglocal.in"` before processing postMessage events. |
+| **Origin validation** | Validate `event.origin` against `https://uat.dashboard.payglocal.in` (UAT) or `https://dashboard.payglocal.in` (Production). |
 | **Server-side confirmation** | After callback, always call `GET /status` server-to-server to confirm the final merchant state. |
+| **Token expiry** | Session tokens in `redirectLink` expire after 24 hours. Generate a fresh link if the merchant does not complete verification in time. |
 | **Responsive design** | The verification suite is mobile-responsive. Your container should be flexible-width with a fixed minimum height. |
 
 ---
@@ -171,23 +183,28 @@ Allow 1–2 business days for the PayGlocal team to activate the CSP allowance.
   </div>
 
   <script>
-    // Step 1: Fetch the redirectUrl from your backend (which calls the PayGlocal Verify API)
+    const ALLOWED_ORIGINS = [
+      "https://uat.dashboard.payglocal.in",
+      "https://dashboard.payglocal.in"
+    ];
+
+    // Step 1: Fetch the redirectLink from your backend (which calls the PayGlocal redirect API)
     fetch("/api/get-verification-url?onboardingId=YOUR_ONBOARDING_ID")
       .then(res => res.json())
       .then(data => {
-        document.getElementById("payglocal-onboarding-ui").src = data.redirectUrl;
+        document.getElementById("payglocal-onboarding-ui").src = data.redirectLink;
       });
 
     // Step 2: Listen for completion signal from PayGlocal
     window.addEventListener("message", function(event) {
-      if (event.origin !== "https://verify.payglocal.in") return;
+      if (!ALLOWED_ORIGINS.includes(event.origin)) return;
 
-      if (event.data.status === "COMPLETED") {
+      if (event.data === "PARTNER_MERCHANT_VERIFICATION_COMPLETE") {
         // Step 3: Trigger a server-side status check before updating UI
         fetch("/api/check-onboarding-status?onboardingId=YOUR_ONBOARDING_ID")
           .then(res => res.json())
           .then(status => {
-            if (status.vkyc === "SUCCESS" || status.vkyc === "PENDING_REVIEW") {
+            if (status.vkyc === "COMPLETE" && status.digiLocker === "COMPLETE") {
               console.log("Verification complete. Redirecting...");
               window.location.href = "/onboarding-success";
             }

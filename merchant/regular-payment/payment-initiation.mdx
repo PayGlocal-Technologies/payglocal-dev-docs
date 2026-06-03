@@ -1,13 +1,13 @@
 ---
 title: "Payment Initiation"
 sidebarTitle: "Payment Initiation"
-description: "Initiate a one-time regular payment via PayCollect or PayDirect."
+description: "Initiate a one-time regular payment via Checkout Flow (PayCollect) or Seamless Flow (PayDirect)."
 ---
 
 Initiate a regular payment using one of two endpoints depending on your integration type.
 
 <CardGroup cols={2}>
-  <Card title="PayCollect" icon="window" color="#1A6FE8">
+  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8">
     ```
     POST /gl/v1/payments/initiate/paycollect
     ```
@@ -15,7 +15,7 @@ Initiate a regular payment using one of two endpoints depending on your integrat
 
     **Supports:** Cards, Apple Pay, UPI, Net Banking and Alternative Payment Methods.
   </Card>
-  <Card title="PayDirect" icon="code" color="#8B5CF6">
+  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6">
     ```
     POST /gl/v1/payments/initiate
     ```
@@ -24,4 +24,4 @@ Initiate a regular payment using one of two endpoints depending on your integrat
   </Card>
 </CardGroup>
 
-For full payload reference and side-by-side comparison, see [PayCollect vs PayDirect](/merchant/api-integration).
+For full payload reference and side-by-side comparison, see [Checkout Flow vs Seamless Flow](/merchant/api-integration).

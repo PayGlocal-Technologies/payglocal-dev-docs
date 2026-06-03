@@ -155,7 +155,7 @@
             ]
           },
           {
-            "group": "PayDirect",
+            "group": "Seamless Flow (PayDirect)",
             "icon": "credit-card",
             "pages": [
               "api-reference/payments-v2/paydirect/overview",
@@ -166,7 +166,7 @@
             ]
           },
           {
-            "group": "PayCollect",
+            "group": "Checkout Flow (PayCollect)",
             "icon": "window",
             "pages": [
               "api-reference/payments-v2/paycollect/overview",

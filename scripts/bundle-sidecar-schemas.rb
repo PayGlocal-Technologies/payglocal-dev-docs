@@ -75,4 +75,5 @@ def bundle(sidecar_path, main_path)
   puts "#{sidecar_path}: #{schemas.size} schemas, #{responses.size} responses"
 end
 
-ARGV.each { |f| bundle(f, "openapi.yaml") }
+main = ARGV.find { |a| a.start_with?("--main=") }&.delete_prefix("--main=") || "openapi.yaml"
+ARGV.reject { |a| a.start_with?("--main=") }.each { |f| bundle(f, main) }

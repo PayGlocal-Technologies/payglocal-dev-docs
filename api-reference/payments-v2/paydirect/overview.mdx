@@ -1,20 +1,20 @@
 ---
-title: "PayDirect"
+title: "Overview"
 description: "PCI DSS–compliant direct card integration — your checkout collects card data; PayGlocal processes the payment."
 icon: "code"
 ---
 
-## What is PayDirect?
+## Seamless Flow (PayDirect)
 
 **PayDirect** is PayGlocal's server-to-server integration mode for merchants who are PCI DSS certified. In this flow, card details are collected by the merchant's application. The merchant then securely sends the card information to PayGlocal, where the transaction is completed.
 
-Card data (or network tokens) travel in the API request body. PayGlocal handles 3DS authentication, intelligent routing, and settlement on the back end. There is **no PayGlocal-hosted card form** in this mode.
+Card data (or network tokens) travel in the API request body. PayGlocal handles 3DS authentication, intelligent routing, and settlement on the back end.
 
 <Note>
-  **Not PCI DSS certified?** Use [PayCollect](/api-reference/payments-v2/paycollect/overview) instead — card details are collected on a PayGlocal-hosted page, and you do not need to handle card information in your application.
+  **Not PCI DSS certified?** Use [Checkout Flow (PayCollect)](/api-reference/payments-v2/paycollect/overview) instead — card details are collected on a PayGlocal-hosted page, and you do not need to handle card information in your application.
 </Note>
 
-### Key characteristics of PayDirect
+### Key characteristics
 
 - Can only be used by **PCI DSS certified** merchants.
 - Used when the customer enters card details on the **merchant's own checkout page**.
@@ -55,7 +55,7 @@ For PayDirect, download an **RSA key** from the GCC Dashboard. All PayDirect pay
 | Cards | ✓ | ✓ | Send `cardData` or `tokenData` in the request body |
 | Apple Pay | — | ✓ | International cards only |
 
-PayDirect does **not** support UPI, net banking, or global alternative payment methods. Those are available on [PayCollect](/api-reference/payments-v2/paycollect/overview).
+PayDirect does **not** support UPI, net banking, or global alternative payment methods. Those are available on [Checkout Flow (PayCollect)](/api-reference/payments-v2/paycollect/overview).
 
 ---
 
@@ -85,13 +85,13 @@ PayDirect does **not** support UPI, net banking, or global alternative payment m
 
 Single-step payment. Funds are **authorised and captured in one call**. Use this for standard e-commerce checkouts where fulfilment is immediate.
 
-→ [PayDirect — GPI](/api-reference/payments-v2/paydirect/gpi) (complete request payload)
+→ [GPI](/api-reference/payments-v2/paydirect/gpi) (complete request payload)
 
 ### Authorize payment (auth only)
 
 Two-step payment. Set **`captureTxn: false`** to hold funds without capturing. Capture when you are ready to settle, or reverse to release the hold. **Cards and international Apple Pay only** — UPI and net banking are not supported for auth.
 
-→ [PayDirect — Authorize Payment (Auth Only)](/api-reference/payments-v2/paydirect/auth-capture-authorise)
+→ [Authorize Payment (Auth Only)](/api-reference/payments-v2/paydirect/auth-capture-authorise)
 
 ### Standing instructions (international cards)
 

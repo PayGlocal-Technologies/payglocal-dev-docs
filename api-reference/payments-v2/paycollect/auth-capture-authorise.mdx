@@ -1,5 +1,5 @@
 ---
-title: "PayCollect — Authorize Payment (Auth Only)"
+title: "Authorize Payment (Auth Only)"
 description: "Authorize a hosted PayCollect payment without capturing funds — captureTxn false, then capture or reverse later. No card data in your request."
 openapi: "openapi-v2-paycollect-auth.yaml POST /gl/v1/payments/initiate/paycollect"
 ---
@@ -35,7 +35,7 @@ After authorization, you can:
 
 ## Supported payment methods
 
-Authorize (auth only) on hosted checkout supports **cards** and **international Apple Pay** only. **UPI and net banking are not supported** for auth transactions (they are available on [PayCollect — GPI](/api-reference/payments-v2/paycollect/gpi) sale flows).
+Authorize (auth only) on hosted checkout supports **cards** and **international Apple Pay** only. **UPI and net banking are not supported** for auth transactions (they are available on [GPI](/api-reference/payments-v2/paycollect/gpi) sale flows).
 
 | Method | Domestic | International |
 |--------|:--------:|:-------------:|
@@ -47,7 +47,7 @@ Authorize (auth only) on hosted checkout supports **cards** and **international 
 ## Notes
 
 - Do **not** send **`cardData`** or **`tokenData`** — payment details are collected on the hosted page.
-- Set **`captureTxn`** to **`false`** in **Request body**, with `paymentData` (amount, currency, `billingData`) as for [PayCollect — GPI](/api-reference/payments-v2/paycollect/gpi).
+- Set **`captureTxn`** to **`false`** in **Request body**, with `paymentData` (amount, currency, `billingData`) as for [GPI](/api-reference/payments-v2/paycollect/gpi).
 
 ---
 

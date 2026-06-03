@@ -2,6 +2,34 @@
    PayGlocal Developer Portal — Custom Styles
    ============================================================ */
 
+/* Marker — keeps Request body visible on Payments V2 pages. */
+.payments-v2-page.hidden {
+  display: none !important;
+}
+
+/* Single-page flow: intro + Headers → Authorizations / Request body / Response → Next actions.
+   Flex only the Mintlify api-playground wrapper — never #content-area (breaks the code column). */
+#api-playground-2-operation-page:has(.payments-v2-after-api),
+[id^="api-playground"]:has(.payments-v2-after-api) {
+  display: flex;
+  flex-direction: column;
+}
+
+#api-playground-2-operation-page:has(.payments-v2-after-api) .payments-v2-after-api,
+[id^="api-playground"]:has(.payments-v2-after-api) .payments-v2-after-api {
+  order: 100;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(226 232 240);
+  scroll-margin-top: 5rem;
+  width: 100%;
+}
+
+.dark #api-playground-2-operation-page:has(.payments-v2-after-api) .payments-v2-after-api,
+.dark [id^="api-playground"]:has(.payments-v2-after-api) .payments-v2-after-api {
+  border-top-color: rgb(51 65 85 / 0.55);
+}
+
 /* ── Fonts ────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
 
@@ -687,9 +715,102 @@ nav[aria-label="Navigation"] a[aria-current="page"] {
   color: rgb(147 197 253) !important;
 }
 
+/* ── API Reference tab: Guides-style left sidebar (nav only) ── */
+
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header {
+  min-height: unset;
+  margin-top: 1.15rem;
+  margin-bottom: 0.1rem;
+  padding: 0.2rem 0.5rem 0.2rem 0;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) > .sidebar-group-header:first-child,
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header:first-of-type {
+  margin-top: 0.35rem;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header h5 {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: #94a3b8;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header h5 {
+  color: #64748b;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group {
+  margin-bottom: 0.45rem;
+  padding-left: 0;
+  gap: 0.1rem;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group > li > a,
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[href*="/api-reference"],
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[href*="standing-instructions"] {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  margin: 0.05rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.35;
+  border: none;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group > li > a,
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[href*="/api-reference"],
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[href*="standing-instructions"] {
+  color: #cbd5e1;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a:hover {
+  background-color: rgb(30 41 59 / 0.45);
+  color: #f1f5f9;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[aria-current="page"] {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 500 !important;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[aria-current="page"] {
+  background-color: rgb(30 58 138 / 0.35) !important;
+  color: #93c5fd !important;
+}
+
+/* Nested / expandable rows (if present) — light chevron, no heavy chrome */
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header button,
+#navigation-items:has(a[href*="/api-reference"]) [data-group] button {
+  color: #94a3b8;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a::before {
+  display: none !important;
+  content: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 /* ── API Reference: HTTP Method badges (left panel) ─────────── */
 
-/* Shared badge base */
+/* Shared badge base — legacy API Reference links only (hidden while API Reference nav is active; see block above) */
 nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-paycollect"]::before,
 nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-initiate"]::before,
 nav[aria-label="Navigation"] a[href*="api-reference/payment/auth-payment-initiation"]::before,
@@ -825,11 +946,13 @@ nav[aria-label="Navigation"] a[href*="standing-instructions/si-cancellation"]::b
   }
 }
 
-/* ── Payment / SI API Reference: hide OpenAPI Authorizations, Body, Response
-      field panels; keep Try It playground + MDX guide content ─────────── */
+/* Legacy payment API pages: hide OpenAPI field panels (MDX carries the narrative).
+   Payments V2 API reference pages keep Request body visible. */
 
-article:has(#authorization-x-gl-token-external) .api-section-heading,
-article:has(#authorization-x-gl-token-external) .primitive-param-field {
+article:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .api-section-heading,
+article:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .primitive-param-field,
+#content-area:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .api-section-heading,
+#content-area:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .primitive-param-field {
   display: none !important;
 }
 

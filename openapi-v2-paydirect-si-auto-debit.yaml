@@ -1,0 +1,117 @@
+---
+openapi: 3.0.3
+info:
+  title: PayDirect initiate — SI auto debit (Payments V2)
+  version: 1.0.0
+  description: Payments V2 documentation slice. Production calls use `POST /gl/v1/payments/initiate`.
+servers:
+- url: https://api.payglocal.in
+  description: Production
+- url: https://api.uat.payglocal.in
+  description: Sandbox
+paths:
+  "/gl/v1/payments/initiate":
+    post:
+      operationId: paydirectInitiateSIAutoDebit
+      x-hidden: true
+      summary: PayDirect AUTO DEBIT standing instruction (request body)
+      description: |
+        **Endpoint:** `POST /gl/v1/payments/initiate` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.
+
+        Register a scheduled auto debit mandate. **International cards only.** Use `type: FIXED`, scheduled `frequency`, and `startDate`.
+      tags:
+      - Payment
+      security:
+      - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/TransactionRequestPayDirectSIAutoDebit"
+            examples:
+              si_auto_debit_monthly:
+                summary: AUTO DEBIT — MONTHLY FIXED
+                value:
+                  merchantTxnId: 23AEE8CB6B62EE2AF07
+                  merchantUniqueId: IFNN939494NJFJ
+                  merchantCallbackURL: https://api.prod.payglocal.in/gl/v1/payments/merchantCallback
+                  standingInstruction:
+                    data:
+                      amount: '15000'
+                      numberOfPayments: N
+                      frequency: MONTHLY
+                      type: FIXED
+                      startDate: '20260903'
+                  paymentData:
+                    totalAmount: '10.00'
+                    txnCurrency: INR
+                    cardData:
+                      number: '4111111111111111'
+                      expiryMonth: '05'
+                      expiryYear: '2026'
+                      securityCode: '111'
+                    billingData:
+                      firstName: John
+                      lastName: Doe
+                      addressStreet1: 221B Baker Street
+                      addressCity: Bengaluru
+                      addressCountry: IND
+                      emailId: john.doe@example.com
+                      callingCode: "+91"
+                      phoneNumber: '9999999999'
+      responses:
+        '200':
+          description: 'Returned immediately from initiate. Redirect the customer to `data.redirectUrl`, then poll `data.statusUrl` or [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status). When mandate registration succeeds, `data.mandateId` may be present in `data`.
+
+'
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponsePayDirectInitiateSI"
+              example:
+                gid: gl_o-a057c4d6b6c620741apzp0ZX2
+                status: INPROGRESS
+                message: Transaction Created Successfully
+                timestamp: 02/06/2026 21:47:33
+                reasonCode: '200'
+                data:
+                  redirectUrl: https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example
+                  statusUrl: https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example
+                  merchantTxnId: 23AEE8CB6B62EE2AF07
+                  mandateId: md_925996a0-9da6-42df-b968-8a14729885fd
+                errors: 
+        '400':
+          description: |
+            Invalid request or processing error. Common `reasonCode` values on initiate:
+
+            | Reason code | Typical cause |
+            |-------------|----------------|
+            | `GL-400-001` | Invalid request fields or error processing request |
+            | `GL-201-020` | Card domicile or card type not set up in merchant config; merchant configuration mismatch |
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BadRequestErrorResponse"
+        '403':
+          "$ref": "#/components/responses/Forbidden"
+        '429':
+          description: 'Too many requests with the same `merchantUniqueId`. `reasonCode` is typically `GL-400-001`.
+
+'
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BadRequestErrorResponse"
+components:
+  securitySchemes:
+    JwsTokenAuth:
+      type: apiKey
+      in: header
+      name: x-gl-token-external
+      description: |
+        RSA-signed JWS (JSON Web Signature) token carrying the request payload.
+        - Header: `{ "alg": "RS256", "kid": "<merchant-key-id>", "iss": "<merchant-id>", "x-gl-enc": "false", "is-digested": "true" }`
+        - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
+        - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
+  schemas: {}

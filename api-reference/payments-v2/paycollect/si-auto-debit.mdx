@@ -1,0 +1,75 @@
+---
+title: "Standing instruction — auto debit"
+description: "AUTO DEBIT standing instructions — scheduled FIXED debits after PayCollect mandate registration on hosted checkout."
+openapi: "openapi-v2-paycollect-si-auto-debit.yaml POST /gl/v1/payments/initiate/paycollect"
+---
+
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
+## AUTO DEBIT standing instructions
+
+**AUTO DEBIT** standing instructions automatically process subsequent debits based on the configured schedule after successful mandate registration.
+
+Registration uses the same PayCollect initiate endpoint as [GPI](/api-reference/payments-v2/paycollect/gpi) with a `standingInstruction` block. The customer completes mandate setup on the **hosted checkout** page.
+
+### Key points
+
+- Register the mandate using the **Initiate API** with **`startDate`** and a scheduled **`frequency`** such as `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `HALFYEARLY`, or `YEARLY` (not `ONDEMAND`).
+- After successful registration, subsequent debit transactions are **automatically initiated** according to the configured schedule.
+- **No [SI sale API](/api-reference/standing-instructions/si-subsequent-payment) calls** are required for subsequent debit transactions.
+- The amount for subsequent debits must be **`FIXED`**.
+
+<Warning>
+  When **Auto Debit** is enabled for your MID, `ONDEMAND` frequency and `VARIABLE` type are not supported.
+</Warning>
+
+---
+
+## Supported payment methods
+
+| Method | Domestic | International |
+|--------|:--------:|:-------------:|
+| Cards | — | ✓ |
+
+Standing instruction registration on hosted checkout supports **international cards** only. UPI, net banking, and domestic-only methods are not supported for SI.
+
+## Notes
+
+- Do **not** send **`cardData`** or **`tokenData`** — the customer registers the mandate on the PayGlocal hosted page.
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **Path** | `/gl/v1/payments/initiate/paycollect` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate/paycollect` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect` |
+
+<Info>
+  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
+</Info>
+
+---
+
+## Headers
+
+Same as [PayCollect — GPI](/api-reference/payments-v2/paycollect/gpi).
+
+Set `standingInstruction.data` (`amount`, scheduled `frequency`, `type: FIXED`, `startDate`) in **Request body** below.
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Next actions
+
+PayGlocal debits on your configured schedule. **Do not** call [SI subsequent payment](/api-reference/standing-instructions/si-subsequent-payment) for scheduled debits.
+
+| Action | API |
+|--------|-----|
+| Mandate status | [Check mandate status](/api-reference/standing-instructions/si-status) |
+| Cancel mandate | [Cancel standing instruction](/api-reference/standing-instructions/si-cancellation) |
+| Each scheduled debit | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) and your `merchantCallbackURL` |
+
+</div>

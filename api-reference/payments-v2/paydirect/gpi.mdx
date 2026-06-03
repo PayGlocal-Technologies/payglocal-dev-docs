@@ -1,0 +1,65 @@
+---
+title: "PayDirect — GPI"
+description: "PayGlocal Payment Initiate (GPI) — one-step PayDirect sale via POST /gl/v1/payments/initiate."
+openapi: "openapi-v2-paydirect-gpi.yaml POST /gl/v1/payments/initiate"
+---
+
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
+## What is GPI?
+
+**GPI (PayGlocal Payment Initiate)** is the API call that **starts a PayDirect payment**. You send transaction and card (or token) data in one request; PayGlocal returns a `gid` and a `redirectUrl`. Send the customer to that URL to complete 3DS, then read the outcome from your callback or the status API.
+
+---
+
+## Supported payment methods
+
+| Method | Domestic | International |
+|--------|:--------:|:-------------:|
+| Cards | ✓ | ✓ |
+| Apple Pay | — | ✓ |
+
+PayDirect GPI does not support UPI, net banking, or global alternative payments — use [PayCollect — GPI](/api-reference/payments-v2/paycollect/gpi) for those.
+
+## Notes
+
+- In **Request body** → `paymentData`, send **`cardData` or `tokenData`** (exactly one is mandatory).
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **Path** | `/gl/v1/payments/initiate` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate` |
+
+<Info>
+  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
+</Info>
+
+---
+
+## Headers
+
+| Header | Mandatory | Description |
+|--------|-----------|-------------|
+| `Content-Type` | Yes | `application/json` |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** of the request body (see [Key Management](/key-management/overview)) |
+| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
+| `x-gl-kid` | Yes | Key ID of the private key used to sign the JWS |
+
+Sign the JSON from **Request body** below as the JWS in `x-gl-token-external`, then POST to the URL above.
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Next steps
+
+| Step | API |
+|------|-----|
+| Confirm outcome | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) |
+| Refund (after capture) | [Refund](/api-reference/payment/refund) |
+
+</div>

@@ -1,0 +1,70 @@
+---
+title: "PayCollect — GPI"
+description: "PayGlocal Payment Initiate (GPI) — one-step hosted sale via POST /gl/v1/payments/initiate/paycollect. No card data in your request."
+openapi: "openapi-v2-paycollect-gpi.yaml POST /gl/v1/payments/initiate/paycollect"
+---
+
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
+## What is GPI?
+
+**GPI (PayGlocal Payment Initiate)** starts a **PayCollect** payment. You initiate from your server with transaction and billing data; PayGlocal returns a `gid` and a `redirectUrl`. Send the customer to that URL to pay on the hosted checkout, then read the outcome from your callback or the status API.
+
+---
+
+## Supported payment methods
+
+The customer chooses on the hosted page:
+
+| Method | Domestic | International |
+|--------|:--------:|:-------------:|
+| Cards | ✓ | ✓ |
+| [UPI Intent](/api-reference/payment/upi) | ✓ | — |
+| Net banking | ✓ | — |
+| Apple Pay | — | ✓ |
+| Global alternative payments | — | ✓ |
+
+See [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) for response shapes per method.
+
+<Info>
+  For **global alternative payments**, include `riskData.shippingData.addressCountry` and `emailId` in the request body.
+</Info>
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **Path** | `/gl/v1/payments/initiate/paycollect` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate/paycollect` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect` |
+
+<Info>
+  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
+</Info>
+
+---
+
+## Headers
+
+| Header | Mandatory | Description |
+|--------|-----------|-------------|
+| `Content-Type` | Yes | `application/json` |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** of the request body (see [Key Management](/key-management/overview)) |
+| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
+| `x-gl-kid` | Yes | Key ID of the private key used to sign the JWS |
+
+Sign the JSON from **Request body** below as the JWS in `x-gl-token-external`, then POST to the URL above.
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Next steps
+
+| Step | API |
+|------|-----|
+| Confirm outcome | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) |
+| Refund (after capture) | [Refund](/api-reference/payment/refund) |
+
+</div>

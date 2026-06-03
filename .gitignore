@@ -14,3 +14,8 @@ mint.json.bak
 
 # Mintlify CLI export artifact
 export.zip
+
+# Local layout mockups (not published)
+preview/
+mockup.html
+api-reference-mockup.html

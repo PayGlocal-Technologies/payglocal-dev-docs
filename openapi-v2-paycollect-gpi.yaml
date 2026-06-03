@@ -1,0 +1,82 @@
+---
+openapi: 3.0.3
+info:
+  title: PayCollect initiate — GPI (Payments V2)
+  version: 1.0.0
+  description: Payments V2 documentation slice. Production calls use `POST /gl/v1/payments/initiate/paycollect`.
+servers:
+- url: https://api.payglocal.in
+  description: Production
+- url: https://api.uat.payglocal.in
+  description: Sandbox
+paths:
+  "/gl/v1/payments/initiate/paycollect":
+    post:
+      operationId: paycollectInitiateGPI
+      x-hidden: true
+      summary: PayCollect GPI (request body)
+      description: |
+        **Endpoint:** `POST /gl/v1/payments/initiate/paycollect` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.
+
+        Hosted checkout sale. No `cardData`, `tokenData`, `standingInstruction`, or `captureTxn`.
+      tags:
+      - Payment
+      security:
+      - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/TransactionRequestPayCollectGPI"
+            examples:
+              gpi_sale:
+                summary: GPI sale
+                value:
+                  merchantTxnId: order_1712345678
+                  paymentData:
+                    totalAmount: '100.00'
+                    txnCurrency: INR
+                    billingData:
+                      firstName: John
+                      lastName: Doe
+                      emailId: john.doe@example.com
+                      addressCountry: IND
+                  merchantCallbackURL: https://merchant.example.com/callback
+      responses:
+        '200':
+          description: 'Returned immediately from initiate. Redirect the customer to `data.redirectUrl`, then poll `data.statusUrl` or [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status). A successful GPI sale usually reaches `SENT_FOR_CAPTURE`. **No `mandateId`** in `data`.
+
+'
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ApiResponsePayCollectInitiate"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: INPROGRESS
+                message: Transaction Created Successfully
+                timestamp: 02/06/2026 21:47:33
+                reasonCode: '200'
+                data:
+                  redirectUrl: https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example
+                  statusUrl: https://api.uat.payglocal.in/gl/v1/payments/gl_9c2645ed09edb22e/status?x-gl-token=example
+                  merchantTxnId: order_1712345678
+                errors: 
+        '400':
+          "$ref": "#/components/responses/BadRequest"
+        '401':
+          "$ref": "#/components/responses/Unauthorized"
+components:
+  securitySchemes:
+    JwsTokenAuth:
+      type: apiKey
+      in: header
+      name: x-gl-token-external
+      description: |
+        RSA-signed JWS (JSON Web Signature) token carrying the request payload.
+        - Header: `{ "alg": "RS256", "kid": "<merchant-key-id>", "iss": "<merchant-id>", "x-gl-enc": "false", "is-digested": "true" }`
+        - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
+        - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
+        Used by all `/gl/v1/payments/*` endpoints.
+  schemas: {}

@@ -1,0 +1,75 @@
+---
+title: "Standing instruction — on demand"
+description: "On-demand SI — register a mandate on PayDirect initiate when PayGlocal has enabled on-demand SI on your MID."
+openapi: "openapi-v2-paydirect-si-on-demand.yaml POST /gl/v1/payments/initiate"
+---
+
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
+## On-demand standing instructions
+
+**On-demand SI** is a **PayGlocal MID configuration** — not a restriction that `standingInstruction.data.frequency` must be `ONDEMAND`. You can set any supported `frequency` in the request body.
+
+Use this flow when on-demand SI is enabled for your account. Registration uses the same PayDirect initiate endpoint as [GPI](/api-reference/payments-v2/paydirect/gpi) with a `standingInstruction` block.
+
+### Key points
+
+- Register the mandate using the **Initiate API** with `standingInstruction.data` (see **Request body**).
+- **`frequency`** (`ONDEMAND`, `WEEKLY`, `MONTHLY`, etc.) is a mandate field only — PayGlocal does **not** auto-debit on that schedule for on-demand SI. You trigger **every** subsequent debit by calling the **[SI sale API](/api-reference/standing-instructions/si-subsequent-payment)** (billing cadence is up to you).
+- Subsequent debit amounts:
+  - **`FIXED`** — same `amount` each time.
+  - **`VARIABLE`** — up to `maxAmount` per debit.
+- **`mandateId`** is returned in the Initiate API response (`data.mandateId`) and must be stored for future mandate operations. It is **not returned again** in later transactions.
+
+---
+
+## Supported payment methods
+
+| Method | Domestic | International |
+|--------|:--------:|:-------------:|
+| Cards | — | ✓ |
+
+Standing instructions support **international cards** only. In **Request body** → `paymentData`, send **`cardData` only** (`tokenData` is not supported). UPI, net banking, and domestic-only methods are not supported.
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **Path** | `/gl/v1/payments/initiate` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate` |
+
+<Info>
+  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
+</Info>
+
+---
+
+## Headers
+
+| Header | Mandatory | Description |
+|--------|-----------|-------------|
+| `Content-Type` | Yes | `application/json` |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** of the request body (see [Key Management](/key-management/overview)) |
+| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
+| `x-gl-kid` | Yes | Key ID of the private key used to sign the JWS |
+
+Sign the JSON from **Request body** below as the JWS in `x-gl-token-external`, then POST to the URL above.
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Next actions
+
+Store **`data.mandateId`** from the initiate response — it is not returned on later calls.
+
+| Action | API |
+|--------|-----|
+| Subsequent debit | [SI subsequent payment](/api-reference/standing-instructions/si-subsequent-payment) |
+| Mandate status | [Check mandate status](/api-reference/standing-instructions/si-status) |
+| Cancel mandate | [Cancel standing instruction](/api-reference/standing-instructions/si-cancellation) |
+| Registration / payment outcome | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) |
+
+</div>

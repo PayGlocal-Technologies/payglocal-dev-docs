@@ -8,7 +8,7 @@ openapi: "GET /gl/v1/payments/{id}/status"
 
 Poll this endpoint to check the current lifecycle state of a transaction. The `{id}` path parameter accepts either the PayGlocal `gid` (e.g., `gl-13bbd3c4...`) or your `merchantUniqueId` from the original request.
 
-PayGlocal also posts async updates to your `merchantCallbackURL` on terminal transitions — polling is a safety net, not a substitute.
+PayGlocal also posts async updates to your `merchantCallbackURL` on terminal transitions. **We still recommend calling status after every GPI** for reconciliation. For Payments V2 (PayDirect / PayCollect) with response examples by payment method, see [Get transaction status](/api-reference/payments-v2/common/get-transaction-status).
 
 ## Transaction Status Values
 

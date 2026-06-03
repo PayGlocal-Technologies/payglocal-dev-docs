@@ -1,0 +1,8 @@
+## Next steps
+
+| Action | API |
+|--------|-----|
+| Capture | [POST /payments/{gid}/capture](/api-reference/payment/standalone-capture) |
+| Reverse hold | [POST /payments/{gid}/auth-reversal](/api-reference/payment/standalone-reversal) |
+| Status | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) — expect `AUTHORIZED` until capture |
+| Refund | After `SENT_FOR_CAPTURE` — [Refund](/api-reference/payment/refund) |

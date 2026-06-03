@@ -79,4 +79,286 @@ components:
         - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
         - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
         Used by all `/gl/v1/payments/*` endpoints.
-  schemas: {}
+  schemas:
+    TransactionRequestPayCollectGPI:
+      allOf:
+      - "$ref": "#/components/schemas/PayCollectInitiateFieldsGPI"
+      - type: object
+        description: PayCollect GPI (no mandate, no `captureTxn`).
+    ApiResponsePayCollectInitiate:
+      type: object
+      description: Response envelope for PayCollect initiate (`200`).
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID. Use for status, capture, and refund APIs.
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: High-level status. Typically `INPROGRESS` immediately after initiate.
+          example: INPROGRESS
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Transaction Created Successfully
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+          example: 02/06/2026 21:47:33
+        reasonCode:
+          type: string
+          description: Success code on initiate (e.g. `200`). See `4xx` responses for error codes.
+          example: '200'
+        data:
+          "$ref": "#/components/schemas/InitiateResponseDataPayCollect"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
+          additionalProperties:
+            type: string
+    PayCollectInitiateFieldsGPI:
+      type: object
+      description: PayCollect GPI initiate request (hosted checkout).
+      required:
+      - merchantTxnId
+      - paymentData
+      - merchantCallbackURL
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier. Alphanumeric only.
+          minLength: 4
+          maxLength: 50
+          example: order_1712345678
+        merchantUniqueId:
+          type: string
+          description: Optional stable merchant-side ID for idempotency and reconciliation. Alphanumeric only.
+          minLength: 15
+          maxLength: 40
+        paymentData:
+          "$ref": "#/components/schemas/PaymentPayCollectGPI"
+        riskData:
+          "$ref": "#/components/schemas/Risk"
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: Customers are redirected here post payment completion.
+          example: https://merchant.example.com/callback
+    InitiateResponseDataPayCollect:
+      type: object
+      properties:
+        redirectUrl:
+          type: string
+          format: uri
+          description: Hosted checkout URL — redirect the customer's browser here via **HTTP GET** to complete payment.
+          example: https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example
+        statusUrl:
+          type: string
+          format: uri
+          description: Pre-authenticated URL to poll status after the customer completes payment.
+          example: https://api.uat.payglocal.in/gl/v1/payments/gl_9c2645ed09edb22e/status?x-gl-token=example
+        merchantTxnId:
+          type: string
+          description: Echo of `merchantTxnId` from the initiate request body.
+          example: order_1712345678
+    CommonErrorResponse:
+      type: object
+      properties:
+        gid:
+          type: string
+          example: gl_9c2645ed09edb22e
+        timestamp:
+          type: string
+          example: 10/01/2026 15:00:00
+        reasonCode:
+          type: string
+          example: VALIDATION_ERROR
+        data:
+          type: object
+        errors:
+          type: object
+        errorDetails:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ErrorDetail"
+    PaymentPayCollectGPI:
+      type: object
+      description: 'Hosted checkout payment details for PayCollect GPI. Do not send `cardData`, `tokenData`, or `authenticationData` — the customer pays on `redirectUrl`.
+
+'
+      required:
+      - totalAmount
+      - txnCurrency
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a decimal string. Supports up to 4 decimal places.
+          example: '100.00'
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code. Must be uppercase (e.g. `INR`, `USD`, `EUR`).
+          example: INR
+        billingData:
+          allOf:
+          - "$ref": "#/components/schemas/Billing"
+          description: |
+            Payer billing address. Required for digital product / service transactions
+            and flight bookings. Preferred for all other transaction types.
+    Risk:
+      type: object
+      description: Risk & analytics payload forwarded to fraud engines.
+      properties:
+        customerData:
+          "$ref": "#/components/schemas/Customer"
+        shippingData:
+          "$ref": "#/components/schemas/Shipping"
+        orderData:
+          type: array
+          items:
+            "$ref": "#/components/schemas/RiskItem"
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Name of the field that failed validation.
+          example: panNumber
+        message:
+          type: string
+          description: Human-readable error message.
+          example: Required field is missing
+    Billing:
+      type: object
+      description: Billing address + contact details of the payer.
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        emailId:
+          type: string
+          format: email
+          example: john.doe@example.com
+        callingCode:
+          type: string
+          example: "+91"
+        phoneNumber:
+          type: string
+          example: '9999999999'
+        addressStreet1:
+          type: string
+          example: 221B Baker Street
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+          example: Bengaluru
+        addressState:
+          type: string
+          example: Karnataka
+        addressStateCode:
+          type: string
+          example: KA
+        addressPostalCode:
+          type: string
+          example: '560001'
+        addressCountry:
+          type: string
+          description: ISO 3166-1 alpha-3 country code.
+          example: IND
+    Customer:
+      type: object
+      description: Payer identity for risk evaluation.
+      properties:
+        merchantAssignedCustomerId:
+          type: string
+          example: cust_12345
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        callingCode:
+          type: string
+        mobileNumber:
+          type: string
+    Shipping:
+      type: object
+      description: Shipping address for physical-goods orders.
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        addressStreet1:
+          type: string
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+        addressState:
+          type: string
+        addressPostalCode:
+          type: string
+        addressCountry:
+          type: string
+          example: IND
+    RiskItem:
+      type: object
+      description: Single line-item in the cart for risk analytics.
+      properties:
+        itemId:
+          type: string
+        itemName:
+          type: string
+        itemQuantity:
+          type: integer
+        itemPrice:
+          type: string
+        itemCategory:
+          type: string
+  responses:
+    BadRequest:
+      description: Validation error — missing or invalid fields.
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/CommonErrorResponse"
+          examples:
+            validationError:
+              summary: Validation error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: 10/01/2026 15:00:00
+                reasonCode: VALIDATION_ERROR
+                data: {}
+                errors: 
+                errorDetails:
+                - fieldName: paymentData.totalAmount
+                  message: This field is required
+    Unauthorized:
+      description: Authentication failed — invalid API key or digest.
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/CommonErrorResponse"
+          examples:
+            unauthorizedError:
+              summary: Unauthorized error example
+              value:
+                gid: gl_9c2645ed09edb22e
+                timestamp: 10/01/2026 15:00:00
+                reasonCode: UNAUTHORIZED
+                data: {}
+                errors: 
+                errorDetails:
+                - fieldName: authorization
+                  message: Invalid x-gl-token-external

@@ -154,78 +154,94 @@
             ]
           },
           {
-            "group": "Merchant APIs: Payments",
+            "group": "Payment APIs",
+            "icon": "credit-card",
+            "expanded": true,
             "pages": [
               "api-reference/payment/overview",
-              "api-reference/payment/upi-intent",
-              "api-reference/payment/gpi-paycollect",
-              "api-reference/payment/gpi-initiate",
-              "api-reference/payment/get-status"
-            ]
-          },
-          {
-            "group": "Seamless Flow (PayDirect)",
-            "icon": "credit-card",
-            "pages": [
-              "api-reference/payments-v2/paydirect/overview",
-              "api-reference/payments-v2/paydirect/gpi",
-              "api-reference/payments-v2/paydirect/si-on-demand",
-              "api-reference/payments-v2/paydirect/si-auto-debit",
-              "api-reference/payments-v2/paydirect/auth-capture-authorise"
-            ]
-          },
-          {
-            "group": "Checkout Flow (PayCollect)",
-            "icon": "window",
-            "pages": [
-              "api-reference/payments-v2/paycollect/overview",
-              "api-reference/payments-v2/paycollect/gpi",
-              "api-reference/payments-v2/paycollect/si-on-demand",
-              "api-reference/payments-v2/paycollect/si-auto-debit",
-              "api-reference/payments-v2/paycollect/auth-capture-authorise"
-            ]
-          },
-          {
-            "group": "Standing Instruction Sale",
-            "icon": "repeat",
-            "pages": [
-              "api-reference/standing-instructions/si-subsequent-payment",
-              "api-reference/standing-instructions/si-status",
-              "api-reference/standing-instructions/si-cancellation"
-            ]
-          },
-          {
-            "group": "Capture & reversal",
-            "icon": "shield-check",
-            "pages": [
-              "api-reference/payment/standalone-capture",
-              "api-reference/payment/standalone-reversal"
-            ]
-          },
-          {
-            "group": "Status",
-            "icon": "signal",
-            "pages": [
-              "api-reference/payments-v2/common/get-transaction-status"
-            ]
-          },
-          {
-            "group": "Refund",
-            "icon": "undo",
-            "pages": [
-              "api-reference/payment/refund"
-            ]
-          },
-          {
-            "group": "CodeDrop",
-            "pages": [
-              "api-reference/codedrop"
-            ]
-          },
-          {
-            "group": "Callback Handling",
-            "pages": [
-              "api-reference/callback-handling"
+              {
+                "group": "Seamless Flow (PayDirect)",
+                "icon": "code",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/paydirect/overview",
+                  "api-reference/payments-v2/paydirect/gpi",
+                  "api-reference/payments-v2/paydirect/si-on-demand",
+                  "api-reference/payments-v2/paydirect/si-auto-debit",
+                  "api-reference/payments-v2/paydirect/auth-capture-authorise"
+                ]
+              },
+              {
+                "group": "Checkout Flow (PayCollect)",
+                "icon": "window",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/paycollect/overview",
+                  "api-reference/payments-v2/paycollect/gpi",
+                  "api-reference/payments-v2/paycollect/si-on-demand",
+                  "api-reference/payments-v2/paycollect/si-auto-debit",
+                  "api-reference/payments-v2/paycollect/auth-capture-authorise"
+                ]
+              },
+              {
+                "group": "Standing Instruction Sale",
+                "icon": "repeat",
+                "expanded": true,
+                "pages": [
+                  "api-reference/standing-instructions/si-subsequent-payment",
+                  "api-reference/standing-instructions/si-status",
+                  "api-reference/standing-instructions/si-cancellation"
+                ]
+              },
+              {
+                "group": "Capture & reversal",
+                "icon": "shield-check",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payment/standalone-capture",
+                  "api-reference/payment/standalone-reversal"
+                ]
+              },
+              {
+                "group": "Status",
+                "icon": "signal",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/common/get-transaction-status"
+                ]
+              },
+              {
+                "group": "Refund",
+                "icon": "undo",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payment/refund"
+                ]
+              },
+              {
+                "group": "CodeDrop",
+                "icon": "square-code",
+                "expanded": true,
+                "pages": [
+                  "api-reference/codedrop"
+                ]
+              },
+              {
+                "group": "Callback Handling",
+                "icon": "webhook",
+                "expanded": true,
+                "pages": [
+                  "api-reference/callback-handling"
+                ]
+              },
+              {
+                "group": "Payload Templates",
+                "icon": "clipboard-list",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payload-templates"
+                ]
+              }
             ]
           },
           {
@@ -235,18 +251,27 @@
               "api-reference/mca/account-fetch",
               "api-reference/mca/document-upload"
             ]
-          },
-          {
-            "group": "Payload Templates",
-            "pages": [
-              "api-reference/payload-templates"
-            ]
           }
         ]
       }
     ]
   },
   "redirects": [
+    {
+      "source": "/api-reference/payment/gpi-initiate",
+      "destination": "/api-reference/payments-v2/paydirect/gpi",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/payment/gpi-paycollect",
+      "destination": "/api-reference/payments-v2/paycollect/gpi",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/payment/get-status",
+      "destination": "/api-reference/payments-v2/common/get-transaction-status",
+      "permanent": false
+    },
     {
       "source": "/quickstart",
       "destination": "/introduction",

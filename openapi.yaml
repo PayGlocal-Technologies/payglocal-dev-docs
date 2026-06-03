@@ -2120,6 +2120,7 @@ paths:
         description: Sandbox
     post:
       operationId: initiatePayCollect
+      x-hidden: true
       summary: Initiate PayCollect Transaction (GPI)
       description: |
         **Endpoint:** `POST /gl/v1/payments/initiate/paycollect` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.
@@ -2181,6 +2182,7 @@ paths:
         description: Sandbox
     get:
       operationId: getTransactionStatus
+      x-hidden: true
       summary: Get Transaction Status
       description: |
         Returns the current lifecycle status of a payment. **Recommended after every GPI**

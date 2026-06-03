@@ -1,5 +1,5 @@
 ---
-title: "Payment APIs"
+title: "Overview"
 description: "Overview of PayGlocal's Payment APIs — how authentication works, the GID lifecycle, and quick links to all payment endpoints."
 icon: "credit-card"
 ---
@@ -52,7 +52,7 @@ GPI (POST /initiate)
 
 ## UPI (India)
 
-Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overview, screenshots, and a funds-flow diagram live on **[UPI](/api-reference/payment/upi)**. Request and response shapes (minimal vs enriched body, initiation vs `statusData` after success, headers, callbacks) are documented on **[UPI Intent](/api-reference/payment/upi-intent)**—also linked from the sidebar under **Merchant APIs: Payments → UPI**.
+Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overview, screenshots, and a funds-flow diagram live on **[UPI](/api-reference/payment/upi)**. Request and response shapes (minimal vs enriched body, initiation vs `statusData` after success, headers, callbacks) are documented on **[UPI Intent](/api-reference/payment/upi-intent)**.
 
 <CardGroup cols={2}>
   <Card title="UPI" icon="wallet" href="/api-reference/payment/upi">
@@ -71,14 +71,15 @@ Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overv
 
 | Endpoint | Method | When to Use |
 |----------|--------|-------------|
-| [Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect) | POST | Non-PCI merchants — PayGlocal collects card data |
-| [Initiate Payment (PayDirect)](/api-reference/payment/gpi-initiate) | POST | PCI-certified merchants — you collect card data |
+| [GPI (Checkout Flow)](/api-reference/payments-v2/paycollect/gpi) | POST | Non-PCI merchants — PayGlocal collects card data |
+
+PCI-certified PayDirect initiate is documented under **[Seamless Flow (PayDirect) → GPI](/api-reference/payments-v2/paydirect/gpi)** in the sidebar.
 
 ### Transaction Management
 
 | Endpoint | Method | When to Use |
 |----------|--------|-------------|
-| [Get Transaction Status](/api-reference/payment/get-status) | GET | After GPI, after callback fails, anytime you need status |
+| [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) | GET | After GPI, after callback fails, anytime you need status |
 | [Refund](/api-reference/payment/refund) | POST | For captured payments requiring full or partial refund |
 
 ### Auth & Capture (Separate Flow)

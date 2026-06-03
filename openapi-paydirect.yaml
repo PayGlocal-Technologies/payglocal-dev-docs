@@ -873,6 +873,7 @@ paths:
         description: Sandbox
     post:
       operationId: initiatePayDirectPayment
+      x-hidden: true
       summary: Initiate PayDirect Transaction (GPI)
       description: |
         **Endpoint:** `POST /gl/v1/payments/initiate` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.

@@ -37,6 +37,6 @@ to the `redirectUrl` via HTTP GET to complete 3DS / step-up authentication.
 | `data.mandateId` | Returned only when `standingInstruction` was sent; use for subsequent SI charges |
 
 <Note>
-  After redirecting the customer, poll [Get Status](/api-reference/payment/get-status) using
+  After redirecting the customer, poll [Get Status](/api-reference/payments-v2/common/get-transaction-status) using
   the `gid` until the transaction reaches a terminal state (`SUCCESS`, `FAILED`, or `DECLINED`).
 </Note>

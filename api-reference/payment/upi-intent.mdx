@@ -6,7 +6,7 @@ openapi: "POST /gl/v1/payments/initiate/paycollect"
 
 ## When to Use
 
-Use **UPI Intent** when your merchant uses hosted PayCollect for **INR UPI** and wants PayGlocal to collect the approval flow on its hosted checkout. Your backend calls **[Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect)** (`POST /gl/v1/payments/initiate/paycollect`); the JSON body is the **payment intent**. PayGlocal returns a **hosted `redirectUrl`** so the shopper completes **UPI_INTENT** via QR or in-flow approval.
+Use **UPI Intent** when your merchant uses hosted PayCollect for **INR UPI** and wants PayGlocal to collect the approval flow on its hosted checkout. Your backend calls **[GPI (Checkout Flow)](/api-reference/payments-v2/paycollect/gpi)** (`POST /gl/v1/payments/initiate/paycollect`); the JSON body is the **payment intent**. PayGlocal returns a **hosted `redirectUrl`** so the shopper completes **UPI_INTENT** via QR or in-flow approval.
 
 <Note>
   This page documents **two response shapes** you will see in practice: (1) right after **initiation** — nested envelope with `redirectUrl` / `statusUrl` (session created, customer not finished); (2) after **successful authorization** on a status or payflow payload — `data.statusData` with `paymentMethod: "UPI_INTENT"` and UI-oriented blocks.
@@ -236,7 +236,7 @@ After the customer completes UPI and the transaction moves to a captured (or sen
 1. **HTTP GET** redirect the shopper to `redirectUrl` from Response A ([Payment Initiation Flow](/integration/payment-flow)).
 2. Customer completes **UPI** on the hosted page.
 3. PayGlocal **POSTs** to your `merchantCallbackURL` with **`x-gl-token`**; validate and show your confirmation page.
-4. Use **[Get Transaction Status](/api-reference/payment/get-status)** with the payflow / order `gid` whenever you need authoritative state.
+4. Use **[Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status)** with the payflow / order `gid` whenever you need authoritative state.
 
 ---
 

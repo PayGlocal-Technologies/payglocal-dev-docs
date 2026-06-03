@@ -160,23 +160,60 @@
               "api-reference/payment/upi-intent",
               "api-reference/payment/gpi-paycollect",
               "api-reference/payment/gpi-initiate",
-              "api-reference/payment/get-status",
-              "api-reference/payment/refund"
+              "api-reference/payment/get-status"
             ]
           },
           {
-            "group": "Merchant APIs: Auth & Capture",
+            "group": "Seamless Flow (PayDirect)",
+            "icon": "credit-card",
+            "pages": [
+              "api-reference/payments-v2/paydirect/overview",
+              "api-reference/payments-v2/paydirect/gpi",
+              "api-reference/payments-v2/paydirect/si-on-demand",
+              "api-reference/payments-v2/paydirect/si-auto-debit",
+              "api-reference/payments-v2/paydirect/auth-capture-authorise"
+            ]
+          },
+          {
+            "group": "Checkout Flow (PayCollect)",
+            "icon": "window",
+            "pages": [
+              "api-reference/payments-v2/paycollect/overview",
+              "api-reference/payments-v2/paycollect/gpi",
+              "api-reference/payments-v2/paycollect/si-on-demand",
+              "api-reference/payments-v2/paycollect/si-auto-debit",
+              "api-reference/payments-v2/paycollect/auth-capture-authorise"
+            ]
+          },
+          {
+            "group": "Standing Instruction Sale",
+            "icon": "repeat",
+            "pages": [
+              "api-reference/standing-instructions/si-subsequent-payment",
+              "api-reference/standing-instructions/si-status",
+              "api-reference/standing-instructions/si-cancellation"
+            ]
+          },
+          {
+            "group": "Capture & reversal",
+            "icon": "shield-check",
             "pages": [
               "api-reference/payment/standalone-capture",
               "api-reference/payment/standalone-reversal"
             ]
           },
           {
-            "group": "Merchant APIs: Standing Instructions",
+            "group": "Status",
+            "icon": "signal",
             "pages": [
-              "api-reference/standing-instructions/si-subsequent-payment",
-              "api-reference/standing-instructions/si-cancellation",
-              "api-reference/standing-instructions/si-status"
+              "api-reference/payments-v2/common/get-transaction-status"
+            ]
+          },
+          {
+            "group": "Refund",
+            "icon": "undo",
+            "pages": [
+              "api-reference/payment/refund"
             ]
           },
           {
@@ -399,7 +436,15 @@
   "api": {
     "openapi": [
       "openapi.yaml",
-      "openapi-paydirect.yaml"
+      "openapi-paydirect.yaml",
+      "openapi-v2-paycollect-gpi.yaml",
+      "openapi-v2-paycollect-si-on-demand.yaml",
+      "openapi-v2-paycollect-si-auto-debit.yaml",
+      "openapi-v2-paycollect-auth.yaml",
+      "openapi-v2-paydirect-gpi.yaml",
+      "openapi-v2-paydirect-si-on-demand.yaml",
+      "openapi-v2-paydirect-si-auto-debit.yaml",
+      "openapi-v2-paydirect-auth.yaml"
     ],
     "playground": {
       "mode": "simple"

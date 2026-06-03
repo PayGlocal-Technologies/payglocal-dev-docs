@@ -412,46 +412,453 @@ components:
 
     SIData:
       type: object
-      description: Standing-instruction (subscription) configuration.
+      description: Mandate configuration in `standingInstruction.data`.
+      required:
+        - numberOfPayments
+        - frequency
+        - type
+        - mode
       properties:
+        maxAmount:
+          type: string
+          description: Maximum debit amount for recurring transactions. Only when `type` is `VARIABLE`.
+          example: "15000"
+        amount:
+          type: string
+          description: Fixed mandate debit amount. Mandatory when `type` is `FIXED`.
+          example: "15000"
         numberOfPayments:
-          type: integer
-          description: Total number of scheduled payments in the series.
-          example: 12
+          type: string
+          description: Total recurring debits allowed. Positive integer or `"N"` for unlimited.
+          example: "N"
         frequency:
           type: string
-          description: How often the SI debits.
+          description: |
+            Frequency of mandate execution. `ONDEMAND`: merchant triggers each payment.
+            `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `HALFYEARLY`, `YEARLY`: system auto-initiates; first payment on `startDate`, subsequent payments at the configured gap.
           enum:
-            - DAILY
+            - ONDEMAND
             - WEEKLY
+            - BIWEEKLY
             - MONTHLY
             - QUARTERLY
-            - HALF_YEARLY
+            - HALFYEARLY
             - YEARLY
-          example: MONTHLY
         type:
           type: string
-          description: Fixed or variable amount per debit.
+          description: "`VARIABLE` (≤ `maxAmount`) or `FIXED` (exact `amount` each debit)."
           enum:
             - FIXED
             - VARIABLE
-          example: FIXED
+        mode:
+          type: string
+          enum:
+            - REGISTER
+            - PAYREGISTER
+          description: "`REGISTER` or `PAYREGISTER`."
+          example: REGISTER
         startDate:
           type: string
-          description: First debit date (YYYY-MM-DD).
-          example: "2026-05-01"
+          description: Mandate start date (`yyyyMMdd`). Must be after current date. Required for auto debit.
+          example: "20260903"
         endDate:
           type: string
-          description: Last debit date (YYYY-MM-DD).
-          example: "2027-04-01"
+          description: Mandate end date (`yyyyMMdd`). Optional.
+          example: "20280911"
+
+    SIDataOnDemand:
+      type: object
+      description: |
+        Mandate fields for standing instruction registration when **on-demand SI** is enabled on your PayGlocal MID.
+        `frequency` is not limited to `ONDEMAND` — set the schedule you need.
+        Do **not** send `startDate` or `endDate` — those apply only to [auto debit](/api-reference/payments-v2/paycollect/si-auto-debit).
+      required:
+        - maxAmount
+        - amount
+        - numberOfPayments
+        - frequency
+        - type
+      properties:
         maxAmount:
           type: string
-          description: Required when `type=VARIABLE`. Upper cap per debit.
-          example: "5000.00"
+          description: Maximum debit amount for recurring transactions. Numeric string. Used when `type` is `VARIABLE` (debit ≤ `maxAmount` per transaction).
+          example: "15000"
+        amount:
+          type: string
+          description: Fixed mandate debit amount. Numeric string. Used when `type` is `FIXED` (exact amount each debit).
+          example: "15000"
+        numberOfPayments:
+          type: string
+          description: Total recurring debits allowed. Any positive integer from `1` to `N`, or `"N"` for unlimited / infinite recurring debits.
+          example: "N"
+        frequency:
+          type: string
+          description: |
+            Mandate schedule label (`ONDEMAND`, `WEEKLY`, `MONTHLY`, etc.). When **on-demand SI** is enabled on your MID, PayGlocal does **not** auto-debit on this schedule — you trigger each subsequent payment manually via the [SI sale API](/api-reference/standing-instructions/si-subsequent-payment), regardless of `frequency`.
+          enum:
+            - ONDEMAND
+            - WEEKLY
+            - BIWEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALFYEARLY
+            - YEARLY
+        type:
+          type: string
+          description: "`VARIABLE` (≤ `maxAmount`) or `FIXED` (exact `amount` each debit)."
+          enum:
+            - FIXED
+            - VARIABLE
+
+    SIDataAutoDebit:
+      type: object
+      description: Mandate fields for auto debit (`standingInstruction.data`).
+      required:
+        - amount
+        - numberOfPayments
+        - frequency
+        - type
+        - startDate
+      properties:
+        amount:
+          type: string
+          example: "15000"
+        numberOfPayments:
+          type: string
+          description: Total recurring debits allowed. Any positive integer from `1` to `N`, or `"N"` for unlimited / infinite recurring debits.
+          example: "N"
+        frequency:
+          type: string
+          enum:
+            - WEEKLY
+            - BIWEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALFYEARLY
+            - YEARLY
+        type:
+          type: string
+          enum:
+            - FIXED
+        startDate:
+          type: string
+          description: First debit date (`yyyyMMdd`). Must be after the current date.
+          example: "20260903"
+        endDate:
+          type: string
+          description: Optional (`yyyyMMdd`).
+
+    StandingInstructionOnDemand:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/SIDataOnDemand"
+
+    StandingInstructionAutoDebit:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/SIDataAutoDebit"
+
+    InitiateResponseDataPayCollect:
+      type: object
+      properties:
+        redirectUrl:
+          type: string
+          format: uri
+          description: Hosted checkout URL — redirect the customer's browser here via **HTTP GET** to complete payment.
+          example: "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example"
+        statusUrl:
+          type: string
+          format: uri
+          description: Pre-authenticated URL to poll status after the customer completes payment.
+          example: "https://api.uat.payglocal.in/gl/v1/payments/gl_9c2645ed09edb22e/status?x-gl-token=example"
+        merchantTxnId:
+          type: string
+          description: Echo of `merchantTxnId` from the initiate request body.
+          example: order_1712345678
+
+    InitiateResponseDataPayCollectSI:
+      allOf:
+        - $ref: "#/components/schemas/InitiateResponseDataPayCollect"
+        - type: object
+          description: |
+            Standing instruction registration may also return **`mandateId`** in `data` — store it for SI sale, status, and cancel.
+          properties:
+            mandateId:
+              type: string
+              description: |
+                PayGlocal mandate identifier when `standingInstruction` was sent. Not returned on later transactions.
+              example: md_925996a0-9da6-42df-b968-8a14729885fd
+
+    ApiResponsePayCollectInitiate:
+      type: object
+      description: Response envelope for PayCollect initiate (`200`).
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID. Use for status, capture, and refund APIs.
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: High-level status. Typically `INPROGRESS` immediately after initiate.
+          example: INPROGRESS
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Transaction Created Successfully
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+          example: "02/06/2026 21:47:33"
+        reasonCode:
+          type: string
+          description: Success code on initiate (e.g. `200`). See `4xx` responses for error codes.
+          example: "200"
+        data:
+          $ref: "#/components/schemas/InitiateResponseDataPayCollect"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
+          additionalProperties:
+            type: string
+
+    ApiResponsePayCollectInitiateSI:
+      type: object
+      description: |
+        Response envelope for PayCollect standing instruction initiate (`200`). `data` may include `mandateId`.
+        No fields in this envelope are marked required.
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID. Use for status, capture, and refund APIs.
+          example: gl_o-a057c4d6b6c620741apzp0ZX2
+        status:
+          type: string
+          description: High-level status. Typically `INPROGRESS` immediately after initiate.
+          example: INPROGRESS
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Transaction Created Successfully
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+          example: "02/06/2026 21:47:33"
+        reasonCode:
+          type: string
+          description: Success code on initiate (e.g. `200`). See `4xx` responses for error codes.
+          example: "200"
+        data:
+          $ref: "#/components/schemas/InitiateResponseDataPayCollectSI"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
+          additionalProperties:
+            type: string
+
+    PayCollectInitiateFieldsSI:
+      type: object
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier. Alphanumeric only.
+          minLength: 4
+          maxLength: 50
+          example: "23AEE8CB6B62EE2AF07"
+        merchantUniqueId:
+          type: string
+          description: Optional stable merchant-side ID for idempotency and reconciliation. Alphanumeric only.
+          minLength: 15
+          maxLength: 40
+          example: "IFNN939494NJFJ"
+        riskData:
+          allOf:
+            - $ref: "#/components/schemas/Risk"
+          description: Recommended for fraud checks and processor compliance.
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: Customers are redirected here post payment completion.
+          example: "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback"
+
+    PaymentPayCollectInitiateHostedSI:
+      type: object
+      description: |
+        Hosted checkout payment details for PayCollect standing instruction registration.
+        Do **not** send `cardData`, `tokenData`, or `authenticationData` — the customer registers the mandate on `redirectUrl`.
+      required:
+        - totalAmount
+        - txnCurrency
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a decimal string. Supports up to 4 decimal places.
+          example: "10.00"
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code. Must be uppercase (e.g. `INR`, `USD`, `EUR`).
+          example: INR
+        billingData:
+          allOf:
+            - $ref: "#/components/schemas/Billing"
+          description: |
+            Cardholder billing address. Required for digital product / service transactions
+            and flight bookings. Preferred for all other transaction types.
+
+    PayCollectInitiateFields:
+      type: object
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier.
+          example: order_1712345678
+        paymentData:
+          $ref: "#/components/schemas/Payment"
+        riskData:
+          $ref: "#/components/schemas/Risk"
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: URL PayGlocal redirects to after payment completion.
+        merchantCustomPayload:
+          type: object
+          additionalProperties:
+            type: string
+        dcc_indicator:
+          type: boolean
+        dccReferenceGid:
+          type: string
+
+    PaymentPayCollectGPI:
+      type: object
+      description: |
+        Hosted checkout payment details for PayCollect GPI. Do not send `cardData`, `tokenData`, or `authenticationData` — the customer pays on `redirectUrl`.
+      required:
+        - totalAmount
+        - txnCurrency
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a decimal string. Supports up to 4 decimal places.
+          example: "100.00"
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code. Must be uppercase (e.g. `INR`, `USD`, `EUR`).
+          example: INR
+        billingData:
+          allOf:
+            - $ref: "#/components/schemas/Billing"
+          description: |
+            Payer billing address. Required for digital product / service transactions
+            and flight bookings. Preferred for all other transaction types.
+
+    PayCollectInitiateFieldsGPI:
+      type: object
+      description: PayCollect GPI initiate request (hosted checkout).
+      required:
+        - merchantTxnId
+        - paymentData
+        - merchantCallbackURL
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier. Alphanumeric only.
+          minLength: 4
+          maxLength: 50
+          example: order_1712345678
+        merchantUniqueId:
+          type: string
+          description: Optional stable merchant-side ID for idempotency and reconciliation. Alphanumeric only.
+          minLength: 15
+          maxLength: 40
+        paymentData:
+          $ref: "#/components/schemas/PaymentPayCollectGPI"
+        riskData:
+          $ref: "#/components/schemas/Risk"
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: Customers are redirected here post payment completion.
+          example: https://merchant.example.com/callback
+
+    TransactionRequestPayCollectGPI:
+      allOf:
+        - $ref: "#/components/schemas/PayCollectInitiateFieldsGPI"
+        - type: object
+          description: PayCollect GPI (no mandate, no `captureTxn`).
+
+    TransactionRequestPayCollectSIOnDemand:
+      allOf:
+        - $ref: "#/components/schemas/PayCollectInitiateFieldsSI"
+        - type: object
+          description: |
+            PayCollect standing instruction registration when **on-demand SI** is enabled on the MID.
+            **International cards only** on hosted checkout (no UPI, net banking, or domestic-only methods).
+            Do **not** send `cardData` or `tokenData` in `paymentData`.
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - standingInstruction
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayCollectInitiateHostedSI"
+            standingInstruction:
+              $ref: "#/components/schemas/StandingInstructionOnDemand"
+
+    TransactionRequestPayCollectSIAutoDebit:
+      allOf:
+        - $ref: "#/components/schemas/PayCollectInitiateFieldsSI"
+        - type: object
+          description: |
+            PayCollect auto debit standing instruction registration.
+            **International cards only** on hosted checkout (no UPI, net banking, or domestic-only methods).
+            Do **not** send `cardData` or `tokenData` in `paymentData`.
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - standingInstruction
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayCollectInitiateHostedSI"
+            standingInstruction:
+              $ref: "#/components/schemas/StandingInstructionAutoDebit"
+
+    TransactionRequestPayCollectAuth:
+      allOf:
+        - $ref: "#/components/schemas/PayCollectInitiateFieldsSI"
+        - type: object
+          description: |
+            PayCollect auth-only initiate (`captureTxn` must be `false`).
+            Do **not** send `cardData`, `tokenData`, or `standingInstruction` in the request body.
+            Hosted checkout for auth supports **cards** and **international Apple Pay** only — **not** UPI or net banking.
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - captureTxn
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayCollectInitiateHostedSI"
+            captureTxn:
+              type: boolean
+              description: Must be `false` for authorise-only.
+              enum:
+                - false
 
     StandingInstruction:
       type: object
-      description: SI metadata attached to an `/initiate` request or used for SI operations.
+      description: Required on initiate when registering a mandate. Used on SI sale/status with `mandateId`.
+      required:
+        - data
       properties:
         data:
           $ref: "#/components/schemas/SIData"
@@ -548,6 +955,8 @@ components:
           $ref: "#/components/schemas/Risk"
         standingInstruction:
           $ref: "#/components/schemas/StandingInstruction"
+          description: |
+            **Mandatory** when registering a standing instruction on initiate. Omit for GPI-only sales without a mandate.
         merchantCallbackURL:
           type: string
           format: uri
@@ -563,6 +972,95 @@ components:
         dccReferenceGid:
           type: string
           description: PayGlocal DCC quote reference (when `dcc_indicator=true`).
+
+    TransactionStatusData:
+      type: object
+      description: |
+        `data` payload for transaction status. Fields present depend on `payment-method`
+        (e.g. `CARD`, `UPI_INTENT`, `INB`, `ZIP`). See response examples on
+        [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status).
+      properties:
+        transactionCreationTime:
+          type: string
+          description: Transaction creation time (`DD/MM/YYYY HH:MM:SS`).
+        gid:
+          type: string
+          description: PayGlocal transaction ID (may differ from top-level `gid` prefix).
+        payment-method:
+          type: string
+          description: Payment method code — `CARD`, `UPI_INTENT`, `INB`, `ZIP`, etc.
+        Amount:
+          type: string
+          description: Transaction amount.
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency from the original payment request.
+        merchantTxnId:
+          type: string
+          description: Merchant transaction reference from initiate.
+        merchantLogo:
+          type: string
+          nullable: true
+          description: Merchant logo URL when configured (often `null`).
+        detailedMessage:
+          type: string
+          description: Processor or gateway detail message.
+        Currency:
+          type: string
+          description: Settlement or display currency.
+        reasonCode:
+          type: string
+          description: Status reason code (e.g. `GL-201-001`).
+        status:
+          type: string
+          description: Transaction lifecycle status inside `data` (e.g. `SENT_FOR_CAPTURE`, `AUTHORIZED`).
+        CardBrand:
+          type: string
+          description: Card network (`CARD` / Apple Pay). e.g. `VISA`.
+        CardType:
+          type: string
+          description: "CREDIT or DEBIT (CARD only)."
+        Country:
+          type: string
+          description: Card-issuing country (`CARD` only).
+        processor:
+          type: string
+          description: Processing rail (e.g. `payglocal`) for card payments.
+        authApprovalCode:
+          type: string
+          description: Issuer approval code (`CARD` only).
+        upiTxnAmount:
+          type: string
+          description: UPI transaction amount (`UPI_INTENT` only).
+        upiTxnCurrency:
+          type: string
+          description: UPI currency (`UPI_INTENT` only).
+
+    ApiResponseTransactionStatus:
+      type: object
+      description: Response envelope for `GET /gl/v1/payments/{id}/status`.
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID.
+        status:
+          type: string
+          description: High-level transaction status (e.g. `SENT_FOR_CAPTURE`, `AUTHORIZED`, `INPROGRESS`).
+        message:
+          type: string
+          description: Human-readable status message.
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+        reasonCode:
+          type: string
+          description: Reason code for this status (e.g. `GL-201-001`).
+        data:
+          $ref: "#/components/schemas/TransactionStatusData"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
 
     ApiResponse:
       type: object
@@ -1615,17 +2113,18 @@ paths:
   # ======================== Payment APIs ========================
 
   /gl/v1/payments/initiate/paycollect:
-    servers:
+    servers: &paycollect_initiate_servers
       - url: https://api.payglocal.in
         description: Production
       - url: https://api.uat.payglocal.in
         description: Sandbox
     post:
       operationId: initiatePayCollect
-      summary: Initiate PayCollect Transaction
+      summary: Initiate PayCollect Transaction (GPI)
       description: |
-        Starts a hosted payment-page flow (PayCollect). PayGlocal returns a redirect URL
-        to its hosted checkout where the customer supplies payment details.
+        **Endpoint:** `POST /gl/v1/payments/initiate/paycollect` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.
+
+        Hosted checkout GPI. For SI or auth-only bodies, see Payments V2 flow pages.
       tags:
         - Payment
       security:
@@ -1635,39 +2134,40 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/TransactionRequest"
-                - type: object
-                  required:
-                    - merchantTxnId
-                    - paymentData
-              example:
-                merchantTxnId: order_1712345678
-                paymentData:
-                  totalAmount: "100.00"
-                  txnCurrency: INR
-                  billingData:
-                    firstName: John
-                    lastName: Doe
-                    emailId: john.doe@example.com
-                    addressCountry: IND
-                merchantCallbackURL: https://merchant.example.com/callback
-      responses:
+              $ref: "#/components/schemas/TransactionRequestPayCollectGPI"
+            examples:
+              gpi_sale:
+                summary: GPI sale
+                value:
+                  merchantTxnId: order_1712345678
+                  paymentData:
+                    totalAmount: "100.00"
+                    txnCurrency: INR
+                    billingData:
+                      firstName: John
+                      lastName: Doe
+                      emailId: john.doe@example.com
+                      addressCountry: IND
+                  merchantCallbackURL: https://merchant.example.com/callback
+      responses: &paycollect_initiate_responses_gpi
         "200":
-          description: Transaction initiated; redirect the customer to the hosted page.
+          description: |
+            Returned immediately from initiate. Redirect the customer to `data.redirectUrl`, then poll `data.statusUrl` or [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status). A successful GPI sale usually reaches `SENT_FOR_CAPTURE`. **No `mandateId`** in `data`.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                $ref: "#/components/schemas/ApiResponsePayCollectInitiate"
               example:
                 gid: gl_9c2645ed09edb22e
                 status: INPROGRESS
-                timestamp: "10/01/2026 15:00:00"
-                reasonCode: ""
+                message: Transaction Created Successfully
+                timestamp: "02/06/2026 21:47:33"
+                reasonCode: "200"
                 data:
-                  gid: gl_9c2645ed09edb22e
-                  redirectUrl: https://payments.payglocal.in/checkout/abc123
-                  status: INPROGRESS
+                  redirectUrl: https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example
+                  statusUrl: https://api.uat.payglocal.in/gl/v1/payments/gl_9c2645ed09edb22e/status?x-gl-token=example
+                  merchantTxnId: order_1712345678
+                errors: null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1683,8 +2183,13 @@ paths:
       operationId: getTransactionStatus
       summary: Get Transaction Status
       description: |
-        Returns the current lifecycle status of a transaction. Polls safely — PayGlocal
-        will also post async updates to your `merchantCallbackURL` on terminal transitions.
+        Returns the current lifecycle status of a payment. **Recommended after every GPI**
+        (PayDirect or PayCollect), even though PayGlocal also posts updates to
+        `merchantCallbackURL` — use status polling for reconciliation and as a fallback
+        if the callback is delayed or missed.
+
+        Call `GET /gl/v1/payments/{id}/status` with the PayGlocal `gid`, or use the
+        pre-signed `statusUrl` from the initiate response (`data.statusUrl`).
       tags:
         - Payment
       security:
@@ -1695,27 +2200,130 @@ paths:
           required: true
           schema:
             type: string
-          description: PayGlocal `gid` or merchant transaction ID.
-          example: gl_9c2645ed09edb22e
+          description: PayGlocal `gid` or `merchantTxnId` from the initiate request.
+          example: gl_a057c68620b83a33618l890YrX2
       responses:
         "200":
-          description: Status retrieved successfully.
+          description: |
+            Status retrieved successfully. Top-level `status` reflects the transaction state;
+            `data` includes method-specific fields keyed by `payment-method`.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
-              example:
-                gid: gl_9c2645ed09edb22e
-                status: SUCCESS
-                timestamp: "10/01/2026 15:00:00"
-                reasonCode: ""
-                data:
-                  gid: gl_9c2645ed09edb22e
-                  merchantTxnId: order_1712345678
-                  status: SENT_FOR_CAPTURE
-                  statusDescription: Sent for Capture
-                  amount: "100.00"
-                  currency: INR
+                $ref: "#/components/schemas/ApiResponseTransactionStatus"
+              examples:
+                cardSentForCapture:
+                  summary: Card — sale (`SENT_FOR_CAPTURE`)
+                  value:
+                    gid: gl_a057c68620b83a33618l890YrX2
+                    status: SENT_FOR_CAPTURE
+                    message: Transaction is sent_for_capture
+                    timestamp: "02/06/2026 21:49:23"
+                    reasonCode: GL-201-001
+                    data:
+                      transactionCreationTime: "02/06/2026 21:48:42"
+                      gid: gl_o-a057c68620b83a33fl890YrX2
+                      payment-method: CARD
+                      Amount: "100"
+                      txnCurrency: CAD
+                      merchantTxnId: "23AEE8CB6B62EE2AF07"
+                      CardBrand: VISA
+                      processor: payglocal
+                      detailedMessage: Sent for capture successfully
+                      CardType: CREDIT
+                      Currency: INR
+                      Country: CANADA
+                      reasonCode: GL-201-001
+                      authApprovalCode: "831000"
+                      status: SENT_FOR_CAPTURE
+                    errors: null
+                cardAuthorized:
+                  summary: Card — auth only (`AUTHORIZED`)
+                  value:
+                    gid: gl_a058857664323e2d793ge6c0ZX2
+                    status: AUTHORIZED
+                    message: Transaction is authorized
+                    timestamp: "02/06/2026 23:59:51"
+                    reasonCode: GL-201-001
+                    data:
+                      transactionCreationTime: "02/06/2026 23:59:03"
+                      gid: gl_o-a058857664323e2d9ge6c0ZX2
+                      payment-method: CARD
+                      Amount: "10"
+                      txnCurrency: CAD
+                      merchantTxnId: "23AEE8CB6B62EE2AF07"
+                      CardBrand: VISA
+                      processor: payglocal
+                      detailedMessage: Sent for authorization successfully
+                      CardType: CREDIT
+                      Currency: INR
+                      Country: CANADA
+                      reasonCode: GL-201-001
+                      authApprovalCode: "831000"
+                      status: AUTHORIZED
+                    errors: null
+                upiSentForCapture:
+                  summary: UPI Intent — `SENT_FOR_CAPTURE`
+                  value:
+                    gid: gl_a057bc0fd17d20744963ki0YrX2
+                    status: SENT_FOR_CAPTURE
+                    message: Transaction is sent_for_capture
+                    timestamp: "02/06/2026 21:42:51"
+                    reasonCode: GL-201-001
+                    data:
+                      transactionCreationTime: "02/06/2026 21:41:33"
+                      gid: gl_o-a057bc0fd17d207473ki0YrX2
+                      payment-method: UPI_INTENT
+                      Amount: "100"
+                      txnCurrency: INR
+                      merchantLogo: null
+                      merchantTxnId: "23AEE8CB6B62EE2AF07"
+                      detailedMessage: Capture request completed successfully
+                      Currency: INR
+                      upiTxnAmount: "100"
+                      reasonCode: GL-201-001
+                      status: SENT_FOR_CAPTURE
+                      upiTxnCurrency: INR
+                    errors: null
+                netBankingSentForCapture:
+                  summary: Net banking (`INB`) — `SENT_FOR_CAPTURE`
+                  value:
+                    gid: gl_a057bfe78643520ae7831q0YrX2
+                    status: SENT_FOR_CAPTURE
+                    message: Transaction is sent_for_capture
+                    timestamp: "02/06/2026 21:46:16"
+                    reasonCode: GL-201-001
+                    data:
+                      detailedMessage: Capture request completed successfully
+                      transactionCreationTime: "02/06/2026 21:44:11"
+                      gid: gl_o-a057bfe78643520ac31q0YrX2
+                      payment-method: INB
+                      Amount: "100"
+                      Currency: INR
+                      txnCurrency: INR
+                      merchantTxnId: "23AEE8CB6B62EE2AF07"
+                      reasonCode: GL-201-001
+                      status: SENT_FOR_CAPTURE
+                    errors: null
+                globalAltPaySentForCapture:
+                  summary: Global alt pay (`ZIP`) — `SENT_FOR_CAPTURE`
+                  value:
+                    gid: gl_o-a0563363ad9883056l7w0jsYC
+                    status: SENT_FOR_CAPTURE
+                    message: "Transaction status : sent_for_capture"
+                    timestamp: "02/06/2026 21:53:46"
+                    reasonCode: GL-201-001
+                    data:
+                      detailedMessage: Success
+                      transactionCreationTime: "02/06/2026 17:13:30"
+                      gid: gl_o-a0563363ad9883056l7w0jsYC
+                      payment-method: ZIP
+                      Amount: "1699.0"
+                      Currency: AUD
+                      merchantTxnId: nCog3d2hkCkxW-01
+                      reasonCode: GL-201-001
+                      status: SENT_FOR_CAPTURE
+                    errors: null
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -1910,9 +2518,10 @@ paths:
       operationId: siSubsequentSale
       summary: SI Subsequent Payment
       description: |
-        Triggers a subsequent debit against an active standing-instruction mandate.
-        Use `FIXED` for pre-agreed recurring amounts, `VARIABLE` for variable amounts
-        (subject to the mandate's `maxAmount` cap).
+        Triggers a subsequent debit for an **on-demand** (`frequency: ONDEMAND`) mandate only.
+        **Not used for auto debit** — scheduled mandates are debited by PayGlocal.
+        Register via [PayDirect — SI on demand](/api-reference/payments-v2/paydirect/si-on-demand) or
+        [PayCollect — SI on demand](/api-reference/payments-v2/paycollect/si-on-demand).
       tags:
         - Standing Instructions
       security:

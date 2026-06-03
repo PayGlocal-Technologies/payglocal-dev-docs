@@ -1,0 +1,9 @@
+## Next actions
+
+PayGlocal debits on your configured schedule. **Do not** call [SI subsequent payment](/api-reference/standing-instructions/si-subsequent-payment) for scheduled debits.
+
+| Action | API |
+|--------|-----|
+| Mandate status | [Check mandate status](/api-reference/standing-instructions/si-status) |
+| Cancel mandate | [Cancel standing instruction](/api-reference/standing-instructions/si-cancellation) |
+| Each scheduled debit | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) and your `merchantCallbackURL` |

@@ -1,7 +1,7 @@
 ---
 title: "How API Integration Works"
 sidebarTitle: "How API Integration Works"
-description: "Understand PayGlocal's two API integration modes — PayCollect and PayDirect — and the payment types that work with both."
+description: "Understand PayGlocal's two API integration modes — Checkout Flow (PayCollect) and Seamless Flow (PayDirect) — and the payment types that work with both."
 icon: "code"
 ---
 
@@ -9,7 +9,7 @@ With API integration, your backend calls PayGlocal's APIs, and PayGlocal handles
 
 <CardGroup cols={2}>
   <Card title="1. Integration mode" icon="shuffle" color="#1A6FE8">
-    **How you collect card details** — on PayGlocal's hosted page (**PayCollect**) or in your own UI (**PayDirect**).
+    **How you collect card details** — on PayGlocal's hosted page (**Checkout Flow / PayCollect**) or in your own UI (**Seamless Flow / PayDirect**).
   </Card>
   <Card title="2. Payment type" icon="layer-group" color="#10B981">
     **What kind of payment you run** — Regular, Recurring, Auth & Capture, or CodeDrop. These work with **either** mode.
@@ -25,19 +25,19 @@ The two axes are independent: pick the mode that matches your PCI status, then i
 The deciding question: **who collects the card details — you or PayGlocal?**
 
 <CardGroup cols={2}>
-  <Card title="PayCollect" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
     **PayGlocal collects card details** on a secure hosted page. You send a request and never touch card data.
 
     → No PCI DSS certification needed.
 
-    [PayCollect details →](/merchant/paycollect/overview)
+    [Checkout Flow (PayCollect) details →](/merchant/paycollect/overview)
   </Card>
-  <Card title="PayDirect" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
+  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
     **You collect card details** in your own checkout UI and send them to PayGlocal. No redirect.
 
     → Requires PCI DSS certification.
 
-    [PayDirect details →](/merchant/paydirect/overview)
+    [Seamless Flow (PayDirect) details →](/merchant/paydirect/overview)
   </Card>
 </CardGroup>
 
@@ -45,7 +45,7 @@ The deciding question: **who collects the card details — you or PayGlocal?**
 
 ## Step 2 — Choose Your Payment Types
 
-Payment types are **mode-agnostic** — each works with PayCollect or PayDirect.
+Payment types are **mode-agnostic** — each works with Checkout Flow (PayCollect) or Seamless Flow (PayDirect).
 
 <CardGroup cols={2}>
   <Card title="Regular Payment" icon="credit-card" href="/merchant/regular-payment">
@@ -68,7 +68,7 @@ Payment types are **mode-agnostic** — each works with PayCollect or PayDirect.
 
 Any payment type can run on either mode:
 
-| Payment type | PayCollect | PayDirect |
+| Payment type | Checkout Flow (PayCollect) | Seamless Flow (PayDirect) |
 |---|:---:|:---:|
 | Regular Payment | ✓ | ✓ |
 | Recurring (SI) | ✓ | ✓ |

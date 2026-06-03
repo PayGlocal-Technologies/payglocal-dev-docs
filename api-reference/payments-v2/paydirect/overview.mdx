@@ -1,0 +1,112 @@
+---
+title: "Overview"
+description: "PCI DSS–compliant direct card integration — your checkout collects card data; PayGlocal processes the payment."
+icon: "code"
+---
+
+## Seamless Flow (PayDirect)
+
+**PayDirect** is PayGlocal's server-to-server integration mode for merchants who are PCI DSS certified. In this flow, card details are collected by the merchant's application. The merchant then securely sends the card information to PayGlocal, where the transaction is completed.
+
+Card data (or network tokens) travel in the API request body. PayGlocal handles 3DS authentication, intelligent routing, and settlement on the back end.
+
+<Note>
+  **Not PCI DSS certified?** Use [Checkout Flow (PayCollect)](/api-reference/payments-v2/paycollect/overview) instead — card details are collected on a PayGlocal-hosted page, and you do not need to handle card information in your application.
+</Note>
+
+### Key characteristics
+
+- Can only be used by **PCI DSS certified** merchants.
+- Used when the customer enters card details on the **merchant's own checkout page**.
+- For any new payment methods introduced, merchants need to perform a **technical integration**.
+- All API calls must be made over **server-to-server** communication channels.
+
+---
+
+## Authentication & keys
+
+For PayDirect, download an **RSA key** from the GCC Dashboard. All PayDirect payment calls use this key to generate a **JWS token** passed in the `x-gl-token-external` header.
+
+| Topic | Details |
+|-------|---------|
+| Header | `x-gl-token-external` |
+| Token type | RSA-signed JWS |
+| Setup | [Key Management](/key-management/overview) · [Constructing API Requests](/key-management/request-construction) |
+
+<Warning>
+  Payment APIs use **RSA-signed JWS** — not the HmacSHA256 scheme used by the Merchant Onboarding API.
+</Warning>
+
+---
+
+## Base URLs
+
+| Environment | Base URL |
+|-------------|----------|
+| Production | `https://api.payglocal.in` |
+| Sandbox | `https://api.uat.payglocal.in` |
+
+---
+
+## Supported payment methods
+
+| Method | Domestic | International | Notes |
+|--------|:--------:|:-------------:|-------|
+| Cards | ✓ | ✓ | Send `cardData` or `tokenData` in the request body |
+| Apple Pay | — | ✓ | International cards only |
+
+PayDirect does **not** support UPI, net banking, or global alternative payment methods. Those are available on [Checkout Flow (PayCollect)](/api-reference/payments-v2/paycollect/overview).
+
+---
+
+## Transaction flows
+
+**GPI**, **authorize payment**, **SI on demand**, and **SI auto debit** all use the same initiation endpoint: `POST /gl/v1/payments/initiate`. Only the request body changes.
+
+<CardGroup cols={2}>
+  <Card title="GPI" icon="bolt" href="/api-reference/payments-v2/paydirect/gpi">
+    PayGlocal Payment Initiate — single-step sale.
+  </Card>
+  <Card title="Authorize payment (auth only)" icon="shield-check" href="/api-reference/payments-v2/paydirect/auth-capture-authorise">
+    Hold funds first; capture or reverse later.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={2}>
+  <Card title="SI — ONDEMAND" icon="rotate" href="/api-reference/payments-v2/paydirect/si-on-demand">
+    Subsequent debits via SI sale (FIXED or VARIABLE).
+  </Card>
+  <Card title="SI — AUTO DEBIT" icon="calendar" href="/api-reference/payments-v2/paydirect/si-auto-debit">
+    Scheduled FIXED debits; no SI sale API.
+  </Card>
+</CardGroup>
+
+### GPI (PayGlocal Payment Initiate — sale)
+
+Single-step payment. Funds are **authorised and captured in one call**. Use this for standard e-commerce checkouts where fulfilment is immediate.
+
+→ [GPI](/api-reference/payments-v2/paydirect/gpi) (complete request payload)
+
+### Authorize payment (auth only)
+
+Two-step payment. Set **`captureTxn: false`** to hold funds without capturing. Capture when you are ready to settle, or reverse to release the hold. **Cards and international Apple Pay only** — UPI and net banking are not supported for auth.
+
+→ [Authorize Payment (Auth Only)](/api-reference/payments-v2/paydirect/auth-capture-authorise)
+
+### Standing instructions (international cards)
+
+| Model | Subsequent debits | Amount |
+|-------|-------------------|--------|
+| [ONDEMAND](/api-reference/payments-v2/paydirect/si-on-demand) | You call [SI sale](/api-reference/standing-instructions/si-subsequent-payment) when you choose (weekly/monthly/etc. is up to you) | `FIXED` or `VARIABLE`; no `startDate` |
+| [AUTO DEBIT](/api-reference/payments-v2/paydirect/si-auto-debit) | PayGlocal scheduler (`WEEKLY`, `MONTHLY`, …) — no SI sale | `FIXED` only; `startDate` required |
+
+Store **`mandateId`** from the initiate response — it is not returned on later transactions.
+
+| After initiate | API |
+|----------------|-----|
+| Transaction status | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) |
+| SI sale (on-demand) | [SI subsequent payment](/api-reference/standing-instructions/si-subsequent-payment) |
+| Mandate status | [Check mandate status](/api-reference/standing-instructions/si-status) |
+| Cancel mandate | [Cancel standing instruction](/api-reference/standing-instructions/si-cancellation) |
+| Capture / reversal | [Capture](/api-reference/payment/standalone-capture) · [Auth reversal](/api-reference/payment/standalone-reversal) |
+| Refund | [Refund](/api-reference/payment/refund) (after `SENT_FOR_CAPTURE`) |

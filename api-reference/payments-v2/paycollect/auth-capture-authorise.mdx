@@ -1,0 +1,95 @@
+---
+title: "Authorize Payment (Auth Only)"
+description: "Authorize a hosted PayCollect payment without capturing funds — captureTxn false, then capture or reverse later. No card data in your request."
+openapi: "openapi-v2-paycollect-auth.yaml POST /gl/v1/payments/initiate/paycollect"
+---
+
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
+## Authorize payment (auth only)
+
+Authorize a PayCollect payment **without capturing funds immediately**. This flow places a **hold** on the customer's funds so you can **capture** or **reverse** the authorization later.
+
+The customer completes authentication on PayGlocal's **hosted checkout** (`redirectUrl`). You do **not** send card or token data in the API request.
+
+The same PayCollect initiate API as [GPI](/api-reference/payments-v2/paycollect/gpi) is used for authorization. Set **`captureTxn`** to **`false`** in **Request body**.
+
+---
+
+## When to Use
+
+Use this flow when you need to **verify and reserve funds** before completing the transaction, such as:
+
+- Hotel and hospitality bookings
+- Vehicle rentals
+- Delayed order fulfillment
+- Inventory confirmation workflows
+- Any scenario requiring payment approval before final settlement
+
+After authorization, you can:
+
+- **Capture** the authorized amount to complete the payment — [standalone capture](/api-reference/payment/standalone-capture)
+- **Reverse** the authorization to release the held funds — [auth reversal](/api-reference/payment/standalone-reversal)
+
+---
+
+## Supported payment methods
+
+Authorize (auth only) on hosted checkout supports **cards** and **international Apple Pay** only. **UPI and net banking are not supported** for auth transactions (they are available on [GPI](/api-reference/payments-v2/paycollect/gpi) sale flows).
+
+| Method | Domestic | International |
+|--------|:--------:|:-------------:|
+| Cards | ✓ | ✓ |
+| Apple Pay | — | ✓ |
+
+---
+
+## Notes
+
+- Do **not** send **`cardData`** or **`tokenData`** — payment details are collected on the hosted page.
+- Set **`captureTxn`** to **`false`** in **Request body**, with `paymentData` (amount, currency, `billingData`) as for [GPI](/api-reference/payments-v2/paycollect/gpi).
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `POST` |
+| **Path** | `/gl/v1/payments/initiate/paycollect` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate/paycollect` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect` |
+
+<Info>
+  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
+</Info>
+
+---
+
+## Headers
+
+| Header | Mandatory | Description |
+|--------|-----------|-------------|
+| `Content-Type` | Yes | `application/json` |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** of the request body (see [Key Management](/key-management/overview)) |
+| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
+| `x-gl-kid` | Yes | Key ID of the private key used to sign the JWS |
+
+Sign the JSON from **Request body** below as the JWS in `x-gl-token-external`, then POST to the URL above.
+
+<Warning>
+  Only **one** successful capture is allowed per authorisation.
+</Warning>
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Next steps
+
+| Action | API |
+|--------|-----|
+| Capture | [POST /payments/{gid}/capture](/api-reference/payment/standalone-capture) |
+| Reverse hold | [POST /payments/{gid}/auth-reversal](/api-reference/payment/standalone-reversal) |
+| Status | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) — expect `AUTHORIZED` until capture |
+| Refund | After `SENT_FOR_CAPTURE` — [Refund](/api-reference/payment/refund) |
+
+</div>

@@ -14,7 +14,7 @@ description: "Reference for all response fields returned by PayGlocal's GPI, Get
 | `reasonCode` | PayGlocal reason code (see [Response Codes](/api-fields/response-codes)) |
 | `data.redirectUrl` | URL to redirect the customer's browser to complete payment (GET method) |
 | `data.statusUrl` | URL for the Get Status service call |
-| `data.mandateId` | Mandate ID — only present when Standing Instruction was requested |
+| `data.mandateId` | Mandate ID — only on **standing instruction** initiate responses (not GPI or auth-only) |
 | `errors` | Error details, if any; `null` on success |
 
 ---

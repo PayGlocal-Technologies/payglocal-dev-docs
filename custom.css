@@ -2,6 +2,34 @@
    PayGlocal Developer Portal — Custom Styles
    ============================================================ */
 
+/* Marker — keeps Request body visible on Payments V2 pages. */
+.payments-v2-page.hidden {
+  display: none !important;
+}
+
+/* Single-page flow: intro + Headers → Authorizations / Request body / Response → Next actions.
+   Flex only the Mintlify api-playground wrapper — never #content-area (breaks the code column). */
+#api-playground-2-operation-page:has(.payments-v2-after-api),
+[id^="api-playground"]:has(.payments-v2-after-api) {
+  display: flex;
+  flex-direction: column;
+}
+
+#api-playground-2-operation-page:has(.payments-v2-after-api) .payments-v2-after-api,
+[id^="api-playground"]:has(.payments-v2-after-api) .payments-v2-after-api {
+  order: 100;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(226 232 240);
+  scroll-margin-top: 5rem;
+  width: 100%;
+}
+
+.dark #api-playground-2-operation-page:has(.payments-v2-after-api) .payments-v2-after-api,
+.dark [id^="api-playground"]:has(.payments-v2-after-api) .payments-v2-after-api {
+  border-top-color: rgb(51 65 85 / 0.55);
+}
+
 /* ── Fonts ────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap');
 
@@ -127,8 +155,8 @@ table tbody tr:hover {
 
 /* ── POC: sidebar section rhythm + right-rail outline (Mintlify Sequoia) ── */
 
-/* Clearer separation between sidebar groups (left rail) */
-#navigation-items .sidebar-group-header {
+/* Clearer separation between sidebar groups (default; overridden on Guides + API Reference tabs) */
+#navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) .sidebar-group-header {
   display: flex;
   align-items: center;
   min-height: 2.65rem;
@@ -139,12 +167,12 @@ table tbody tr:hover {
   background: linear-gradient(180deg, rgb(248 250 252 / 0.9), rgb(248 250 252 / 0.15));
 }
 
-.dark #navigation-items .sidebar-group-header {
+.dark #navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) .sidebar-group-header {
   border-color: rgb(51 65 85 / 0.55);
   background: linear-gradient(180deg, rgb(30 41 59 / 0.55), rgb(15 23 42 / 0));
 }
 
-#navigation-items .sidebar-group-header h5 {
+#navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) .sidebar-group-header h5 {
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -154,7 +182,7 @@ table tbody tr:hover {
 }
 
 /* Breathing room after each group block */
-#navigation-items ul.sidebar-group {
+#navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) ul.sidebar-group {
   margin-bottom: 0.35rem;
 }
 
@@ -542,12 +570,12 @@ h2#payment-types-api-map {
   flex-shrink: 0;
 }
 
-/* ── API Integration Section Hierarchy ────────────────────── */
+/* ── API Integration Section Hierarchy (legacy; disabled on Guides tab) ── */
 
 /* Target the API Integration nested group for improved spacing */
-nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
-nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
-nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
   margin-top: 1.25rem !important;
   padding-top: 0.65rem !important;
   padding-bottom: 0.65rem !important;
@@ -556,41 +584,41 @@ nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
   border-top: 1px solid rgb(226 232 240 / 0.5);
 }
 
-.dark nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
-.dark nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
-.dark nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"] {
   border-top-color: rgb(51 65 85 / 0.4);
 }
 
 /* Parent headings with icons - make them prominent */
-nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
-nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
-nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
-nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
   font-weight: 600 !important;
   color: rgb(15 23 42) !important;
 }
 
-.dark nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
-.dark nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
-.dark nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
-.dark nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/regular-payment"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/recurring-payment"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/auth-capture-guide"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
   color: rgb(241 245 249) !important;
 }
 
 /* Child subheadings - lighter, indented to align with parent text */
-nav[aria-label="Navigation"] a[href*="/payment-initiation"],
-nav[aria-label="Navigation"] a[href*="/transaction-management"],
-nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
-nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
-nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
-nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
-nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
-nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
-nav[aria-label="Navigation"] a[href*="/authorization-management"],
-nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
-nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
-nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/payment-initiation"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/authorization-management"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
   font-weight: 400 !important;
   font-size: 0.85rem !important;
   color: rgb(71 85 105) !important;
@@ -600,96 +628,200 @@ nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
   margin-left: 0 !important;
 }
 
-.dark nav[aria-label="Navigation"] a[href*="/payment-initiation"],
-.dark nav[aria-label="Navigation"] a[href*="/transaction-management"],
-.dark nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
-.dark nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
-.dark nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
-.dark nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
-.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
-.dark nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
-.dark nav[aria-label="Navigation"] a[href*="/authorization-management"],
-.dark nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
-.dark nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
-.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/payment-initiation"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-payment-initiation"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-transaction-management"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-pause-mandate"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-activate-mandate"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/authorization-management"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-full-capture"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-partial-capture"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
   color: rgb(148 163 184) !important;
 }
 
 /* Hover states for child subheadings */
-nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
-nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
-nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
-nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
-nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
-nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
-nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
-nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
-nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
-nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
-nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
-nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
   background-color: rgb(241 245 249 / 0.6) !important;
   color: rgb(30 41 59) !important;
 }
 
-.dark nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
-.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/payment-initiation"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-payment-initiation"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-transaction-management"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-pause-mandate"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-activate-mandate"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-payment-initiation"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/authorization-management"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-full-capture"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-partial-capture"]:hover,
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"]:hover {
   background-color: rgb(51 65 85 / 0.3) !important;
   color: rgb(226 232 240) !important;
 }
 
 /* Add spacing after last child of each section */
-nav[aria-label="Navigation"] a[href*="/transaction-management"],
-nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
-nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
   margin-bottom: 0.85rem !important;
   padding-bottom: 0.5rem !important;
   border-bottom: 1px solid rgb(241 245 249 / 0.6);
 }
 
-.dark nav[aria-label="Navigation"] a[href*="/transaction-management"],
-.dark nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
-.dark nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/transaction-management"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/si-cancel-mandate"],
+.dark #navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href*="/auth-reversal"] {
   border-bottom-color: rgb(51 65 85 / 0.3);
 }
 
 /* CodeDrop spacing */
-nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] a[href="/merchant/paycollect/codedrop"] {
   margin-top: 1rem !important;
   padding-top: 0.5rem !important;
 }
 
 /* Add overall padding to API Integration group */
-nav[aria-label="Navigation"] [data-group="API Integration"] {
+#navigation-items:not(:has(a[href="/introduction"])) nav[aria-label="Navigation"] [data-group="API Integration"] {
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
 }
 
-/* Active/selected state for better visibility */
-nav[aria-label="Navigation"] a[aria-current="page"] {
+/* Active/selected state (legacy; Guides tab uses clean sidebar block below) */
+#navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) nav[aria-label="Navigation"] a[aria-current="page"] {
   background-color: rgb(219 234 254 / 0.7) !important;
   color: #1A6FE8 !important;
   font-weight: 600 !important;
 }
 
-.dark nav[aria-label="Navigation"] a[aria-current="page"] {
+.dark #navigation-items:not(:has(a[href="/introduction"])):not(:has(a[href*="/api-reference"])) nav[aria-label="Navigation"] a[aria-current="page"] {
   background-color: rgb(30 58 138 / 0.4) !important;
   color: rgb(147 197 253) !important;
 }
 
+/* ── Guides + API Reference tabs: clean left sidebar (nav only) ── */
+
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header,
+#navigation-items:has(a[href="/introduction"]) .sidebar-group-header {
+  min-height: unset;
+  margin-top: 1.15rem;
+  margin-bottom: 0.1rem;
+  padding: 0.2rem 0.5rem 0.2rem 0;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) > .sidebar-group-header:first-child,
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header:first-of-type,
+#navigation-items:has(a[href="/introduction"]) > .sidebar-group-header:first-child,
+#navigation-items:has(a[href="/introduction"]) .sidebar-group-header:first-of-type {
+  margin-top: 0.35rem;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header h5,
+#navigation-items:has(a[href="/introduction"]) .sidebar-group-header h5 {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: #94a3b8;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header h5,
+.dark #navigation-items:has(a[href="/introduction"]) .sidebar-group-header h5 {
+  color: #64748b;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group,
+#navigation-items:has(a[href="/introduction"]) ul.sidebar-group {
+  margin-bottom: 0.45rem;
+  padding-left: 0;
+  gap: 0.1rem;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a,
+#navigation-items:has(a[href="/introduction"]) ul.sidebar-group a {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  margin: 0.05rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #374151;
+  line-height: 1.35;
+  border: none;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a,
+.dark #navigation-items:has(a[href="/introduction"]) ul.sidebar-group a {
+  color: #cbd5e1;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a:hover,
+#navigation-items:has(a[href="/introduction"]) ul.sidebar-group a:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a:hover,
+.dark #navigation-items:has(a[href="/introduction"]) ul.sidebar-group a:hover {
+  background-color: rgb(30 41 59 / 0.45);
+  color: #f1f5f9;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[aria-current="page"],
+#navigation-items:has(a[href="/introduction"]) ul.sidebar-group a[aria-current="page"] {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 500 !important;
+}
+
+.dark #navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a[aria-current="page"],
+.dark #navigation-items:has(a[href="/introduction"]) ul.sidebar-group a[aria-current="page"] {
+  background-color: rgb(30 58 138 / 0.35) !important;
+  color: #93c5fd !important;
+}
+
+/* Nested / expandable rows (if present) — light chevron, no heavy chrome */
+#navigation-items:has(a[href*="/api-reference"]) .sidebar-group-header button,
+#navigation-items:has(a[href*="/api-reference"]) [data-group] button,
+#navigation-items:has(a[href="/introduction"]) .sidebar-group-header button,
+#navigation-items:has(a[href="/introduction"]) [data-group] button {
+  color: #94a3b8;
+}
+
+#navigation-items:has(a[href*="/api-reference"]) ul.sidebar-group a::before,
+#navigation-items:has(a[href="/introduction"]) ul.sidebar-group a::before {
+  display: none !important;
+  content: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 /* ── API Reference: HTTP Method badges (left panel) ─────────── */
 
-/* Shared badge base */
+/* Shared badge base — legacy API Reference links only (hidden while API Reference nav is active; see block above) */
 nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-paycollect"]::before,
 nav[aria-label="Navigation"] a[href*="api-reference/payment/gpi-initiate"]::before,
 nav[aria-label="Navigation"] a[href*="api-reference/payment/auth-payment-initiation"]::before,
@@ -825,11 +957,13 @@ nav[aria-label="Navigation"] a[href*="standing-instructions/si-cancellation"]::b
   }
 }
 
-/* ── Payment / SI API Reference: hide OpenAPI Authorizations, Body, Response
-      field panels; keep Try It playground + MDX guide content ─────────── */
+/* Legacy payment API pages: hide OpenAPI field panels (MDX carries the narrative).
+   Payments V2 API reference pages keep Request body visible. */
 
-article:has(#authorization-x-gl-token-external) .api-section-heading,
-article:has(#authorization-x-gl-token-external) .primitive-param-field {
+article:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .api-section-heading,
+article:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .primitive-param-field,
+#content-area:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .api-section-heading,
+#content-area:has(#authorization-x-gl-token-external):not(:has(.payments-v2-page)):not(:has(.payments-v2-after-api)) .primitive-param-field {
   display: none !important;
 }
 

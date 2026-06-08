@@ -1,0 +1,13 @@
+---
+title: "Verify Response Signatures"
+description: "How to verify PayGlocal's JWS signature on webhook and callback responses."
+icon: "shield-check"
+---
+
+<Note>This page is coming soon. It will cover: extracting the `x-gl-token` header from PayGlocal responses, verifying the JWS signature using PayGlocal's public certificate, and what to do when verification fails.</Note>
+
+<Warning>
+Verifying PayGlocal's response signature is a security requirement, not optional. Processing a webhook or callback without verifying the signature exposes your integration to response tampering. Do not skip this step.
+</Warning>
+
+For the signing steps used when **sending** requests to PayGlocal, see [Construct Signed Request](/key-management/request-construction).

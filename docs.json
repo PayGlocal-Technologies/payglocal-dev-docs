@@ -26,14 +26,35 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Get Started",
         "groups": [
           {
             "group": "Introduction",
             "pages": [
-              "introduction"
+              "introduction",
+              "get-started/choose-your-path",
+              "quickstart"
             ]
           },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "get-started/concepts",
+              "get-started/glossary"
+            ]
+          },
+          {
+            "group": "Sandbox & Testing",
+            "pages": [
+              "get-started/sandbox",
+              "reference/test-cards"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Set Up",
+        "groups": [
           {
             "group": "Onboarding",
             "pages": [
@@ -60,62 +81,97 @@
             "group": "Dashboard",
             "pages": [
               "getting-started/payglocal-dashboards",
-              "getting-started/dashboard-and-key-management"
+              "getting-started/dashboard-and-key-management",
+              "getting-started/payglocal-identifiers",
+              "getting-started/gcc-dashboard"
             ]
           },
           {
-            "group": "Integration",
+            "group": "Keys & Security",
             "pages": [
+              "key-management/overview",
+              "key-management/private-key",
+              "key-management/public-certificate",
+              "key-management/request-construction",
+              "key-management/verifying-signatures"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Payments",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "payments/overview",
               "integration/overview",
+              "integration/api-overview"
+            ]
+          },
+          {
+            "group": "No-Code Integration",
+            "icon": "sparkles",
+            "pages": [
+              "no-code/overview",
+              "no-code/payment-link",
+              "no-code/invoice-link",
+              "no-code/payment-button"
+            ]
+          },
+          {
+            "group": "API Integration",
+            "icon": "code",
+            "pages": [
               {
-                "group": "No-Code Integration",
-                "icon": "sparkles",
+                "group": "Integration Modes",
+                "icon": "shuffle",
                 "pages": [
-                  "no-code/overview",
-                  "no-code/payment-link",
-                  "no-code/invoice-link",
-                  "no-code/payment-button"
+                  "merchant/paycollect/overview",
+                  "merchant/paydirect/overview"
                 ]
               },
               {
-                "group": "API Integration",
-                "icon": "code",
+                "group": "Payment Types",
+                "icon": "layer-group",
                 "pages": [
-                  "integration/api-overview",
-                  {
-                    "group": "Integration Modes",
-                    "icon": "shuffle",
-                    "pages": [
-                      "merchant/paycollect/overview",
-                      "merchant/paydirect/overview"
-                    ]
-                  },
-                  {
-                    "group": "Payment Types",
-                    "icon": "layer-group",
-                    "pages": [
-                      "merchant/regular-payment",
-                      "api-reference/payment/upi",
-                      "merchant/recurring-payment",
-                      "merchant/auth-capture-guide",
-                      "merchant/paycollect/codedrop"
-                    ]
-                  }
+                  "merchant/regular-payment",
+                  "api-reference/payment/upi",
+                  "merchant/recurring-payment",
+                  "merchant/auth-capture-guide",
+                  "merchant/paycollect/codedrop",
+                  "payments/payment-types/apple-pay",
+                  "payments/payment-types/google-pay"
                 ]
               }
             ]
           },
           {
-            "group": "Integration Resources",
+            "group": "Handle the Result",
             "pages": [
-              "merchant/payment-flow",
               "merchant/webhooks",
               "merchant/payment-response-handling",
-              "merchant/sdks"
+              "guides/webhooks"
             ]
           },
           {
-            "group": "Merchant store plugins",
+            "group": "Payment Lifecycle",
+            "pages": [
+              "merchant/payment-flow",
+              "integration/payment-flow",
+              "integration/standing-instructions-flow"
+            ]
+          },
+          {
+            "group": "Build & Test",
+            "pages": [
+              "guides/testing",
+              "guides/integration-chooser",
+              "payments/go-live"
+            ]
+          },
+          {
+            "group": "E-commerce Plugins",
             "pages": [
               "plugins/overview",
               "plugins/shopify",
@@ -124,14 +180,50 @@
               "plugins/opencart",
               "plugins/wix"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Multi-Currency Accounts",
+        "groups": [
           {
-            "group": "MCA Integration",
+            "group": "Overview",
             "pages": [
               "mca/overview",
+              "mca/concepts"
+            ]
+          },
+          {
+            "group": "Collections",
+            "pages": [
+              "mca/collections-guide"
+            ]
+          },
+          {
+            "group": "Settlement & FX",
+            "pages": [
+              "mca/settlement-and-fx"
+            ]
+          },
+          {
+            "group": "Dashboard",
+            "pages": [
+              "mca/dashboard"
+            ]
+          },
+          {
+            "group": "API Integration",
+            "pages": [
+              "mca/api",
               "mca/account-fetch",
               "mca/webhooks",
               "mca/document-upload"
+            ]
+          },
+          {
+            "group": "Go Live",
+            "pages": [
+              "mca/go-live"
             ]
           }
         ]
@@ -140,7 +232,7 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Partner APIs: Merchant Onboarding",
+            "group": "Onboarding APIs",
             "pages": [
               "api-reference/onboarding-overview",
               "api-reference/create-onboarding",
@@ -158,7 +250,6 @@
           {
             "group": "Payment APIs",
             "icon": "credit-card",
-            "expanded": true,
             "pages": [
               "api-reference/payment/overview",
               {
@@ -186,7 +277,7 @@
                 ]
               },
               {
-                "group": "Standing Instruction Sale",
+                "group": "Standing Instructions",
                 "icon": "repeat",
                 "expanded": true,
                 "pages": [
@@ -196,7 +287,7 @@
                 ]
               },
               {
-                "group": "Capture & reversal",
+                "group": "Capture & Reversal",
                 "icon": "shield-check",
                 "expanded": true,
                 "pages": [
@@ -229,7 +320,7 @@
                 ]
               },
               {
-                "group": "Callback Handling",
+                "group": "Callbacks",
                 "icon": "webhook",
                 "expanded": true,
                 "pages": [
@@ -247,11 +338,70 @@
             ]
           },
           {
-            "group": "Partner APIs: MCA",
+            "group": "MCA APIs",
             "pages": [
               "api-reference/mca/overview",
               "api-reference/mca/account-fetch",
               "api-reference/mca/document-upload"
+            ]
+          },
+          {
+            "group": "Reference Data",
+            "pages": [
+              "reference/payment-status-lifecycle",
+              "reference/response-structure",
+              "reference/state-codes",
+              "reference/business-categories",
+              "api-fields/transaction-payment-fields",
+              "api-fields/response-fields",
+              "api-fields/risk-data-fields",
+              "api-fields/response-codes"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Changelog",
+            "pages": [
+              "changelog/index"
+            ]
+          },
+          {
+            "group": "Developer Tools",
+            "pages": [
+              "merchant/sdks",
+              "resources/postman"
+            ]
+          },
+          {
+            "group": "Error Handling",
+            "pages": [
+              "reference/error-codes",
+              "reference/response-codes-and-errors"
+            ]
+          },
+          {
+            "group": "API Policies",
+            "pages": [
+              "reference/rate-limits",
+              "resources/idempotency",
+              "resources/currencies"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "resources/security-overview"
+            ]
+          },
+          {
+            "group": "Support",
+            "pages": [
+              "resources/status",
+              "reference/faq"
             ]
           }
         ]
@@ -275,8 +425,18 @@
       "permanent": false
     },
     {
-      "source": "/quickstart",
-      "destination": "/introduction",
+      "source": "/api-reference/payment/upi-intent",
+      "destination": "/api-reference/payment/upi",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/standing-instructions",
+      "destination": "/merchant/recurring-payment",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/api-integration",
+      "destination": "/integration/api-overview",
       "permanent": false
     },
     {

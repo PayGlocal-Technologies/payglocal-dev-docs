@@ -8,19 +8,13 @@ icon: "building-columns"
   This API is for **Partners** onboarding their own sub-merchants onto PayGlocal. If you are a merchant looking to accept payments, see [Checkout Flow (PayCollect)](/api-reference/payments-v2/paycollect/overview) or [Seamless Flow (PayDirect)](/api-reference/payments-v2/paydirect/overview) instead.
 </Note>
 
-## What Is the Partner Merchant Onboarding API?
+## Overview
 
-The **Partner Merchant Onboarding API** lets technology partners programmatically onboard sub-merchants onto the PayGlocal platform. It handles the full compliance lifecycle: KYC data collection, document upload, bank account verification, product configuration, and triggered VKYC.
+The PayGlocal Onboarding API lets partners programmatically onboard merchants. The flow is sequential — each step must complete before the next.
 
-<Note>
-  The interactive API explorer on each endpoint page lets you test requests directly from this portal. Set your `x-gl-auth` and `x-gl-digest` headers in the authentication panel (top-right of the endpoint page) to make live Sandbox calls.
-</Note>
+For authentication, see [Onboarding Authentication](/authentication).
 
----
-
-## Call Sequence
-
-The Onboarding API is **sequential and stateful**. Each step enriches the merchant record and PayGlocal validates completeness before the final verification step can be triggered.
+## Onboarding Flow
 
 ```
 Partner System                          PayGlocal API
@@ -42,56 +36,37 @@ Partner System                          PayGlocal API
       │◀─────────────────────────────────────│
 ```
 
----
+<Steps>
+  <Step title="Create Onboarding">POST /onboard → returns `onboardingId`</Step>
+  <Step title="Update Business Details">PUT /business-details</Step>
+  <Step title="Add Beneficial Owner">PUT /beneficial-owner</Step>
+  <Step title="Update Bank Details">PUT /bank-details</Step>
+  <Step title="Update Authorised Signatory">PUT /auth-signatory</Step>
+  <Step title="Upload Documents">PUT /docs (one call per document)</Step>
+  <Step title="Configure Products">PUT /products</Step>
+  <Step title="Trigger Verification">PUT /verification/{id}/redirect → returns `redirectLink`</Step>
+  <Step title="Poll Status">GET /status until APPROVED or RFI</Step>
+</Steps>
 
-## Endpoint Reference
+## Endpoint Index
 
-| Step | Endpoint | Method | Notes |
-|------|----------|--------|-------|
-| 1 | [Create Onboarding](/api-reference/create-onboarding) | POST | Returns `onboardingId` — required for all subsequent calls |
-| 2 | [Update Business Details](/api-reference/update-business-details) | PUT | Cannot update after T&C acknowledgement |
-| 3 | [Add Beneficial Owner](/api-reference/add-beneficial-owner) | PUT | Array replaces existing UBOs — always send all together |
-| 4 | [Update Bank Details](/api-reference/update-bank-details) | PUT | Penny drop verification runs automatically |
-| 5 | [Update Auth Signatory](/api-reference/update-auth-signatory) | PUT | Phone/email used for VKYC — must be accurate |
-| 6 | [Upload Documents](/api-reference/upload-documents) | PUT | One call per document |
-| 7 | [Configure Products](/api-reference/configure-products) | PUT | Select products and configure fee structures |
-| 8 | [Get Verification Redirect](/api-reference/get-verification-redirect) | PUT | Returns `redirectLink` for iFrame verification (24h session token) |
-| 9 | [Get Onboarding Status](/api-reference/get-status) | GET | Always confirm server-side after VKYC redirect |
-| — | [Get Business Categories](/api-reference/get-business-categories) | GET | Lookup table for `natureOfBusiness` field |
-
----
-
-## Authentication
-
-The Onboarding API uses **HmacSHA256 request signing**:
-
-- `x-gl-auth` — your static API Key
-- `x-gl-digest` — per-request HMAC-SHA256 signature, Base64-encoded
-
-See [Authentication](/authentication) for the full signing specification and multi-language code examples.
-
----
-
-## Onboarding Status Lifecycle
-
-| Status | Meaning |
-|--------|---------|
-| `INITIATED` | Onboarding record created, details not yet submitted |
-| `IN_PROGRESS` | One or more detail sections submitted |
-| `PENDING_VERIFICATION` | All details submitted, awaiting merchant VKYC |
-| `PENDING_REVIEW` | VKYC complete, under PayGlocal compliance review |
-| `APPROVED` | Merchant fully onboarded and activated |
-| `REJECTED` | Onboarding rejected after review |
-| `RFI` | Request for Information — additional data required |
-
----
+| Step | Endpoint | Purpose |
+|------|----------|---------|
+| 1 | [Create Onboarding](/api-reference/create-onboarding) | Start a new merchant onboarding application — returns `onboardingId` |
+| 2 | [Update Business Details](/api-reference/update-business-details) | Submit company information |
+| 3 | [Add Beneficial Owner](/api-reference/add-beneficial-owner) | Submit UBO details |
+| 4 | [Update Bank Details](/api-reference/update-bank-details) | Submit bank account for settlements |
+| 5 | [Update Auth Signatory](/api-reference/update-auth-signatory) | Submit authorised signatory details |
+| 6 | [Upload Documents](/api-reference/upload-documents) | Upload KYC documents |
+| 7 | [Configure Products](/api-reference/configure-products) | Enable payment products for the merchant |
+| 8 | [Get Verification Redirect](/api-reference/get-verification-redirect) | Trigger VKYC/DigiLocker verification |
+| 9 | [Get Status](/api-reference/get-status) | Poll onboarding and merchant status |
+| — | [Get Business Categories](/api-reference/get-business-categories) | Lookup table for `natureOfBusiness` field |
 
 ## Key Constraints
 
-- `externalOnboardingId` must be unique per merchant — it cannot be reused.
-- Business details and auth signatory cannot be updated after T&C acknowledgement.
-- Beneficial owner and bank details cannot be updated after verification is complete.
-- Calling the verification redirect endpoint before all required steps are complete returns `400 Bad Request`.
+<Snippet file="tnc-lock-warning.mdx" />
+<Snippet file="post-verification-lock-warning.mdx" />
 
 <CardGroup cols={2}>
   <Card title="Onboarding Flow Guide" icon="diagram-project" href="/guides/api-flow-overview">

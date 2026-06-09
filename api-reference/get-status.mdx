@@ -5,11 +5,62 @@ openapi: "GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status"
 
 ## When to Use
 
-Retrieves the current onboarding status and all submitted information for a merchant.
+Poll this endpoint after:
+- Submitting documents (POST /upload-documents)
+- Completing the verification redirect (GET /verification-redirect)
+- Receiving a `PG_ONBOARDING_COMPLETE` postMessage event (verify server-side before acting)
+- Any webhook that indicates status change
+
+<Snippet file="confirm-status-warning.mdx" />
 
 <Warning>
   After the merchant completes the iFrame verification flow, always call this endpoint server-to-server to confirm `vkyc` and `digiLocker` are `COMPLETE`. Do not rely on the callback redirect alone.
 </Warning>
+
+## Polling Guidance
+
+Poll every 30–60 seconds during active onboarding sessions. Stop polling when `merchantStatus` reaches a terminal state: `APPROVED`, `REJECTED`, or when `onboardingStatus` is `APPROVED`.
+
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| onboardingId | string | Unique identifier for this onboarding application |
+| merchantStatus | string | Current merchant activation status (see table below) |
+| onboardingStatus | string | Onboarding application status |
+| checklistStatus | object | Completion flags for each onboarding step |
+| documentsToBeUploaded | array | List of pending document types (populated when status is RFI) |
+| vkycCompleted | boolean | Whether video KYC has been completed |
+| digiLockerCompleted | boolean | Whether DigiLocker verification has been completed |
+| reasonCode | string | Reason for current status (populated on REJECTED or RFI) |
+
+## Onboarding Status Lifecycle
+
+| Status | Meaning | Terminal? |
+|---|---|---|
+| INITIATED | Application created | No |
+| IN_PROGRESS | Partner is submitting onboarding data | No |
+| PENDING_REVIEW | All data submitted; awaiting PayGlocal review | No |
+| UNDER_REVIEW | Active compliance/KYC review in progress | No |
+| RFI | Request for Information — additional documents needed | No |
+| APPROVED | Merchant approved and activated | Yes |
+| REJECTED | Onboarding rejected | Yes |
+
+## Handling RFI Status
+
+When `onboardingStatus` is `RFI`, check the `documentsToBeUploaded` array for the specific document types needed:
+
+```javascript
+const status = await getOnboardingStatus(onboardingId);
+if (status.onboardingStatus === 'RFI') {
+  const pendingDocs = status.documentsToBeUploaded;
+  for (const docType of pendingDocs) {
+    await uploadDocument(onboardingId, docType, fileBuffer);
+  }
+}
+```
+
+See [Upload Documents](/api-reference/upload-documents) for the upload API. After uploading, continue polling — status will transition back to `PENDING_REVIEW`.
 
 ## Error Scenarios
 

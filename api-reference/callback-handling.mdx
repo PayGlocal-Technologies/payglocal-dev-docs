@@ -5,6 +5,8 @@ description: "Complete Node.js implementation for receiving and processing PayGl
 icon: "node-js"
 ---
 
+<Warning>Never process a callback payload before verifying its RS256 signature. An unverified x-gl-token could be forged. Verify first, then decode.</Warning>
+
 This page contains the complete Node.js implementation for handling the `merchantCallbackURL` endpoint. For a conceptual explanation of the callback flow, see [Payment Response Handling](/merchant/payment-response-handling).
 
 ---
@@ -21,6 +23,26 @@ PayGlocal POSTs to this endpoint after every payment — success or failure. The
 ---
 
 ## Implementation
+
+```javascript
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
+// Step 1: Verify RS256 signature using PayGlocal's public certificate (PUBCERT)
+// Download PUBCERT from GCC dashboard — see /set-up/keys/public-certificate
+const pubCert = fs.readFileSync('/path/to/payglocal-pubcert.pem', 'utf8');
+const xGlToken = req.headers['x-gl-token'];
+
+let payload;
+try {
+  payload = jwt.verify(xGlToken, pubCert, { algorithms: ['RS256'] });
+} catch (err) {
+  return res.status(401).json({ error: 'Invalid signature' });
+}
+// Step 2: Token verified — safe to use payload
+```
+
+<Note>Return HTTP 200 to PayGlocal as soon as verification and acknowledgement is complete — even if your business processing is async. If you never receive the callback, fall back to [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status).</Note>
 
 ```javascript
 app.post('/payments/merchantCallback', async (req, res) => {

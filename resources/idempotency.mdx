@@ -4,4 +4,52 @@ description: "How to safely retry PayGlocal API calls without creating duplicate
 icon: "rotate-right"
 ---
 
-<Note>This page is coming soon. It will cover: how to use `merchantUniqueId` as an idempotency key, what happens when you retry a request with the same ID, and recommended retry strategies for network failures.</Note>
+## merchantUniqueId as Idempotency Key
+
+Every GPI initiation request requires a `merchantUniqueId` — your own unique identifier for the transaction (UUID recommended). PayGlocal uses this to detect and reject duplicate payment attempts.
+
+**Generate a new UUID for every new payment.** Reuse the same `merchantUniqueId` only when retrying a request that did not complete (see safe retry pattern below).
+
+## The Safe Retry Pattern
+
+Before retrying a timed-out GPI initiation, always check whether the original request was received:
+
+```javascript
+async function initiatePaymentSafely(payload) {
+  // Step 1: Check if a payment with this ID already exists
+  const existing = await getTransactionStatus(payload.merchantUniqueId);
+  if (existing && existing.gid) {
+    return existing; // Already processed — do not re-initiate
+  }
+  // Step 2: Safe to initiate
+  return await initiatePayment(payload);
+}
+```
+
+<Warning>
+If you retry a GPI initiation with a merchantUniqueId that PayGlocal already received (even if you got a timeout), you will create a duplicate charge. Always check status first.
+</Warning>
+
+## externalOnboardingId
+
+For the Onboarding API, use `externalOnboardingId` as your idempotency key for the Create Onboarding call. It must be globally unique per partner. A duplicate `externalOnboardingId` returns HTTP 409.
+
+## Network Timeout vs Rejection
+
+| Outcome | Meaning | Action |
+|---|---|---|
+| Network timeout / connection error | Unknown — request may or may not have reached PayGlocal | Check status before retrying |
+| HTTP 4xx response | Request rejected by PayGlocal | Do not retry with same payload — fix the error |
+| HTTP 5xx response | Server error | Retry with backoff after checking status |
+
+## Recommended Retry Backoff
+
+For retriable errors (timeouts, 5xx):
+1. Wait 1 second, retry
+2. Wait 5 seconds, retry
+3. Wait 30 seconds, retry
+4. Alert — do not retry indefinitely
+
+## Idempotency Scope
+
+`merchantUniqueId` uniqueness is scoped per Merchant ID. The same `merchantUniqueId` used by two different merchants creates two separate, independent transactions.

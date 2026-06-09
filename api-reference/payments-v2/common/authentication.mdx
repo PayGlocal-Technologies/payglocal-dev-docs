@@ -1,0 +1,45 @@
+---
+title: "Payment API Authentication"
+description: "Required HTTP headers and JWS signing for all PayGlocal Payment API requests."
+icon: "key"
+---
+
+All Payment API requests (PayCollect and PayDirect, GPI, SI, Auth & Capture) use the same authentication scheme: RSA JWS signing.
+
+## Required Headers
+
+<Snippet file="paydirect-request-headers.mdx" />
+
+## Endpoint
+
+<Snippet file="paydirect-api-endpoint-table.mdx" />
+
+## Signing Flow
+
+<Steps>
+  <Step title="Serialize the request body">Convert your request payload to a JSON string.</Step>
+  <Step title="Sign with your private key">Generate a JWS token by signing the serialized body with your RSA private key using RS256.</Step>
+  <Step title="Set headers and POST">Include `x-gl-token-external` (JWS token), `x-gl-merchantid`, `x-gl-kid`, and `Content-Type: application/json`.</Step>
+</Steps>
+
+For code samples, see [Request Construction](/set-up/keys/request-construction).
+
+## PayDirect: Additional JWE Encryption
+
+For PayDirect flows that include card data, the card data sub-object must be JWE-encrypted with PayGlocal's public certificate (PUBCERT) before JWS signing.
+
+<Warning>
+Do not send raw card data without JWE encryption in PayDirect flows. This is a PCI DSS violation.
+</Warning>
+
+See [Request Signing and Encryption](/merchant/payment-flow) for JWE + JWS code samples.
+
+## Portfolio / Multi-MID
+
+For parent-child MID configurations, add the `x-gl-kid-mid` header with the child MID. The `x-gl-kid` remains the parent's KID.
+
+## Key Reference
+
+<Snippet file="private-key-not-stored-warning.mdx" />
+
+See [Key Management](/set-up/keys/overview) for key download and rotation steps.

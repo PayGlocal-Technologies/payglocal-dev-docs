@@ -1,0 +1,123 @@
+---
+title: "FIRC Compliance"
+description: "Foreign Inward Remittance Certificate requirements for MCA settlements."
+icon: "file-certificate"
+---
+
+## What Is a FIRC?
+
+A Foreign Inward Remittance Certificate (FIRC) is an RBI-mandated document that certifies a foreign currency inward remittance. PayGlocal generates one for each MCA settlement.
+
+FIRCs are required by:
+- RBI regulations for foreign currency receipts
+- Income tax authorities (proof of foreign income source)
+- Customs authorities for trade-related payments
+
+## When PayGlocal Generates FIRCs
+
+PayGlocal generates a FIRC after each `TXN_SETTLED` event. The FIRC is delivered via the `FIRC_RECEIVED` webhook payload, which contains a time-limited download URL valid for **10 minutes**.
+
+## Receiving the FIRC
+
+When you receive a `FIRC_RECEIVED` webhook, respond with HTTP 200 first, then download immediately.
+
+```javascript
+const crypto = require('crypto');
+
+app.post('/webhooks/mca', (req, res) => {
+  const isValid = verifyWebhookSignature(
+    req.rawBody,
+    req.headers['x-payglocal-signature'],
+    process.env.WEBHOOK_SECRET
+  );
+  if (!isValid) return res.status(401).send('Unauthorized');
+
+  res.status(200).send('OK');
+
+  const { status, fircUrl, gid } = req.body;
+  if (status === 'FIRC_RECEIVED') {
+    downloadAndStore(fircUrl, gid);
+  }
+});
+```
+
+The `FIRC_RECEIVED` payload:
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<MERCHANT_ID>",
+  "transaction_amount": "1000.00",
+  "transaction_currency": "USD",
+  "settled_at": "2024-10-23",
+  "settlement_amount": "998.00",
+  "settlement_currency": "INR",
+  "fircUrl": "https://<bucket>.s3.amazonaws.com/FIRC.pdf",
+  "status": "FIRC_RECEIVED"
+}
+```
+
+<Warning>
+The `fircUrl` is valid for **10 minutes only**. Download and store the document as soon as you receive this webhook. Do not save the URL and fetch it later — expired URLs cannot be regenerated automatically.
+</Warning>
+
+## Storing the FIRC
+
+Download the PDF to your own storage (S3, GCS, or equivalent) immediately on receipt. Do not rely on re-downloading from PayGlocal.
+
+<Steps>
+  <Step title="Receive FIRC_RECEIVED webhook">
+    Your endpoint receives the POST. Respond HTTP 200 before any async work.
+  </Step>
+  <Step title="Download the PDF">
+    Fetch `fircUrl` within 10 minutes. Use the `gid` as the filename or key so it is traceable.
+  </Step>
+  <Step title="Persist to your document store">
+    Write the file to a durable storage bucket. Record the storage path against the transaction in your database.
+  </Step>
+  <Step title="Notify the merchant">
+    Share the FIRC with the merchant or surface it in your portal as proof of remittance.
+  </Step>
+</Steps>
+
+## FIRC Retention Requirements
+
+Under RBI guidelines, merchants must retain FIRCs for **5 years** from the date of receipt. Store downloaded FIRCs in a document management system rather than relying on redownload from PayGlocal.
+
+<Note>
+Retention obligations may vary by business type and regulatory classification. Consult your compliance or legal team for the requirements applicable to your business.
+</Note>
+
+## Re-Requesting an Expired FIRC
+
+If the download URL expires before you download the FIRC, contact PayGlocal merchant support:
+
+**Email:** merchant.support@payglocal.in  
+**Subject:** `FIRC Re-request - <MERCHANT_ID> - Settlement ID: <gid>`
+
+Include the `gid` and settlement date. PayGlocal will provide a new download URL within 2 business days.
+
+## purposeCode and FIRC Generation
+
+The `purposeCode` field in the document upload request categorises the inward remittance for RBI reporting. Providing an accurate `purposeCode` helps ensure timely FIRC generation — incorrect or missing purpose codes may delay FIRC issuance or cause compliance issues.
+
+```json
+{
+  "purposeCode": "P0102"
+}
+```
+
+<Tip>
+Send `purposeCode` whenever your invoice type maps clearly to an RBI purpose code. See [Uploading Transaction Documents](/mca/document-upload) for the full field reference.
+</Tip>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Webhook Events" href="/mca/webhooks">
+    Full payload reference for FIRC_RECEIVED and other MCA lifecycle events.
+  </Card>
+  <Card title="Uploading Transaction Documents" href="/mca/document-upload">
+    How to attach a supporting invoice, including the purposeCode field.
+  </Card>
+</CardGroup>

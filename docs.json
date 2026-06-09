@@ -66,7 +66,9 @@
                   "guides/merchant-requirements",
                   "guides/api-flow-overview",
                   "guides/partner-onboarding-events",
-                  "guides/iframe-integration"
+                  "guides/iframe-integration",
+                  "set-up/partner-onboarding/webhook-configuration",
+                  "set-up/partner-onboarding/rfi-handling"
                 ]
               },
               {
@@ -93,7 +95,8 @@
               "key-management/private-key",
               "key-management/public-certificate",
               "key-management/request-construction",
-              "key-management/verifying-signatures"
+              "key-management/verifying-signatures",
+              "set-up/keys/headers-reference"
             ]
           }
         ]
@@ -196,7 +199,8 @@
           {
             "group": "Collections",
             "pages": [
-              "mca/collections-guide"
+              "mca/collections-guide",
+              "mca/firc-compliance"
             ]
           },
           {
@@ -223,6 +227,7 @@
           {
             "group": "Go Live",
             "pages": [
+              "mca/testing",
               "mca/go-live"
             ]
           }
@@ -251,6 +256,7 @@
             "group": "Payment APIs",
             "icon": "credit-card",
             "pages": [
+              "api-reference/payments-v2/common/authentication",
               "api-reference/payment/overview",
               {
                 "group": "Seamless Flow (PayDirect)",
@@ -388,7 +394,8 @@
             "pages": [
               "reference/rate-limits",
               "resources/idempotency",
-              "resources/currencies"
+              "resources/currencies",
+              "resources/go-live"
             ]
           },
           {
@@ -401,7 +408,8 @@
             "group": "Support",
             "pages": [
               "resources/status",
-              "reference/faq"
+              "reference/faq",
+              "resources/support"
             ]
           }
         ]

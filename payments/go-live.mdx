@@ -1,7 +1,70 @@
 ---
-title: "Go-Live Checklist"
-description: "Everything to verify before switching your Payments integration to production."
-icon: "circle-check"
+title: "Payments Go Live"
+description: "Pre-production checklist before accepting live payments."
+icon: "rocket"
 ---
 
-<Note>This page is coming soon. It will provide a step-by-step production readiness checklist covering: API key rotation, webhook endpoint configuration, signature verification, error handling, and compliance checks.</Note>
+Complete these steps before switching to production credentials.
+
+<Steps>
+  <Step title="Confirm merchant approval">
+    Verify your merchant status is APPROVED in [GCC](/set-up/dashboard/gcc-overview). Payments cannot go live without an approved merchant account.
+  </Step>
+  <Step title="Generate production keys">
+    Generate a new key pair in production GCC (`gcc.prod.payglocal.in`). See [Private Key](/set-up/keys/private-key) and [Public Certificate](/set-up/keys/public-certificate). Do not reuse sandbox keys.
+  </Step>
+  <Step title="Obtain production Merchant ID">
+    Retrieve your production MID from GCC TID Details. Update your configuration — it differs from the UAT MID.
+  </Step>
+  <Step title="Update base URLs">
+    Switch from `https://api.uat.payglocal.in` to `https://api.prod.payglocal.in` in all API calls. See [Sandbox Testing](/guides/testing) for the full environment URL table.
+  </Step>
+  <Step title="Configure production callback and webhook URLs">
+    Update your `merchantCallbackURL` to your production server. Configure webhook URLs in GCC. Both must be publicly accessible HTTPS endpoints.
+  </Step>
+  <Step title="Verify callback signature implementation">
+    Confirm your callback handler verifies the RS256 signature on the `x-gl-token` using the production PUBCERT. See [Key Management Overview](/key-management/overview).
+  </Step>
+  <Step title="Implement Get Status fallback">
+    Ensure your server calls Get Status if the callback is not received within your timeout window. Do not rely solely on callback delivery.
+  </Step>
+  <Step title="Validate error handling">
+    Confirm your integration handles all decline and error status codes. Review [Payments Error Codes](/payments/error-codes) and test each branch.
+  </Step>
+  <Step title="PCI DSS certification (PayDirect only)">
+    If using PayDirect, confirm PCI DSS Level 1 certification is current before processing live card data.
+  </Step>
+  <Step title="Domain whitelisting (iFrame only)">
+    If using the VKYC iFrame, ensure your production domain is whitelisted with PayGlocal before enabling the flow.
+  </Step>
+  <Step title="Submit sandbox testing evidence">
+    Share sandbox testing evidence (transaction logs, screenshots, or test report) with your PayGlocal integration representative. Production access is granted after PayGlocal reviews the submission.
+  </Step>
+  <Step title="Execute a real test transaction">
+    Process a small-value real payment in production to confirm the end-to-end flow works, including callback receipt and settlement.
+  </Step>
+  <Step title="Confirm first settlement">
+    After the test transaction settles, verify the INR credit appears in your registered bank account.
+  </Step>
+</Steps>
+
+<Warning>
+  Never reuse sandbox keys or MIDs in production. Download fresh keys from `gcc.prod.payglocal.in` and store them server-side only.
+</Warning>
+
+<Tip>Keep your sandbox environment configured even after going live — use it for regression testing when shipping integration changes.</Tip>
+
+## Pre-launch self-review
+
+Before requesting production access, confirm all of the following:
+
+- All API calls return expected responses in Sandbox
+- Callback URL validation is working (token signature verification)
+- Get Status fallback is implemented in case callback fails
+- Error handling covers all decline and error status codes
+- Risk data is included for international card transactions
+- `merchantUniqueId` is unique per transaction
+- Keys are stored securely server-side (not in client-side code)
+- Sandbox testing evidence submitted to PayGlocal
+
+<Snippet file="support-contact.mdx" />

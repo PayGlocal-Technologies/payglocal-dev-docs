@@ -1,0 +1,19 @@
+```javascript
+const allowedOrigins = [
+  'https://gcc.uat.payglocal.in',
+  'https://gcc.prod.payglocal.in',
+];
+
+window.addEventListener('message', function (event) {
+  if (!allowedOrigins.includes(event.origin)) return;
+
+  const data = event.data;
+  if (data === 'PG_ONBOARDING_COMPLETE') {
+    // Merchant onboarding complete — verify via GET /status before proceeding
+  } else if (data === 'PG_ONBOARDING_CLOSED') {
+    // User closed the iFrame without completing
+  }
+});
+```
+
+<Warning>Always verify the final onboarding status via the [Get Status API](/api-reference/onboarding/get-status) server-side. postMessage events can be spoofed — never rely on them alone.</Warning>

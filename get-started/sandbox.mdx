@@ -1,9 +1,126 @@
 ---
-title: "Sandbox Environment"
-description: "Test your integration against PayGlocal's sandbox before going live."
+title: "Sandbox & Testing"
+description: "Environment URLs, test credentials, and test data for PayGlocal UAT integration."
 icon: "flask"
 ---
 
-<Note>This page is coming soon. Sandbox base URLs, test credentials, and environment configuration will be consolidated here in Phase 2.</Note>
+<Snippet file="environment-urls-table.mdx" />
 
-For test card numbers and UPI VPA test values, see [Test Cards](/reference/test-cards).
+## Obtaining UAT Credentials
+
+<Steps>
+  <Step title="Contact your account manager">Request UAT access. You will receive a UAT Merchant ID and GCC sandbox login.</Step>
+  <Step title="Log in to the UAT GCC dashboard">Visit `https://gcc.uat.payglocal.in` and complete setup.</Step>
+  <Step title="Download keys">Generate and download your UAT private key and public certificate. See [Private Key](/set-up/keys/private-key) and [Public Certificate](/set-up/keys/public-certificate).</Step>
+</Steps>
+
+<Warning>
+  Sandbox keys do **not** work in Production and vice versa. Always download keys from the correct environment.
+</Warning>
+
+## Test Cards
+
+<Warning>
+  These cards work **only in sandbox**. They are rejected in production. If any card number below does not behave as expected, contact your account manager for the canonical PayGlocal-validated list before building test suites.
+</Warning>
+
+| Card Number | Brand | Scenario |
+|-------------|-------|----------|
+| `4242424242424242` | VISA | Seamless Success (International Card) |
+| `5497774415170603` | MASTERCARD | Seamless Success (Domestic Card) |
+| `4000000000000127` | MASTERCARD | Authentication Failure |
+| `5555555555554444` | MASTERCARD | Invalid CVV |
+| `4000000000000002` | VISA | Stolen Card |
+| `4000000000000119` | VISA | Insufficient Funds |
+
+For **expiry**, use any valid future date. For **CVV**, use any 3-digit value (except when testing the Invalid CVV scenario). Make sure your integration handles every failure scenario — do not ship a flow that only exercises the success path.
+
+## Test UPI
+
+| VPA | Expected Result |
+|-----|-----------------|
+| `success@payglocal` | Payment success |
+| `failure@payglocal` | Payment failure |
+
+<Note>UPI test VPAs may vary. Confirm with your account manager.</Note>
+
+## 3DS Test OTPs
+
+| OTP | Expected Result |
+|-----|-----------------|
+| `123456` | Authentication success |
+| `000000` | Authentication failure |
+
+## Test PANs for Merchant Onboarding
+
+Use these PAN formats when testing the Create Onboarding endpoint:
+
+| Entity Type | PAN Format | `panType` value |
+|-------------|------------|-----------------|
+| Individual / Proprietorship | Starts with `P` — e.g., `ABCPE1234F` | `P` |
+| Company | Starts with `C` — e.g., `ABCCE1234F` | `C` |
+| Trust | Starts with `T` — e.g., `ABCTE1234F` | `T` |
+| Firm | Starts with `F` — e.g., `ABCFE1234F` | `F` |
+
+<Note>Contact your PayGlocal integration representative for specific sandbox test PANs that pass validation.</Note>
+
+## Bank Verification Test Values
+
+Use these values when testing [Update Bank Details](/api-reference/update-bank-details) in UAT:
+
+| Field | UAT success value | Any other value |
+|-------|-------------------|-----------------|
+| Bank Account Number | `1234567890` | Triggers `CANCELLED_CHEQUE` pendency in `documentsToBeUploaded` |
+| IFSC Code | `SBIN0000000` | Triggers `CANCELLED_CHEQUE` pendency in `documentsToBeUploaded` |
+
+When penny drop fails, PayGlocal adds `CANCELLED_CHEQUE` to the pending documents list. Upload a cancelled cheque via [Upload Documents](/api-reference/upload-documents) with `merchantDocType: CANCELLED_CHEQUE`.
+
+## Simulating Payment Scenarios
+
+### Full Payment Flow
+
+<Steps>
+  <Step title="Initiate payment">Create a GPI request with a success test card.</Step>
+  <Step title="Complete on sandbox page">Redirect to the `redirectUrl` — PayGlocal's sandbox payment page opens. Complete the payment (no real card processing).</Step>
+  <Step title="Handle callback">PayGlocal redirects back to your `merchantCallbackURL` with `x-gl-token`. Validate the token and extract the `SENT_FOR_CAPTURE` status.</Step>
+  <Step title="Confirm via Get Status">Call Get Status to confirm the final payment state.</Step>
+</Steps>
+
+### Declined Payment
+
+Use a decline test card in the GPI request. After redirect and callback, the token will carry a decline status. Validate your error handling and customer messaging.
+
+### 3DS Flow
+
+Use a 3DS test card. PayGlocal's sandbox page will simulate the 3DS challenge step. Complete the simulated challenge to proceed.
+
+### Standing Instructions
+
+Include `standingInstruction.data` in your GPI request. After the first successful payment, call Get Status to retrieve the `maskedMandateId` and `siId`. Use the Mandate ID in a subsequent SI Sale request and verify the response shows `SENT_FOR_CAPTURE`.
+
+### Refunds
+
+Complete a successful payment (status `SENT_FOR_CAPTURE`), then call the Refund endpoint with the GID. Verify the response shows `SENT_FOR_REFUND`.
+
+## Go-Live Checklist
+
+Before requesting Production access:
+
+- [ ] All API calls return expected responses in sandbox
+- [ ] Callback URL validation working (token signature verification)
+- [ ] Get Status fallback implemented (in case callback fails)
+- [ ] Error handling for all decline and error status codes
+- [ ] Risk data included for international card transactions
+- [ ] `merchantUniqueId` is unique per transaction
+- [ ] Keys stored securely server-side (not in client-side code)
+- [ ] Sandbox testing evidence submitted to PayGlocal for go-live approval
+
+## Sandbox Limitations
+
+- APM (UPI, netbanking, wallets) behavior may differ from production
+- VKYC flows and DigiLocker use test flows — no real identity verification occurs in sandbox
+- FIRC certificates are not generated in sandbox
+- Auto Debit webhook delivery may be delayed in sandbox
+- Penny drop bank account verification uses fixed test values only (see [Bank Verification Test Values](#bank-verification-test-values))
+- Some alternative payment methods (iDeal, Sofort, etc.) may not be available in sandbox
+- Apple Pay and Google Pay cannot be fully tested in sandbox

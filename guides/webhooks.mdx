@@ -100,6 +100,25 @@ Configure your webhook URL through your PayGlocal representative.
 }
 ```
 
+### Verifying Webhook Signatures
+
+<Warning>Verify the HMAC-SHA256 signature before processing SI webhook payloads.</Warning>
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(rawBody, signatureHeader, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signatureHeader)
+  );
+}
+```
+
 ### Handling Webhook Notifications
 
 1. Acknowledge receipt with HTTP `200` immediately.
@@ -150,6 +169,8 @@ window.addEventListener('message', function(event) {
 
 See [iFrame Integration](/guides/iframe-integration) for the full embedding guide and sandbox test credentials.
 
+<Note>For full partner onboarding iFrame event documentation, see [Partner Onboarding Events](/set-up/partner-onboarding/events).</Note>
+
 ---
 
 ## Security Best Practices
@@ -157,6 +178,7 @@ See [iFrame Integration](/guides/iframe-integration) for the full embedding guid
 | Practice | Why |
 |----------|-----|
 | Validate `x-gl-token` signature on every callback | Prevents spoofed callbacks from triggering fraudulent order fulfillment |
+| Verify HMAC-SHA256 signature on every SI webhook | Prevents spoofed webhook deliveries from triggering subscription state changes |
 | Verify postMessage `event.origin` | Prevents malicious iFrames from triggering actions |
 | Call Get Status / statusUrl server-side | Ground truth always comes from the API, not the notification |
 | Use HTTPS for your callback URL | Prevents `x-gl-token` interception in transit |

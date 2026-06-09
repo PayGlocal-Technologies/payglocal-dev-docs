@@ -1,0 +1,6 @@
+<Warning>
+PayGlocal does not store your private key. If you lose it, you must generate a new key pair in GCC and re-upload the public certificate. Treat your private key with password-level security:
+- Restrict file permissions: `chmod 600 your-private-key.pem` (Linux/macOS)
+- Never commit it to version control
+- Store in a secrets manager (AWS Secrets Manager, HashiCorp Vault, etc.) in production
+</Warning>

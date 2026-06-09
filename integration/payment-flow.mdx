@@ -76,17 +76,51 @@ Browser                  Client/Merchant Server         PayGlocal Server
     On the PayGlocal-hosted page, the customer completes their payment (authentication, card entry, 3DS, etc.).
   </Step>
 
-  <Step title="PayGlocal Redirects Back to Your Callback URL (POST)">
-    After the payment completes (success or failure), PayGlocal redirects the customer's browser back to the `merchantCallbackURL` you specified in the GPI request using an **HTTP POST**.
+  <Step title="Receive and verify the callback">
+    PayGlocal POSTs an HTTP request to your `merchantCallbackURL` with an `x-gl-token` header. This is an RS256-signed JWT.
 
-    PayGlocal sends a cryptographic token in the POST parameter: `x-gl-token`.
+    **Never process the payload before verifying the signature.** See [Verifying Signatures](/key-management/verifying-signatures).
 
-    **Your server must:**
-    1. Validate the `x-gl-token` signature using PayGlocal's PUBCERT
-    2. Extract the payment status from the validated token payload
-    3. Render the appropriate payment success/failure page to the customer
+    ```javascript
+    const jwt = require('jsonwebtoken');
+    const fs = require('fs');
 
-    If token validation fails, call the [Get Status API](/payment-services/get-status-service) using the GID.
+    app.post('/payment/callback', (req, res) => {
+      const xGlToken = req.headers['x-gl-token'];
+      const pubCert = fs.readFileSync(process.env.PAYGLOCAL_PUBCERT_PATH, 'utf8');
+
+      let payload;
+      try {
+        payload = jwt.verify(xGlToken, pubCert, { algorithms: ['RS256'] });
+      } catch (err) {
+        return res.status(401).send('Invalid signature');
+      }
+
+      // Return 200 immediately — PayGlocal retries if no 200 within 10s
+      res.status(200).send('OK');
+
+      // Process asynchronously
+      handlePaymentResult(payload);
+    });
+    ```
+
+    Key fields in the decoded payload:
+    | Field | Description |
+    |---|---|
+    | gid | PayGlocal transaction ID |
+    | status | Transaction status |
+    | merchantUniqueId | Your transaction ID, echoed back |
+    | txnAmount | Amount in smallest unit (paise) |
+    | txnCurrency | Currency code |
+    | reasonCode | GL-xxx code for declines |
+
+    For the full status reference, see [Payment Status Lifecycle](/reference/payment-status-lifecycle).
+  </Step>
+
+  <Step title="Fallback: poll Get Status if no callback">
+    If your `merchantCallbackURL` does not receive the callback within 30 seconds (network failure, server restart, etc.), poll [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) using your `merchantUniqueId`.
+
+    Implement this fallback for all production integrations — callbacks can fail silently.
   </Step>
 </Steps>
 
@@ -125,6 +159,10 @@ Contact PayGlocal merchant support to configure your preferred model.
 To set up a recurring payment mandate alongside the first payment, include the `standingInstruction` data block in your GPI request. See [Standing Instructions Flow](/integration/standing-instructions-flow) for the complete setup.
 
 ## Error Handling
+
+<Note>
+  For the full list of GPI response status codes and error codes, see the [API Reference](/api-reference/payments-v2/common/payment-initiation).
+</Note>
 
 | GPI Response Status | Meaning | Action |
 |--------------------|---------|--------|

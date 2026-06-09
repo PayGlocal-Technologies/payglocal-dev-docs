@@ -1,7 +1,43 @@
 ---
 title: "MCA Dashboard"
-description: "How to use the PayGlocal dashboard for Multi-Currency Account management."
-icon: "gauge"
+description: "Monitor Multi-Currency Account collections and settlements from the GCC dashboard."
+icon: "chart-bar"
 ---
 
-<Note>This page is coming soon. It will cover: viewing virtual account balances, FX history, settlement reports, and downloading statements from the MCA section of the PayGlocal dashboard.</Note>
+## Overview
+
+The GCC dashboard provides a read-only view of your MCA activity: incoming collections, pending settlements, historical settlements, and FIRC certificates.
+
+## Accessing MCA in GCC
+
+<Steps>
+  <Step title="Log in to GCC">Visit [gcc.prod.payglocal.in](https://gcc.prod.payglocal.in) (or the UAT equivalent for sandbox).</Step>
+  <Step title="Navigate to Multi-Currency Accounts">Select **Multi-Currency Accounts** from the left sidebar.</Step>
+  <Step title="Select a currency or label">Filter by currency code or collection label to view specific account activity.</Step>
+</Steps>
+
+## Collections View
+
+Shows:
+- Date and amount of each inbound foreign currency credit
+- Virtual account number that received the funds
+- Collection label (if configured)
+- Current status (received, pending settlement, settled)
+
+## Settlements View
+
+Shows:
+- Settlement date and INR amount credited
+- FX rate applied
+- Originating foreign currency amount and currency
+- Bank reference for reconciliation
+
+## FIRC Download
+
+FIRCs for completed settlements are available for download from the Settlements view. Click the settlement row and select **Download FIRC**.
+
+<Note>FIRC download URLs in the GCC dashboard are valid for 30 days from settlement date. For older FIRCs, contact merchant.support@payglocal.in.</Note>
+
+## Limitations
+
+The GCC dashboard is view-only for MCA. All operational actions (fetching virtual accounts, uploading compliance documents) must be performed via API. See [MCA API Integration](/mca/api).

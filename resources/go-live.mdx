@@ -1,0 +1,55 @@
+---
+title: "Go-Live Checklist"
+description: "Complete checklist before switching from sandbox to production."
+icon: "rocket"
+---
+
+This checklist applies to all PayGlocal integrations. Product-specific checklists are linked where relevant.
+
+## Pre-Launch Checklist
+
+<Steps>
+  <Step title="Merchant onboarding approved">
+    Verify merchant status is APPROVED in production GCC (gcc.prod.payglocal.in).
+  </Step>
+  <Step title="Production keys generated">
+    Generate a new key pair in production GCC. Never reuse sandbox keys in production. See [Private Key](/key-management/private-key).
+  </Step>
+  <Step title="Production Merchant ID confirmed">
+    Retrieve your production MID from GCC TID Details. It differs from your UAT MID.
+  </Step>
+  <Step title="Base URLs updated">
+    All API calls must use `https://api.prod.payglocal.in` (not `https://api.uat.payglocal.in`). See [Sandbox & Testing](/get-started/sandbox).
+  </Step>
+  <Step title="Callback and webhook URLs configured">
+    Update `merchantCallbackURL` and webhook endpoints to production server URLs. All must be HTTPS and return HTTP 200.
+  </Step>
+  <Step title="Callback signature verification implemented">
+    Confirm your callback handler verifies RS256 signatures using the production PUBCERT. See [Verifying Signatures](/key-management/verifying-signatures).
+  </Step>
+  <Step title="PCI DSS certification current (PayDirect only)">
+    If using PayDirect, confirm your PCI DSS Level 1 certification is current before processing live card data.
+  </Step>
+  <Step title="iFrame domain whitelisted (VKYC only)">
+    If using the VKYC iFrame, request production domain whitelisting from your account manager.
+  </Step>
+  <Step title="Idempotency and retry logic tested">
+    Verify your `merchantUniqueId` generation is globally unique and your Get Status fallback handles callback failures. See [Idempotency & Retries](/resources/idempotency).
+  </Step>
+  <Step title="Test transaction in production">
+    Process a small-value real payment to confirm end-to-end flow including callback receipt and INR settlement.
+  </Step>
+</Steps>
+
+## MCA Go Live
+
+For Multi-Currency Account go-live, see [MCA Go Live](/mca/go-live) — requires additional account manager coordination.
+
+## Post-Launch
+
+- Monitor your callback endpoint error rates for the first 24 hours
+- Confirm webhook delivery is functioning
+- Set up alerting for payment error rate spikes
+- Keep your sandbox environment active for regression testing
+
+<Snippet file="support-contact.mdx" />

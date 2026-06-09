@@ -29,29 +29,13 @@ PayDirect GPI does not support UPI, net banking, or global alternative payments 
 
 ## API
 
-| | |
-|---|---|
-| **Method** | `POST` |
-| **Path** | `/gl/v1/payments/initiate` |
-| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate` |
-| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate` |
-
-<Info>
-  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
-</Info>
+<Snippet file="paydirect-api-endpoint-table.mdx" />
 
 ---
 
 ## Headers
 
-| Header | Mandatory | Description |
-|--------|-----------|-------------|
-| `Content-Type` | Yes | `application/json` |
-| `x-gl-token-external` | Yes | RSA-signed **JWS** of the request body (see [Key Management](/key-management/overview)) |
-| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
-| `x-gl-kid` | Yes | Key ID of the private key used to sign the JWS |
-
-Sign the JSON from **Request body** below as the JWS in `x-gl-token-external`, then POST to the URL above.
+<Snippet file="paydirect-request-headers.mdx" />
 
 <div id="next-actions" className="payments-v2-after-api">
 

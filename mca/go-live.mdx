@@ -1,7 +1,78 @@
 ---
-title: "MCA Go-Live Checklist"
-description: "Everything to verify before activating your Multi-Currency Account in production."
-icon: "circle-check"
+title: "MCA Go Live"
+description: "Pre-production checklist for Multi-Currency Account integration."
+icon: "rocket"
 ---
 
-<Note>This page is coming soon. It will provide a production readiness checklist specific to MCA activation, covering compliance verification, virtual account configuration, and settlement setup.</Note>
+Complete these steps before activating your MCA integration in production.
+
+<Note>MCA go-live requires coordination with your PayGlocal account manager. Start the process at least 2 weeks before your target date.</Note>
+
+<Steps>
+  <Step title="Confirm APPROVED merchant status">
+    Verify the merchant's status is `APPROVED` in production GCC. MCA cannot be activated without an approved merchant account. See [MCA Concepts — Eligibility](/mca/concepts#eligibility).
+  </Step>
+  <Step title="Request MCA product activation">
+    Contact your account manager with the following:
+    - Desired collection currencies (USD, EUR, GBP, AUD, etc.)
+    - Collection labels required, if any (e.g. `US_SALES`, `EU_SERVICES`)
+    - Expected monthly volume per currency
+  </Step>
+  <Step title="Receive production x-api-key">
+    Your account manager provisions a production `x-api-key`. Store it in a secrets manager — not in source code or client-side config.
+  </Step>
+  <Step title="Configure production webhook endpoint">
+    Share your production webhook URL with your account manager to have it registered against your partner account. The endpoint must:
+    - Use HTTPS
+    - Be publicly reachable (no localhost or private IPs)
+    - Accept HTTP POST requests
+    - Return HTTP 200 within 10 seconds
+    - Implement HMAC-SHA256 signature verification
+
+    See [Webhook Events](/mca/webhooks#verifying-webhook-authenticity) for the verification implementation.
+  </Step>
+  <Step title="Fetch and validate virtual accounts">
+    Call `GET /gcc/v1/mca/virtual-account` in production. Verify you receive account details for all enabled currencies with the expected routing codes. See [Fetching Account Details](/mca/account-fetch).
+  </Step>
+  <Step title="Verify document upload flow">
+    Confirm your integration can generate a presigned URL and upload an invoice PDF end-to-end. Review [Uploading Transaction Documents](/mca/document-upload).
+  </Step>
+  <Step title="Complete a test collection">
+    Send a small-value test amount from a foreign account to your production virtual account to exercise the full flow:
+
+    1. Funds received → `MCA_FUND_RECEIVED` webhook fires
+    2. Upload supporting invoice → `TXN_SENT_FOR_SETTLEMENT` webhook fires
+    3. Settlement completes → `TXN_SETTLED` webhook fires with `fxRate` and `settlement_amount`
+    4. FIRC generated → `FIRC_RECEIVED` webhook fires
+  </Step>
+  <Step title="Verify FIRC download">
+    Confirm the `FIRC_RECEIVED` webhook fires and that the `fircUrl` in the payload returns a valid PDF. Download it immediately — the URL expires after 10 minutes. Store the file in your own system.
+
+    <Warning>Do not cache the `fircUrl` and fetch later. Download to your own storage the moment you receive `FIRC_RECEIVED`.</Warning>
+  </Step>
+  <Step title="Confirm INR settlement">
+    Verify the INR amount (per the `settlement_amount` field in `TXN_SETTLED`) appears in the merchant's registered bank account within the expected window. Typical settlement is T+1 or T+2 business days.
+  </Step>
+</Steps>
+
+<Warning>
+  Never reuse sandbox credentials in production. Your production `x-api-key` is provisioned separately by your account manager.
+</Warning>
+
+<Tip>Keep your sandbox environment configured after go-live — use it for regression testing when shipping integration changes.</Tip>
+
+## Pre-launch self-review
+
+Before requesting production access, confirm all of the following:
+
+- Merchant status is `APPROVED` in production GCC
+- Production `x-api-key` is stored in a secrets manager, not in code
+- Webhook endpoint is HTTPS, publicly accessible, and returns HTTP 200 promptly
+- Webhook signature verification is implemented and tested
+- Webhook handler is idempotent — uses `gid` as idempotency key
+- `MCA_FUND_RECEIVED` triggers automatic invoice upload
+- `FIRC_RECEIVED` handler downloads and stores the FIRC immediately
+- Virtual account fetch returns all expected currencies and routing details
+- INR settlement verified in the merchant's bank account
+
+<Snippet file="support-contact.mdx" />

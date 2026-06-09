@@ -1,13 +1,72 @@
 ---
-title: "Verify Response Signatures"
-description: "How to verify PayGlocal's JWS signature on webhook and callback responses."
+title: "Verifying Callback Signatures"
+description: "How to verify the RS256 signature on PayGlocal x-gl-token callback payloads before processing."
 icon: "shield-check"
 ---
 
-<Note>This page is coming soon. It will cover: extracting the `x-gl-token` header from PayGlocal responses, verifying the JWS signature using PayGlocal's public certificate, and what to do when verification fails.</Note>
-
 <Warning>
-Verifying PayGlocal's response signature is a security requirement, not optional. Processing a webhook or callback without verifying the signature exposes your integration to response tampering. Do not skip this step.
+Never process a callback payload before verifying its RS256 signature. Skipping verification allows replay attacks and forged callbacks. Verify first, then read the payload.
 </Warning>
 
-For the signing steps used when **sending** requests to PayGlocal, see [Construct Signed Request](/key-management/request-construction).
+## How It Works
+
+After each payment, PayGlocal POSTs an HTTP request to your `merchantCallbackURL` with an `x-gl-token` header containing a JWT. This JWT is signed with PayGlocal's private key using RS256. You verify the signature using the PayGlocal public certificate (PUBCERT) downloaded from GCC.
+
+## Prerequisites
+
+- PUBCERT downloaded from GCC dashboard (see [Public Certificate](/key-management/public-certificate))
+- An HTTPS endpoint configured as your `merchantCallbackURL`
+- `jsonwebtoken` npm package (Node.js) or equivalent
+
+## Verification Steps
+
+<Steps>
+  <Step title="Extract x-gl-token from the inbound POST">
+    ```javascript
+    const xGlToken = req.headers['x-gl-token'];
+    if (!xGlToken) return res.status(400).send('Missing x-gl-token');
+    ```
+  </Step>
+  <Step title="Load the PUBCERT">
+    ```javascript
+    const fs = require('fs');
+    const pubCert = fs.readFileSync('/path/to/payglocal-pubcert.pem', 'utf8');
+    ```
+    Store the PUBCERT path in your environment config — do not hardcode.
+  </Step>
+  <Step title="Verify the RS256 signature">
+    ```javascript
+    const jwt = require('jsonwebtoken');
+    let payload;
+    try {
+      payload = jwt.verify(xGlToken, pubCert, { algorithms: ['RS256'] });
+    } catch (err) {
+      return res.status(401).send('Invalid signature');
+    }
+    ```
+  </Step>
+  <Step title="Return HTTP 200 immediately">
+    Return 200 before doing any async business processing. PayGlocal will retry if it does not receive 200 within 10 seconds.
+    ```javascript
+    res.status(200).send('OK');
+    // Process payload.status, payload.gid, etc. asynchronously
+    ```
+  </Step>
+</Steps>
+
+## Decoded Payload Fields
+
+| Field | Description |
+|---|---|
+| gid | PayGlocal transaction ID |
+| status | Transaction status (see [Payment Response Handling](/merchant/payment-response-handling)) |
+| merchantUniqueId | Your transaction ID, echoed back |
+| txnCurrency | ISO 4217 currency code (e.g., INR) |
+| txnAmount | Amount in smallest unit (paise for INR) |
+| reasonCode | GL-xxx reason code for declines |
+
+## Fallback: If No Callback Arrives
+
+Always implement a fallback: if your `merchantCallbackURL` does not receive the callback within a reasonable timeout (e.g., 30 seconds), poll [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) using the `merchantUniqueId`.
+
+<Snippet file="confirm-status-warning.mdx" />

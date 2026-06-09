@@ -1,7 +1,48 @@
 ---
 title: "Security Overview"
-description: "PayGlocal's security architecture, PCI DSS scope, and responsible disclosure."
+description: "PCI DSS scope, API security model, and responsible disclosure for PayGlocal integrations."
 icon: "shield"
 ---
 
-<Note>This page is coming soon. Coverage will include: PCI DSS scope for PayCollect vs PayDirect integrations, data handling and retention policies, GDPR considerations, and how to report security vulnerabilities.</Note>
+## PCI DSS Scope by Integration Mode
+
+| | PayCollect | PayDirect |
+|---|---|---|
+| Card data handled by | PayGlocal | Merchant |
+| Merchant PCI DSS scope | Minimal (SAQ A eligible) | Full Level 1 required |
+| Integration complexity | Low | High |
+| Recommended for | Most merchants | PCI-certified merchants only |
+
+<Warning>If you use PayDirect, you must hold PCI DSS Level 1 certification before processing live card data. Integrating without certification violates PCI DSS requirements.</Warning>
+
+## API Security Model
+
+**Request authentication (Payment API):** All requests are signed with an RSA-2048 private key using JWS (RS256). The public certificate is registered in GCC.
+
+**Request authentication (Onboarding API):** Requests use HMAC-SHA256 digest over the request body plus a static API key.
+
+**Callback verification:** PayGlocal signs the x-gl-token callback JWT with its private key. Merchants must verify the RS256 signature using the PayGlocal PUBCERT before processing. See [Verifying Signatures](/key-management/verifying-signatures).
+
+**Transport:** TLS 1.2 or higher is required for all API calls and webhook endpoints.
+
+## Key Security
+
+- PayGlocal does not store your private key
+- If your private key is compromised, generate a new key pair immediately and re-register the public certificate in GCC
+- Restrict private key file permissions (`chmod 600`)
+- Never commit keys to version control — use a secrets manager in production
+
+See [Private Key](/set-up/keys/private-key) for key rotation steps.
+
+## Webhook Security
+
+Verify HMAC-SHA256 signatures on all inbound webhooks before processing payloads. See the webhook security sections in [MCA Webhooks](/mca/webhooks) and [SI Webhooks](/guides/webhooks).
+
+## Responsible Disclosure
+
+To report a security vulnerability in PayGlocal's platform or documentation:
+
+**Email:** merchant.support@payglocal.in  
+**Subject:** `SECURITY DISCLOSURE - <brief description>`
+
+Please include steps to reproduce, affected endpoints, and potential impact. PayGlocal will acknowledge within 2 business days.

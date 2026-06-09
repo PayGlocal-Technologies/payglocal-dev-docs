@@ -1,7 +1,25 @@
 ---
 title: "Apple Pay"
-description: "Accept Apple Pay payments through PayGlocal."
+description: "Accept Apple Pay through PayGlocal's PayCollect hosted checkout."
 icon: "apple"
 ---
 
-<Note>Apple Pay support is coming soon. This page will cover: eligibility requirements, merchant domain verification, certificate setup, and the API integration flow.</Note>
+<Note>Apple Pay on PayGlocal is available through [PayCollect](/payments/paycollect/overview) only. No separate Apple Pay developer account or domain verification is required when using PayCollect.</Note>
+
+## How It Works
+
+When Apple Pay is enabled for your Merchant ID, PayGlocal's hosted checkout automatically detects the customer's device and browser capabilities and surfaces Apple Pay as a payment option. The entire Apple Pay token exchange happens server-side between PayGlocal and Apple — no additional integration work is required on the merchant side.
+
+Your integration remains the same standard GPI flow. The callback you receive is identical regardless of whether the customer paid via Apple Pay or another method.
+
+## Requirements
+
+- PayCollect integration (not available for PayDirect)
+- Apple Pay enabled for your Merchant ID (contact your account manager)
+- Customer on Safari on an Apple device with Apple Pay configured
+
+## Testing
+
+Apple Pay cannot be fully tested in the PayGlocal sandbox environment. Test Apple Pay in production using a real Apple device with a small transaction amount.
+
+<Note>To enable Apple Pay for your Merchant ID, contact merchant.support@payglocal.in.</Note>

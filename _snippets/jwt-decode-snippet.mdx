@@ -1,0 +1,16 @@
+```javascript
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
+/**
+ * Verifies the RS256 signature on a PayGlocal x-gl-token callback.
+ * pubCertPath: path to PUBCERT downloaded from GCC dashboard.
+ * Returns the decoded payload or throws on invalid signature.
+ */
+function verifyGLToken(xGlToken, pubCertPath) {
+  const pubCert = fs.readFileSync(pubCertPath, 'utf8');
+  return jwt.verify(xGlToken, pubCert, { algorithms: ['RS256'] });
+}
+```
+
+<Note>Download the PUBCERT from the GCC dashboard. See [Public Certificate](/set-up/keys/public-certificate) for download steps.</Note>

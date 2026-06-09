@@ -1,0 +1,47 @@
+---
+title: "Support"
+description: "How to get help with PayGlocal integration, account issues, and production incidents."
+icon: "headset"
+---
+
+## Technical Integration Support
+
+For API errors, integration questions, and debugging:
+
+**Email:** merchant.support@payglocal.in
+
+Include in your support request:
+- Merchant ID
+- The affected GID, onboardingId, or mandateId
+- Error code and full response body
+- Endpoint called (method + path)
+- Timestamp of the issue
+- Steps to reproduce (if possible)
+
+**Response SLA:** 1 business day for standard issues, same-day for production-impacting issues.
+
+## Production Incident Escalation
+
+For issues actively affecting live payment processing:
+
+**Email:** merchant.support@payglocal.in  
+**Subject:** `PRODUCTION INCIDENT - <your MID> - <brief description>`
+
+## Business and Account Queries
+
+For commercial questions, MID activation, feature enablement (Apple Pay, DCC, MCA), and account setup:
+
+Contact your named **PayGlocal account manager** directly.
+
+If you do not have a named account manager, email merchant.support@payglocal.in with subject "Account Manager Assignment Request."
+
+## Before Contacting Support
+
+Check these first — they resolve the majority of support tickets:
+
+<CardGroup cols={2}>
+  <Card title="Authentication Errors" href="/set-up/keys/headers-reference" icon="key">Verify your headers and JWS signing</Card>
+  <Card title="Sandbox Setup" href="/get-started/sandbox" icon="flask">Confirm you have UAT credentials</Card>
+  <Card title="Status Codes" href="/reference/payment-status-lifecycle" icon="circle-nodes">Look up your status or error code</Card>
+  <Card title="Idempotency" href="/resources/idempotency" icon="rotate-right">Check duplicate transaction handling</Card>
+</CardGroup>

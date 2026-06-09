@@ -7,9 +7,7 @@ openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory"
 
 Submits the authorised signatory details. The signatory's phone and email are used to conduct VKYC, DigiLocker verification, and T&C acknowledgement — so accuracy is critical.
 
-<Warning>
-  Authorised signatory details cannot be updated after the merchant has acknowledged the Terms & Conditions.
-</Warning>
+<Snippet file="tnc-lock-warning.mdx" />
 
 ## Error Scenarios
 

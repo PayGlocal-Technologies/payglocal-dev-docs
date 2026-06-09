@@ -4,110 +4,30 @@ description: "Hosted checkout integration — PayGlocal collects payment details
 icon: "window"
 ---
 
-## Checkout Flow (PayCollect)
+## Overview
 
-**PayCollect** is PayGlocal's hosted integration mode. You initiate the payment from your server with amount, currency, and callback URL. The customer is redirected to PayGlocal's checkout, where they enter card details or choose a supported method (UPI, net banking, Apple Pay, global alternative payments, and more).
+PayCollect is PayGlocal's hosted checkout. Customers are redirected to a PayGlocal-hosted payment page — your server never handles raw card data, minimizing PCI DSS scope (SAQ A eligible).
 
-**No card data or tokens** are sent in your initiate request. PayGlocal collects payment details, runs 3DS where required, and completes the transaction.
+**Flow:** Merchant server calls GPI → PayGlocal returns `redirectUrl` → browser redirects → customer pays → PayGlocal POSTs x-gl-token to your `merchantCallbackURL`.
 
-<Note>
-  **PCI DSS certified and want your own checkout UI?** Use [Seamless Flow (PayDirect)](/api-reference/payments-v2/paydirect/overview) instead — you collect card data on your page and send it server-to-server.
-</Note>
+## Authentication
 
-### Key characteristics of PayCollect
-
-- Can be used by merchants **without** PCI DSS certification for card collection.
-- The customer completes payment on a **PayGlocal-hosted** page (`redirectUrl`).
-- **Multiple payment methods** (cards, UPI, net banking, Apple Pay, global alt pays) without separate initiate APIs — the customer selects the method at checkout.
-- All initiation calls use **server-to-server** APIs; the browser only follows the redirect to PayGlocal.
-
----
-
-## Authentication & keys
-
-PayCollect uses the same payment authentication as PayDirect: download an **RSA key** from the GCC Dashboard and send a **JWS token** in `x-gl-token-external` on every request.
-
-| Topic | Details |
-|-------|---------|
-| Header | `x-gl-token-external` |
-| Token type | RSA-signed JWS |
-| Setup | [Key Management](/key-management/overview) · [Constructing API Requests](/key-management/request-construction) |
-
----
+All PayCollect requests require RSA JWS signing. See [Authentication](/api-reference/payments-v2/common/authentication) for headers and signing details.
 
 ## Base URLs
 
-| Environment | Base URL |
-|-------------|----------|
-| Production | `https://api.payglocal.in` |
-| Sandbox | `https://api.uat.payglocal.in` |
+See [Sandbox & Testing](/get-started/sandbox) for environment URLs.
 
----
-
-## Supported payment methods
-
-The customer selects the method on the hosted page. You do **not** send a payment-method field in the initiate request.
-
-| Method | Domestic | International | Notes |
-|--------|:--------:|:-------------:|-------|
-| Cards | ✓ | ✓ | No `cardData` / `tokenData` in your request |
-| UPI / UPI Intent | ✓ | — | INR; see [UPI](/api-reference/payment/upi) · [UPI Intent](/api-reference/payment/upi-intent) |
-| Net banking | ✓ | — | Selected on hosted page |
-| Apple Pay | — | ✓ | International cards only |
-| Global alternative payments | — | ✓ | Requires `riskData.shippingData.addressCountry` and `emailId` |
-
-PayCollect does **not** apply to merchants who need to send raw card data in the API — use [Seamless Flow (PayDirect)](/api-reference/payments-v2/paydirect/overview) for that.
-
----
-
-## Transaction flows
-
-**GPI**, **authorize payment**, **SI on demand**, and **SI auto debit** all use the same initiation endpoint: `POST /gl/v1/payments/initiate/paycollect`. Only the request body changes.
+## Payment Flows
 
 <CardGroup cols={2}>
-  <Card title="GPI" icon="bolt" href="/api-reference/payments-v2/paycollect/gpi">
-    PayGlocal Payment Initiate — hosted single-step sale.
-  </Card>
-  <Card title="Authorize payment (auth only)" icon="shield-check" href="/api-reference/payments-v2/paycollect/auth-capture-authorise">
-    Hold funds on hosted checkout; capture or reverse later.
-  </Card>
+  <Card title="Regular Payment (GPI)" href="/api-reference/payments-v2/paycollect/gpi">One-time payment via hosted checkout</Card>
+  <Card title="On-Demand SI" href="/api-reference/payments-v2/paycollect/si-on-demand">Recurring — merchant-triggered</Card>
+  <Card title="Auto Debit SI" href="/api-reference/payments-v2/paycollect/si-auto-debit">Recurring — automatic schedule</Card>
+  <Card title="Auth & Capture" href="/api-reference/payments-v2/paycollect/auth-capture-authorise">Two-step authorization</Card>
+  <Card title="CodeDrop" href="/payments/paycollect/codedrop">Embedded checkout (no redirect)</Card>
 </CardGroup>
 
-<CardGroup cols={2}>
-  <Card title="SI — on demand" icon="rotate" href="/api-reference/payments-v2/paycollect/si-on-demand">
-    Hosted mandate; subsequent debits via SI sale.
-  </Card>
-  <Card title="SI — auto debit" icon="calendar" href="/api-reference/payments-v2/paycollect/si-auto-debit">
-    Hosted mandate; scheduled FIXED debits.
-  </Card>
-</CardGroup>
+## Standing Instructions
 
-### GPI (PayGlocal Payment Initiate — sale)
-
-Single-step payment on PayGlocal's hosted page. Funds are **authorised and captured in one flow** after the customer pays. Use this when you do **not** send card data in your API request.
-
-→ [GPI](/api-reference/payments-v2/paycollect/gpi)
-
-### Authorize payment (auth only)
-
-Two-step payment on hosted checkout. Set **`captureTxn: false`** to hold funds without capturing. Capture when you are ready to settle, or reverse to release the hold. **Cards and international Apple Pay only** — UPI and net banking are not supported for auth.
-
-→ [Authorize Payment (Auth Only)](/api-reference/payments-v2/paycollect/auth-capture-authorise)
-
-### Standing instructions (international cards)
-
-| Model | Subsequent debits | Amount |
-|-------|-------------------|--------|
-| [On demand](/api-reference/payments-v2/paycollect/si-on-demand) | You call [SI sale](/api-reference/standing-instructions/si-subsequent-payment) when you choose | `FIXED` or `VARIABLE`; no `startDate` |
-| [Auto debit](/api-reference/payments-v2/paycollect/si-auto-debit) | PayGlocal scheduler (`WEEKLY`, `MONTHLY`, …) — no SI sale | `FIXED` only; `startDate` required |
-
-Store **`mandateId`** from the initiate response — it is not returned on later transactions.
-
-| After initiate | API |
-|----------------|-----|
-| Transaction status | [Get transaction status](/api-reference/payments-v2/common/get-transaction-status) |
-| SI sale (on-demand) | [SI subsequent payment](/api-reference/standing-instructions/si-subsequent-payment) |
-| Mandate status | [Check mandate status](/api-reference/standing-instructions/si-status) |
-| Cancel mandate | [Cancel standing instruction](/api-reference/standing-instructions/si-cancellation) |
-| Capture / reversal | [Capture](/api-reference/payment/standalone-capture) · [Auth reversal](/api-reference/payment/standalone-reversal) |
-| Refund | [Refund](/api-reference/payment/refund) (after `SENT_FOR_CAPTURE`) |
+<Snippet file="si-ondemand-vs-autodebit-comparison.mdx" />

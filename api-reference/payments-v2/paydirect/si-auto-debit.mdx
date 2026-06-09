@@ -37,24 +37,19 @@ Standing instructions support **international cards** only. In **Request body** 
 
 ## API
 
-| | |
-|---|---|
-| **Method** | `POST` |
-| **Path** | `/gl/v1/payments/initiate` |
-| **Production** | `https://api.payglocal.in/gl/v1/payments/initiate` |
-| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/initiate` |
-
-<Info>
-  GPI, on-demand SI, auto-debit, and authorize all call this path. Only the JSON request body differs.
-</Info>
+<Snippet file="paydirect-api-endpoint-table.mdx" />
 
 ---
 
 ## Headers
 
-Same as [GPI](/api-reference/payments-v2/paydirect/gpi).
+<Snippet file="paydirect-request-headers.mdx" />
 
 Set `standingInstruction.data` (`amount`, scheduled `frequency`, `type: FIXED`, `startDate`) in **Request body** below.
+
+<Note>
+  Store the `mandateId` returned from the initial mandate-registration payment. It is required for all subsequent auto-debit charges.
+</Note>
 
 <div id="next-actions" className="payments-v2-after-api">
 

@@ -1,7 +1,41 @@
 ---
 title: "Currencies & Amounts"
-description: "Supported currencies, amount formatting rules, and currency-specific limits."
+description: "Amount formatting rules and currency-specific constraints for PayGlocal APIs."
 icon: "coins"
 ---
 
-<Note>This page is coming soon. It will consolidate: supported currency codes, amount formatting (minor units vs decimal), minimum/maximum transaction limits per currency, and currency-specific restrictions.</Note>
+<Warning>Always send amounts as integers in the smallest currency unit. Sending ₹10.00 as `10` instead of `1000` results in a ₹0.10 charge.</Warning>
+
+## Amount Formatting
+
+PayGlocal accepts amounts as **integers in the smallest currency unit** (no decimals):
+
+| Currency | Smallest Unit | Example |
+|---|---|---|
+| INR | Paise | ₹10.00 = `1000` |
+| USD | Cents | $1.00 = `100` |
+| EUR | Cents | €1.00 = `100` |
+| GBP | Pence | £1.00 = `100` |
+| JPY | Yen (no subdivision) | ¥100 = `100` |
+
+## Payment Currency
+
+For domestic payments, `txnCurrency` is `INR` and `txnAmount` is in paise.
+
+For international card payments via PayDirect, set `txnCurrency` to the customer's billing currency. PayGlocal handles the conversion.
+
+<Note>The full list of supported payment currencies depends on your merchant configuration. Contact your account manager for the currencies enabled for your MID.</Note>
+
+## DCC (Dynamic Currency Conversion)
+
+If DCC is enabled for your Merchant ID, foreign cardholders are offered the option to pay in their home currency (e.g., USD instead of INR). The transaction is processed in the selected currency; settlement to the merchant remains in INR.
+
+DCC must be explicitly enabled — contact your account manager.
+
+## MCA Collection Currencies
+
+Multi-Currency Account collection currencies are configured separately from payment currencies. See [MCA Concepts](/mca/concepts) for the MCA currency model.
+
+## Currency Code Format
+
+Use ISO 4217 three-letter codes (e.g., `INR`, `USD`, `EUR`) in all API fields. Lowercase is accepted but uppercase is preferred.

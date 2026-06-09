@@ -1,7 +1,40 @@
 ---
 title: "Service Status"
-description: "Check the current operational status of PayGlocal's APIs and services."
+description: "PayGlocal API and service operational status and incident escalation."
 icon: "signal"
 ---
 
-<Note>This page is coming soon. It will link to the PayGlocal status page and explain how to interpret status notifications during incidents.</Note>
+## Checking Service Status
+
+For real-time API availability and incident updates, contact merchant.support@payglocal.in or check with your account manager for the current status page URL.
+
+## During an Incident
+
+If you suspect a PayGlocal service issue:
+
+1. Check your recent API error rates and response codes
+2. Verify your credentials and request signing are correct (rule out client-side issues first)
+3. Check webhook delivery logs for delays
+4. Contact merchant.support@payglocal.in with your Merchant ID and observed error pattern
+
+## Production Incident Escalation
+
+For issues actively affecting live payment processing:
+
+**Email:** merchant.support@payglocal.in  
+**Subject line:** `PRODUCTION INCIDENT - <your MID> - <brief description>`
+
+Include:
+- Your Merchant ID
+- Affected endpoint(s)
+- Error codes and response bodies
+- Approximate start time
+- Transaction volume affected
+
+## Scheduled Maintenance
+
+PayGlocal notifies registered contacts at least 48 hours before scheduled maintenance windows. Contact your account manager to ensure your technical contact is registered for maintenance notifications.
+
+## Webhook Delivery During Incidents
+
+If PayGlocal is experiencing delivery delays, webhooks will be retried after the incident resolves. Always implement the [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) fallback rather than relying solely on webhook delivery.

@@ -1,0 +1,9 @@
+| | On-Demand SI | Auto Debit SI |
+|---|---|---|
+| Debit trigger | Merchant initiates each payment | PayGlocal auto-debits on schedule |
+| Amount type | Fixed or variable | Fixed only |
+| `startDate` required | No | Yes |
+| `mandateId` storage | Required (merchant stores) | Required (merchant stores) |
+| Best for | Subscription with variable billing | Fixed recurring (EMI, insurance premiums) |
+
+<Note>Both SI types require an initial mandate registration payment to obtain a mandateId. See [Recurring Payments](/payments/types/recurring-payment) for the mandate lifecycle.</Note>

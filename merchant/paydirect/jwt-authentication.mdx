@@ -1,8 +1,10 @@
 ---
-title: "JWT Authentication"
-description: "PayDirect's JWT-based authentication — process direct card payments on your own PCI-compliant interface."
+title: "PayDirect API Quickref"
+description: "Quick reference for PayDirect payment initiation, status, and refund endpoints."
 icon: "key"
 ---
+
+<Info>Before using these endpoints, complete [Key Management setup](/set-up/keys/overview) and ensure your JWS signing credentials are configured.</Info>
 
 ## JWT Authentication — Overview
 
@@ -57,10 +59,10 @@ POST /gl/v1/payments/initiate
     "totalAmount": "89",
     "txnCurrency": "INR",
     "cardData": {
-      "number": "5132552222223470",
+      "number": "4111111111111111",
       "expiryMonth": "12",
       "expiryYear": "2030",
-      "securityCode": "123"
+      "securityCode": "111"
     }
   },
   "merchantCallbackURL": "https://www.yoursite.com/callback"

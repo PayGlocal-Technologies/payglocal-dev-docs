@@ -1,14 +1,72 @@
 ---
-title: "Choose Your Path"
-description: "Find the right starting point based on what you are building."
+title: "Choose Your Integration"
+description: "Find the right PayGlocal integration pattern based on what you're building."
 icon: "map"
 ---
 
-<Note>This page is coming soon. Full role-based routing (merchant / partner / MCA exporter) will be added in Phase 2.</Note>
+## Quick Decision Guide
 
-In the meantime, use the tabs above to navigate to the product area most relevant to you:
+<Steps>
+  <Step title="Do you need to accept payments?">
+    Yes — continue. No, and you need to receive foreign currency — [Multi-Currency Accounts](/mca/concepts).
+  </Step>
+  <Step title="Are you PCI DSS Level 1 certified?">
+    **No** — Use [PayCollect](/payments/paycollect/overview) — PayGlocal's hosted checkout handles all card data. You keep minimal PCI scope (SAQ A).
 
-- **Payments** — integrating PayGlocal's payment gateway into your app or website
-- **Multi-Currency Accounts** — receiving cross-border payments and managing FX settlement
-- **Set Up** — onboarding, dashboard access, and API key management (start here for all products)
-- **API Reference** — full endpoint reference for all PayGlocal APIs
+    **Yes** — You can use [PayDirect](/payments/paydirect/overview) for a seamless in-page checkout experience, or [Standalone Auth/Capture](/payments/paydirect/auth-capture) if you need to pre-authorize and capture later.
+  </Step>
+  <Step title="Do you need recurring billing?">
+    **No** — Standard GPI (one-time payment). See [Regular Payment](/payments/types/regular-payment).
+
+    **Yes** — [Standing Instructions](/payments/types/recurring-payment) — merchant-triggered recurring charges or auto-debit schedules. Supported for international cards only.
+  </Step>
+  <Step title="Do you have developer resources?">
+    **No** — [No-Code Payments](/payments/no-code/overview) — Payment Links and Invoice Links require no code.
+
+    **Running WooCommerce, Magento, or Shopify?** — [E-commerce Plugins](/payments/plugins/overview).
+
+    **Yes** — Proceed with API integration.
+  </Step>
+</Steps>
+
+## Integration Mode Comparison
+
+| | PayCollect | PayDirect | Standalone Auth/Capture | No-Code |
+|---|---|---|---|---|
+| Developer effort | Low | Medium | High | None |
+| PCI DSS scope | SAQ A (minimal) | Level 1 (full) | Level 1 (full) | None |
+| Checkout location | PayGlocal hosted | Merchant site | Merchant site | PayGlocal hosted |
+| Custom UI | Limited | Full | Full | None |
+| International cards | Yes | Yes | Yes | Yes |
+| Alternative payment methods | Yes | No | No | Yes |
+| Recurring payments (SI) | No | Yes | Yes | No |
+| Auth now, capture later | No | No | Yes | No |
+
+<Note>
+  Standing Instructions (recurring billing) require your MID to be enabled for SI processing. Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to confirm eligibility before starting your integration.
+</Note>
+
+## Platform / Partner Path
+
+Building a platform that onboards sub-merchants? You need the [Partner Onboarding API](/set-up/partner-onboarding/quickstart) — a separate API surface from the payment APIs. Payment API credentials and partner API credentials are issued independently.
+
+## Where to Start
+
+<CardGroup cols={2}>
+  <Card title="I'm building a payment integration" href="/payments/overview" icon="credit-card">
+    Start with Payments overview
+  </Card>
+  <Card title="I'm onboarding merchants onto my platform" href="/set-up/partner-onboarding/quickstart" icon="users">
+    Start with Partner Quickstart
+  </Card>
+  <Card title="I need to receive foreign currency" href="/mca/concepts" icon="globe">
+    Start with MCA Overview
+  </Card>
+  <Card title="I need API credentials first" href="/set-up/keys/overview" icon="key">
+    Start with Key Management
+  </Card>
+</CardGroup>
+
+## Not Sure?
+
+Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) — the PayGlocal team can advise on the right integration pattern for your business model.

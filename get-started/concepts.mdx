@@ -1,9 +1,104 @@
 ---
 title: "Core Concepts"
-description: "Key concepts you need to understand before integrating PayGlocal."
-icon: "book-open"
+description: "The PayGlocal object model, payment lifecycle, and key terms explained."
+icon: "lightbulb"
 ---
 
-<Note>This page is coming soon. Coverage will include: GID, merchantUniqueId, JWE vs JWS (conceptual), payment lifecycle mental model, and the PayCollect vs PayDirect decision.</Note>
+## What PayGlocal Does
 
-To get started with the signing mechanics right away, see [Key Management Overview](/key-management/overview).
+PayGlocal is an RBI-licensed payment aggregator with three main API surfaces: merchant onboarding (bring sub-merchants onto the platform), payment initiation (accept one-time and recurring payments), and Multi-Currency Accounts (receive and settle foreign currency funds).
+
+## Partners and Merchants
+
+A **partner** (also called a reseller) is a platform or ISV that onboards sub-merchants using the PayGlocal Onboarding API. The partner uses their `resellerMid` to make onboarding API calls on behalf of sub-merchants.
+
+A **merchant** is a business that accepts payments through PayGlocal. Merchants have their own Merchant ID (MID) and use payment APIs directly.
+
+One entity can be both — a marketplace that accepts payments and also onboards its sellers.
+
+## Key Identifiers
+
+| Identifier | What It Is |
+|---|---|
+| GPI | Global Payment Initiation — the payment request object |
+| GID | PayGlocal ID — the unique identifier assigned to each GPI |
+| onboardingId | Unique identifier for a merchant onboarding application |
+| merchantUniqueId | Your own transaction ID — used for idempotency |
+| mandateId | Identifier for a Standing Instruction mandate |
+| resellerMid | The partner's Merchant ID used in onboarding API calls |
+
+## Payment Lifecycle
+
+1. Merchant server calls the GPI initiation endpoint with the payment details
+2. PayGlocal returns a GID and a `redirectUrl`
+3. Browser redirects the customer to PayGlocal's hosted checkout (PayCollect) or merchant handles card data directly (PayDirect)
+4. Customer completes payment — 3DS / OTP if required
+5. PayGlocal POSTs an `x-gl-token` JWT to your `merchantCallbackURL`
+6. Merchant verifies the callback signature, processes the result, and returns HTTP 200
+
+Always fall back to [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) if the callback is not received.
+
+## Recurring Payments (Standing Instructions)
+
+1. Initial payment registers a mandate and returns a `mandateId`
+2. Store the `mandateId` — it is required for all subsequent charges
+3. For **on-demand SI**: merchant triggers each charge explicitly
+4. For **auto-debit SI**: PayGlocal charges automatically on the configured schedule
+5. Mandate lifecycle: ACTIVE → INACTIVE (paused) → EXHAUSTED or CANCELLED
+
+## Two Authentication Systems
+
+PayGlocal uses different auth schemes depending on which API surface you are calling.
+
+| API Surface | Headers Required | Signing Method |
+|---|---|---|
+| Onboarding API | `x-gl-auth`, `x-gl-digest` | HMAC-SHA256 over request body |
+| Payment API | `x-gl-token-external`, `x-gl-merchantid`, `x-gl-kid` | RSA JWS (asymmetric key pair) |
+
+<Note>
+Your onboarding credentials and payment credentials are separate. Generate and manage payment keys from the PayGlocal merchant portal. See [Key Management](/set-up/keys/overview) for setup steps.
+</Note>
+
+## PayCollect vs PayDirect
+
+| | PayCollect | PayDirect |
+|---|---|---|
+| Who hosts the payment page? | PayGlocal | You |
+| PCI scope | Reduced — card data never touches your server | Higher — card data passes through your server |
+| Integration effort | Lower | Higher |
+| Customisation | Limited to PayGlocal's hosted UI | Full control |
+
+Use PayCollect unless you have a specific reason to handle card data yourself.
+
+## Onboarding Lifecycle
+
+Partner-led onboarding follows a sequential, stateful process. Each PUT call enriches the merchant record; PayGlocal validates completeness before allowing the verification step.
+
+| `onboardingStatus` | Meaning |
+|---|---|
+| `INITIATED` | Onboarding record created, details not yet submitted |
+| `IN_PROGRESS` | One or more detail sections submitted |
+| `PENDING_VERIFICATION` | All details submitted, awaiting merchant VKYC |
+| `PENDING_REVIEW` | VKYC complete, under PayGlocal compliance review |
+| `APPROVED` | Merchant fully onboarded and activated |
+| `REJECTED` | Onboarding rejected after review |
+| `RFI` | Request for Information — additional data required |
+
+See [API Flow Overview](/guides/api-flow-overview) for the complete step-by-step onboarding sequence.
+
+## Where to Go Next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" href="/get-started/quickstart">
+    Make your first API call in minutes
+  </Card>
+  <Card title="Key Management" href="/set-up/keys/overview">
+    Generate and rotate your RSA key pair
+  </Card>
+  <Card title="Payment Flow" href="/integration/payment-flow">
+    End-to-end payment initiation walkthrough
+  </Card>
+  <Card title="API Flow Overview" href="/guides/api-flow-overview">
+    Full onboarding sequence with diagrams
+  </Card>
+</CardGroup>

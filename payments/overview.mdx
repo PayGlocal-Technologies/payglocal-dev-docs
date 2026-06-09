@@ -1,22 +1,40 @@
 ---
-title: "Payments Overview"
-description: "How PayGlocal's payment products work and where to start."
+title: "Payments"
+description: "Choose your PayGlocal integration mode and payment type."
 icon: "credit-card"
 ---
 
-<Note>This page is coming soon. It will explain: what PayGlocal Payments is, the PayCollect vs PayDirect choice, supported payment methods, and how to navigate the Payments section.</Note>
+## Two Ways to Integrate
+
+| | PayCollect | PayDirect |
+|---|---|---|
+| Hosted by | PayGlocal | Merchant |
+| PCI DSS scope | Minimal (SAQ A eligible) | Full Level 1 required |
+| Customer experience | Redirect to PayGlocal checkout | Stays on merchant site |
+| Card data handling | PayGlocal handles | Merchant handles (JWE required) |
+| Best for | Fast integration, lower compliance burden | Custom checkout UX, PCI-certified merchants |
+
+## Payment Types
+
+| Type | Description |
+|---|---|
+| Regular GPI | One-time payment — single charge, customer-initiated |
+| Standing Instructions (SI) | Recurring billing — mandate registration + on-demand or auto-debit |
+| Auth & Capture | Two-step payment — authorize a hold, capture later (hotels, marketplaces) |
+
+## Choose Your Path
+
+**Not PCI DSS certified?** → Use [PayCollect](/payments/paycollect/overview) — PayGlocal handles all card data.
+
+**Need a custom checkout UI or already PCI certified?** → Use [PayDirect](/payments/paydirect/overview).
+
+**No developer resources?** → Use [No-Code Payments](/payments/no-code/overview) — Payment Links, Invoice Links, or Payment Button.
+
+**Running on WooCommerce, Magento, or another platform?** → Use an [E-commerce Plugin](/payments/plugins/overview).
 
 <CardGroup cols={2}>
-  <Card title="Integration Overview" icon="map" href="/integration/overview">
-    Understand the integration modes and choose between PayCollect and PayDirect.
-  </Card>
-  <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Make your first API call in minutes.
-  </Card>
-  <Card title="Keys & Security" icon="key" href="/key-management/overview">
-    Set up your API keys and learn how to sign requests.
-  </Card>
-  <Card title="API Integration" icon="code" href="/integration/api-overview">
-    Full API integration guide for both PayCollect and PayDirect.
-  </Card>
+  <Card title="PayCollect" icon="store" href="/payments/paycollect/overview">Hosted checkout — no PCI burden</Card>
+  <Card title="PayDirect" icon="code" href="/payments/paydirect/overview">Seamless checkout — full control</Card>
+  <Card title="No-Code" icon="link" href="/payments/no-code/overview">Payment Links and Invoice Links</Card>
+  <Card title="Plugins" icon="plug" href="/payments/plugins/overview">WooCommerce, Magento, Shopify and more</Card>
 </CardGroup>

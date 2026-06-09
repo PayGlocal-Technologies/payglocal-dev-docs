@@ -1,0 +1,4 @@
+- **Full operation**: Omit the `amount` field (or set it to the full authorized/captured amount). PayGlocal processes the entire outstanding amount.
+- **Partial operation**: Include the `amount` field set to a value less than the authorized/captured amount. The remaining amount stays available for subsequent partial operations.
+
+<Note>Partial captures and partial refunds must be enabled for your Merchant ID. Contact your account manager if you need partial operation support.</Note>

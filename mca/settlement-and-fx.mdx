@@ -1,7 +1,60 @@
 ---
 title: "Settlement & FX"
-description: "How funds settle from your MCA virtual accounts and how FX conversion works."
+description: "FX conversion rates, settlement timeline, and settlement webhook events."
 icon: "arrow-right-arrow-left"
 ---
 
-<Note>This page is coming soon. Coverage will include: settlement timelines (T+ windows), FX conversion rates and spreads, supported currency pairs, and how to read settlement reports.</Note>
+## Settlement Flow
+
+1. Foreign payer sends funds to your PayGlocal virtual account
+2. PayGlocal receives and credits the foreign currency amount
+3. PayGlocal converts at the prevailing FX rate
+4. INR equivalent is credited to your registered bank account (T+1 or T+2 business days)
+5. FIRC is generated and delivered via webhook
+
+## Settlement Currency
+
+All MCA settlements are in **INR**, regardless of the collection currency. The FX rate applied and the resulting INR amount are included in the `TXN_SETTLED` webhook payload — use these fields for reconciliation.
+
+<Note>Contact your account manager for exact settlement SLAs for your currency pair and volume tier.</Note>
+
+## FX Rate
+
+PayGlocal applies its prevailing interbank FX rate at the time each settlement batch is processed. The exact rate is returned in the `fxRate` field of the `TXN_SETTLED` webhook payload.
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<MERCHANT_ID>",
+  "transaction_amount": "1000.00",
+  "transaction_currency": "USD",
+  "settled_at": "2024-10-23",
+  "fxRate": "91.39",
+  "settlement_amount": "998.00",
+  "settlement_currency": "INR",
+  "status": "SETTLED"
+}
+```
+
+`settlement_amount` is the INR credit after FX conversion. `fxRate` is the USD/INR rate applied at batch time.
+
+## Webhook Events
+
+| Event | Status field | Trigger |
+|---|---|---|
+| `MCA_FUND_RECEIVED` | `DOCUMENT_PENDING` | Foreign currency funds credited to the virtual account |
+| `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Invoice accepted; FX conversion and INR transfer queued |
+| `TXN_SETTLED` | `SETTLED` | INR credited to merchant bank account; includes `fxRate` and `settlement_amount` |
+| `FIRC_RECEIVED` | `FIRC_RECEIVED` | FIRC document generated; includes a 10-minute download URL |
+
+See [Webhook Events](/mca/webhooks) for full payload schemas and handling guidance.
+
+## FIRC
+
+A Foreign Inward Remittance Certificate (FIRC) is generated after each `TXN_SETTLED` event. The `FIRC_RECEIVED` webhook contains a `fircUrl` that expires after **10 minutes**.
+
+<Warning>
+  Download and store the FIRC document to your own storage as soon as you receive `FIRC_RECEIVED`. The `fircUrl` is not valid after 10 minutes — do not cache the URL and fetch later.
+</Warning>
+
+Retain FIRCs for RBI compliance. They serve as official proof of receipt for cross-border inward remittances.

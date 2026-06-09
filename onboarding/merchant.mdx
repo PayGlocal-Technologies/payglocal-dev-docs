@@ -1,11 +1,115 @@
 ---
-title: "Merchant Onboarding"
-description: "How to onboard your own business with PayGlocal to start accepting payments."
+title: "Merchant Self-Onboarding"
+description: "How to onboard as a merchant directly on PayGlocal — without a partner integration."
 icon: "user-plus"
 ---
 
-{/* TODO: Merchant Onboarding content not yet provided. Placeholder. */}
+<Note>
+This guide is for merchants onboarding directly through PayGlocal. If you are a **partner** onboarding sub-merchants programmatically, see [Partner Onboarding](/set-up/partner-onboarding/quickstart) instead.
+</Note>
 
-This section will cover how to onboard your business with PayGlocal to start accepting payments — including documentation requirements, the onboarding journey, and verification steps.
+## Two Onboarding Paths
 
-Content coming soon. In the meantime, contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) for onboarding assistance.
+| Path | When to Use |
+|---|---|
+| **Dashboard-led** (this guide) | You have access to the GCC dashboard and want to complete onboarding manually |
+| **API-led** (partner integration) | You are a platform programmatically onboarding multiple merchants |
+
+## Dashboard-Led Onboarding
+
+<Steps>
+  <Step title="Request GCC access">
+    Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) to request a GCC dashboard account. You will receive login credentials for `gcc.prod.payglocal.in` (or the UAT equivalent for testing).
+  </Step>
+  <Step title="Log in and complete business details">
+    Log in to GCC and fill in your company information: legal entity name, registered address, entity type, business category, and GST/PAN details.
+
+    PayGlocal onboards six entity types:
+
+    | Entity Type | Notes |
+    |---|---|
+    | Freelancer (Individual) | PAN + DigiLocker + VKYC required |
+    | Sole Proprietor | Business proof required in addition to individual KYC |
+    | Partnership | Partnership Deed required |
+    | LLP | LLP Deed + Certificate of Incorporation required |
+    | Private Limited Company | MOA, AOA, COI required (auto-fetched where possible) |
+    | Public Limited Company | MOA, AOA, COI required (auto-fetched where possible) |
+
+    See [Merchant Requirements](/set-up/partner-onboarding/merchant-requirements) for the full document list per entity type.
+  </Step>
+  <Step title="Add directors and beneficial owners">
+    Submit details for all directors and beneficial owners (equity holders above 10%): full name, PAN, address, and shareholding percentage.
+
+    For partnerships and LLPs, submit the list of partners with PAN and shareholding details. The authorized signatory must be one of the partners or directors. If not, you will need to provide an Authorization Letter or Board Resolution on company letterhead.
+  </Step>
+  <Step title="Update bank details">
+    Provide the bank account that will receive payment settlements: account number, IFSC code, and account holder name. The account holder name must match your registered entity name.
+
+    <Note>
+      PayGlocal runs a penny-drop verification automatically. If verification fails, you will be asked to upload a cancelled cheque or recent bank statement.
+    </Note>
+  </Step>
+  <Step title="Upload KYC documents">
+    Upload the required documents based on your entity type. Common requirements across entity types:
+
+    - PAN card (entity PAN + authorized signatory PAN)
+    - GST certificate (where applicable)
+    - Certificate of Incorporation (companies and LLPs)
+    - Cancelled cheque or bank statement (if penny drop fails)
+    - Authorized signatory ID proof
+
+    For regulated business categories, an additional certificate is required:
+
+    | Business Category | Mandatory Certificate |
+    |---|---|
+    | Jewelry | Bureau of Indian Standards / Hallmarking Certificate |
+    | Insurance | IRDAI License |
+    | Food & Beverages | FSSAI License |
+    | International Travel | IATA Certification |
+
+    <Warning>
+      If your business exports physical goods internationally, an **Import Export Code (IEC)** is mandatory regardless of entity type.
+    </Warning>
+
+    If you want to enable the **cards** product, your website must have a valid privacy policy, refund policy, terms and conditions, and shipping policy — and must clearly display products, pricing, and your registered trade name.
+  </Step>
+  <Step title="Complete VKYC">
+    PayGlocal will send a VKYC (Video KYC) link to the authorized signatory. Complete the video call within the validity window. DigiLocker-based identity verification may be offered as an alternative for eligible entity types.
+  </Step>
+  <Step title="Acknowledge Terms & Conditions">
+    Review and acknowledge the Terms & Conditions in GCC. After this step, business details and authorized signatory information are locked and cannot be edited without raising a support request.
+  </Step>
+  <Step title="Await approval">
+    PayGlocal reviews your application. Typical turnaround is 3–5 business days. Check status in GCC at any time.
+
+    If your application moves to **RFI** (Request for Information) status, PayGlocal will specify which documents or details need to be resubmitted. Respond promptly to avoid delays. See [Handling RFI](/set-up/partner-onboarding/rfi-handling) for guidance.
+  </Step>
+  <Step title="Receive credentials">
+    Once your status moves to **APPROVED**:
+
+    - Your production Merchant ID is visible in GCC under TID Details
+    - Download your private key and public certificate from GCC
+    - Follow the [Go-Live Checklist](/resources/go-live) before processing real payments
+
+    <Tip>
+      Test your integration in the sandbox before going live. See [Key Management](/set-up/keys/overview) to set up your API keys.
+    </Tip>
+  </Step>
+</Steps>
+
+## After Approval
+
+<CardGroup cols={2}>
+  <Card title="Key Management" icon="key" href="/set-up/keys/overview">
+    Download your private key and public certificate, and learn how to rotate keys.
+  </Card>
+  <Card title="Go-Live Checklist" icon="circle-check" href="/resources/go-live">
+    Steps to complete before processing real payments in production.
+  </Card>
+  <Card title="Merchant Requirements" icon="clipboard-check" href="/set-up/partner-onboarding/merchant-requirements">
+    Full document list by entity type, category certificates, and website requirements.
+  </Card>
+  <Card title="Handling RFI" icon="circle-exclamation" href="/set-up/partner-onboarding/rfi-handling">
+    What to do when PayGlocal requests additional information.
+  </Card>
+</CardGroup>

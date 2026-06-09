@@ -1,0 +1,176 @@
+---
+title: "MCA Testing"
+description: "How to test your Multi-Currency Account integration in the PayGlocal sandbox."
+icon: "flask"
+---
+
+## Sandbox Overview
+
+The PayGlocal UAT environment supports MCA integration testing with the following limitations:
+
+- Virtual accounts are assigned but not backed by real bank accounts
+- Fund receipt must be simulated (see below)
+- FIRCs are not generated for sandbox transactions
+- Settlement timelines are accelerated (minutes, not days)
+
+<Warning>
+  UAT credentials do not work in production and vice versa. Always use the correct environment's API key.
+</Warning>
+
+## Prerequisites
+
+Before you begin:
+
+- A UAT `x-api-key` from your account manager
+- UAT base URL: `https://uat.payglocal.in`
+- A webhook endpoint that is publicly reachable over HTTPS (use [ngrok](https://ngrok.com) or similar for local testing)
+
+<Tip>
+  If you do not yet have a UAT API key, contact your PayGlocal account manager or reach out to merchant.support@payglocal.in.
+</Tip>
+
+---
+
+## Testing Flow
+
+<Steps>
+  <Step title="Fetch your test virtual accounts">
+    Call the accounts endpoint to retrieve the virtual account details assigned to your UAT Merchant ID.
+
+    ```bash
+    GET https://uat.payglocal.in/mca/accounts
+    x-api-key: <UAT_API_KEY>
+    ```
+
+    You should receive virtual account details for each currency enabled on your UAT account. If the response is empty or returns 401, your MCA feature may not be activated — contact your account manager.
+  </Step>
+
+  <Step title="Simulate a fund receipt">
+    Fund receipt cannot be self-triggered in the sandbox. To simulate an inbound transfer to your virtual account, contact merchant.support@payglocal.in or your account manager and provide:
+
+    - Your UAT Merchant ID
+    - The currency and amount to credit (e.g. USD 1000.00)
+
+    PayGlocal's team will credit a test amount to your UAT virtual account and trigger the `MCA_FUND_RECEIVED` webhook.
+
+    <Note>
+      Keep the `gid` from the resulting webhook payload — you will need it for document upload in the next steps.
+    </Note>
+  </Step>
+
+  <Step title="Receive and verify the MCA_FUND_RECEIVED webhook">
+    Expose your local webhook handler using a tunnelling tool:
+
+    ```bash
+    ngrok http 3000
+    ```
+
+    Copy the HTTPS forwarding URL and register it as your webhook endpoint with your account manager before requesting the test credit.
+
+    When the webhook arrives, verify your handler:
+
+    - Returns HTTP 200 within 10 seconds
+    - Verifies the HMAC-SHA256 signature before processing the payload (see [Webhook Events](/mca/webhooks))
+    - Extracts the `gid` for use in the document upload step
+    - Handles retries idempotently using the `gid` as the idempotency key
+
+    Expected payload shape:
+
+    ```json
+    {
+      "gid": "glm123456789",
+      "paymentRail": "ACH",
+      "merchantId": "<MERCHANT_ID>",
+      "amount": "1000.00",
+      "currency": "USD",
+      "sender_name": "John D***",
+      "sender_country": "US",
+      "sender_accountno": "XXXX1234",
+      "timestamp": "2024-10-21T10:15:30Z",
+      "status": "DOCUMENT_PENDING"
+    }
+    ```
+  </Step>
+
+  <Step title="Upload a test document">
+    Use the `gid` from the webhook to request a presigned upload URL, then PUT the file to that URL. See [Uploading Documents](/mca/document-upload) for the full two-step flow.
+
+    **Step 4a — Request the presigned URL:**
+
+    ```bash
+    POST https://uat.payglocal.in/gcc/v1/ffms/external/transaction/glm123456789/upload-presigned
+    x-api-key: <UAT_API_KEY>
+    Content-Type: application/json
+
+    {
+      "amount": "1000.00",
+      "currency": "USD",
+      "invoiceType": "INVOICE",
+      "paymentType": "CARD",
+      "merchantId": "<MERCHANT_ID>",
+      "invoiceNumber": "INV-UAT-001",
+      "purposeCode": "P0102",
+      "fileName": "invoice_INV-UAT-001.pdf"
+    }
+    ```
+
+    **Step 4b — Upload the file:**
+
+    ```bash
+    curl -X PUT "<presignedUrl>" \
+      --upload-file invoice_INV-UAT-001.pdf
+    ```
+
+    A `200 OK` response from the PUT confirms the upload succeeded. PayGlocal will validate the document and proceed to settlement.
+  </Step>
+
+  <Step title="Verify settlement webhooks">
+    After a successful document upload, listen for the two settlement webhooks:
+
+    | Webhook | Status field | When it fires |
+    |---------|-------------|---------------|
+    | `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Document accepted, settlement queued |
+    | `TXN_SETTLED` | `SETTLED` | Funds settled to merchant INR account |
+
+    <Note>
+      In UAT, settlement may be immediate or may require manual processing by the PayGlocal team. If settlement webhooks do not arrive within 15 minutes of document upload, contact merchant.support@payglocal.in.
+    </Note>
+
+    `FIRC_RECEIVED` is not fired in sandbox — this is expected behaviour. Test FIRC handling in production.
+  </Step>
+</Steps>
+
+---
+
+## Common Test Issues
+
+| Issue | Likely Cause | Resolution |
+|-------|-------------|------------|
+| 401 on account fetch | MCA not activated for UAT Merchant ID | Contact your account manager |
+| Webhook not received | Endpoint not publicly accessible | Use ngrok or a deployed staging environment |
+| 409 on document upload | Document already uploaded for this `gid` | Request a new test credit with a fresh `gid` |
+| 422 on document upload | Invalid `purposeCode` | Use a valid RBI purpose code (e.g. `P0102`) |
+| Settlement webhooks missing after 15 min | UAT settlement requires manual trigger | Contact merchant.support@payglocal.in |
+| `FIRC_RECEIVED` never fires | Not available in sandbox | Expected — validate FIRC handling in production |
+
+---
+
+## Sandbox Limitations
+
+- Virtual accounts are not backed by real bank infrastructure; fund credits are simulated by the PayGlocal team
+- FIRC certificates are not generated in the sandbox environment
+- FX rates returned in settlement webhooks are indicative test values, not live rates
+- Settlement timelines do not reflect production SLAs
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Webhook Events" href="/mca/webhooks">
+    Full payload reference and signature verification for all four MCA lifecycle events.
+  </Card>
+  <Card title="Uploading Documents" href="/mca/document-upload">
+    Step-by-step guide to the presigned URL upload flow.
+  </Card>
+</CardGroup>

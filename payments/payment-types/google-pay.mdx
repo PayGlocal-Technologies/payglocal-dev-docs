@@ -1,7 +1,23 @@
 ---
 title: "Google Pay"
-description: "Accept Google Pay payments through PayGlocal."
+description: "Accept Google Pay through PayGlocal's checkout."
 icon: "google"
 ---
 
-<Note>Google Pay support is coming soon. This page will cover: eligibility requirements, Google Pay merchant registration, and the API integration flow.</Note>
+<Note>Google Pay on PayGlocal is available through [PayCollect](/payments/paycollect/overview). When enabled, it appears automatically in the hosted checkout payment method list.</Note>
+
+## How It Works
+
+PayGlocal handles the Google Pay token exchange server-side. When the customer selects Google Pay on the PayGlocal hosted checkout, PayGlocal processes the Google Pay payment token and initiates the charge. Your integration remains the standard GPI flow — the callback you receive is identical to any other payment.
+
+## Requirements
+
+- PayCollect integration
+- Google Pay enabled for your Merchant ID (contact your account manager)
+- Customer has Google Pay set up on their device
+
+## Testing in Sandbox
+
+Google Pay can be tested in the PayGlocal sandbox using Google Pay test cards. In the UAT hosted checkout, select Google Pay and use a test card from your Google Pay test environment.
+
+<Note>For Google Pay with PayDirect (custom checkout), contact merchant.support@payglocal.in — additional configuration is required.</Note>

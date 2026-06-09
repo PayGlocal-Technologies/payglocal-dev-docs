@@ -7,9 +7,8 @@ openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/bank-details"
 
 Submits or updates the settlement bank account. PayGlocal performs a **penny drop verification** to confirm the account is active and the IFSC is valid.
 
-<Warning>
-  Bank details cannot be updated after the merchant's verification step is complete. If the penny drop fails, prompt the merchant to re-enter their bank details.
-</Warning>
+<Snippet file="post-verification-lock-warning.mdx" />
+<Snippet file="tnc-lock-warning.mdx" />
 
 ## Notes
 

@@ -1,126 +1,105 @@
 ---
-title: "Payment Flow"
-description: "Understand how a payment request is built — from raw payload to encrypted, signed API call."
-icon: "shield"
+title: "Request Signing and Encryption"
+description: "How to construct the JWS-signed (and optionally JWE-encrypted) token for PayGlocal Payment API requests."
+icon: "lock"
 ---
 
-Before making any API call, it helps to understand **what actually happens** when you send a payment request to PayGlocal. This page explains the full flow — no code, just the logic.
+<Note>This page covers token construction — the cryptographic step that happens on your server before each API call. For the full payment lifecycle (redirect, callback, settlement), see [Payment Initiation Flow](/integration/payment-flow).</Note>
 
----
+## Overview
 
-## Why Can't I Send a Raw Payload?
+Every PayGlocal Payment API request requires the body to be prepared in the following sequence:
 
-PayGlocal never accepts a plain JSON request. Every request must be:
+1. Serialize the payload to a JSON string
+2. For PayDirect card payments: JWE-encrypt the card data sub-object using PayGlocal's public certificate
+3. JWS-sign the full payload using your RSA private key
+4. Send the resulting token as the `x-gl-token-external` request header
 
-- **Encrypted** — so no one in transit can read your payment data
-- **Signed** — so PayGlocal can verify the request genuinely came from you
+## Credentials Required
 
-These two steps produce two tokens — a **JWE** and a **JWS** — which travel together in every API call.
-
----
-
-## Flow: From Payload to Request
-
-```
-Your Payment Data (plain JSON)
-         │
-         ▼
-  [ generateJWE ]
-  Encrypts your payload using PayGlocal's public key
-  Returns → JWE Token (encrypted, unreadable string)
-         │
-         ▼
-  [ generateJWS ]
-  Hashes the JWE and signs it using your private key
-  Returns → JWS Token (signed proof string)
-         │
-         ▼
-  [ POST Request ]
-  Body    →  JWE Token
-  Header  →  x-gl-token-external: JWS Token
-         │
-         ▼
-  PayGlocal receives the request
-  → Verifies JWS (confirms it came from you)
-  → Decrypts JWE (reads your payload)
-  → Processes the payment
-```
-
----
-
-## What Each Function Does
-
-### `generateJWE` — Encrypt the Payload
-
-**Takes in:** Your payment payload + PayGlocal's public key + your Merchant ID + Public Key ID
-
-**What it does:** Converts your JSON payload into an encrypted token. Once encrypted, the data is completely unreadable — only PayGlocal can decrypt it using their private key.
-
-**Returns:** A JWE token — a compact encrypted string that becomes the **body of your API request**.
-
----
-
-### `generateJWS` — Sign the JWE
-
-**Takes in:** The JWE token + your private key + your Merchant ID + Private Key ID
-
-**What it does:** Takes the JWE token, hashes it with SHA-256, and signs that hash using your private key. This signature is proof that the request was sent by you and has not been modified in transit.
-
-**Returns:** A JWS token — a compact signed string that goes into the **`x-gl-token-external` header of your API request**.
-
----
-
-### `generateJWEAndJWS` — The Single Entry Point
-
-**Takes in:** Your payload + all five credentials (public key, private key, Merchant ID, Public Key ID, Private Key ID)
-
-**What it does:** Calls `generateJWE` first, then passes its output to `generateJWS`. Validates all your credentials before running.
-
-**Returns:** Both tokens together — `{ jweToken, jwsToken }`.
-
-This is the **only function you need to call**. Everything else happens internally.
-
----
-
-## Assembling the Request
-
-Once you have both tokens, your request is:
-
-```
-POST  https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect
-
-Header:  Content-Type         →  text/plain
-Header:  x-gl-token-external  →  JWS Token
-
-Body:  JWE Token
-```
-
-That's it. PayGlocal handles the rest.
-
----
+| Credential | Where to Get | Used For |
+|---|---|---|
+| RSA Private Key | [Download from GCC](/set-up/keys/private-key) | JWS signing |
+| PayGlocal PUBCERT | [Download from GCC](/set-up/keys/public-certificate) | JWE encryption (PayDirect card data) |
+| Merchant ID | GCC TID Details | `x-gl-merchantid` header |
+| Key ID (KID) | Extracted from private key filename | `x-gl-kid` header |
 
 ## Why Two Tokens?
 
 | Token | Sent as | Key used | What it protects |
 |---|---|---|---|
-| **JWE** | Request body | PayGlocal's **public** key | Confidentiality — data cannot be read in transit |
-| **JWS** | Request header | **Your** private key | Authenticity — PayGlocal confirms the request is from you |
+| **JWE** | Request body | PayGlocal's **public** certificate | Confidentiality — payload is unreadable in transit |
+| **JWS** | `x-gl-token-external` header | **Your** RSA private key | Authenticity — PayGlocal confirms the request originated from you |
 
-One without the other is incomplete. JWE alone means PayGlocal can read the data, but cannot trust it came from you. JWS alone means PayGlocal can verify the sender, but cannot read the payload.
+One without the other is incomplete. JWE alone means PayGlocal can read the data but cannot trust its origin. JWS alone means PayGlocal can verify the sender but cannot read the payload.
+
+## Token Construction Functions
+
+### `generateJWE` — Encrypt the Payload
+
+**Input:** Payment payload + PayGlocal's public certificate + Merchant ID + Public Key ID
+
+**What it does:** Converts the JSON payload into a compact encrypted token. The data is unreadable in transit — only PayGlocal can decrypt it using their private key.
+
+**Output:** A JWE token — the encrypted string that becomes the **body of your API request**.
 
 ---
 
-## Credentials You Need
+### `generateJWS` — Sign the JWE
 
-| Credential | Purpose |
-|---|---|
-| **PayGlocal Public Key** | Used by `generateJWE` to encrypt the payload |
-| **Your Private Key** | Used by `generateJWS` to sign the JWE |
-| **Merchant ID** | Embedded in both token headers to identify you |
-| **Public Key ID** | Tells PayGlocal which key was used to encrypt |
-| **Private Key ID** | Tells PayGlocal which key to use for signature verification |
+**Input:** JWE token + your RSA private key + Merchant ID + Private Key ID
 
-<Note>
-  See [Key Management](/getting-started/dashboard-and-key-management) for step-by-step instructions on fetching all five credentials.
-</Note>
+**What it does:** Takes the JWE token, computes a SHA-256 hash, and signs it with your private key. This signature proves the request was sent by you and has not been modified in transit.
 
+**Output:** A JWS token — the signed string sent in the **`x-gl-token-external` request header**.
+
+---
+
+### `generateJWEAndJWS` — Combined Entry Point
+
+**Input:** Payload + all five credentials (public certificate, private key, Merchant ID, Public Key ID, Private Key ID)
+
+**What it does:** Validates all credentials, calls `generateJWE`, then passes the result to `generateJWS` automatically.
+
+**Output:** Both tokens — `{ jweToken, jwsToken }`.
+
+<Tip>This is the only function you need to call directly. `generateJWE` and `generateJWS` run internally.</Tip>
+
+## Request Assembly
+
+Once you have both tokens, assemble the request:
+
+```
+POST  https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect
+
+Content-Type: text/plain
+x-gl-token-external: <JWS Token>
+x-gl-merchantid: <MERCHANT_ID>
+x-gl-kid: <KEY_ID>
+
+Body: <JWE Token>
+```
+
+## Flow Summary
+
+```
+Payment Payload (JSON)
+         │
+         ▼
+  [ generateJWE ]
+  Encrypt with PayGlocal's public certificate
+  → JWE Token (encrypted body)
+         │
+         ▼
+  [ generateJWS ]
+  Sign with your RSA private key
+  → JWS Token (x-gl-token-external header)
+         │
+         ▼
+  POST /gl/v1/payments/initiate/paycollect
+  PayGlocal verifies JWS → decrypts JWE → processes payment
+```
+
+## Portfolio / Multi-MID Setup
+
+If operating multiple sub-merchants under a parent MID, include the `x-gl-kid-mid` header with the child MID. See [Request Construction](/set-up/keys/request-construction) for the portfolio configuration.

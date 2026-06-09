@@ -1,7 +1,118 @@
 ---
 title: "Glossary"
-description: "Definitions for PayGlocal-specific terms used throughout the documentation."
-icon: "spell-check"
+description: "Definitions of PayGlocal-specific terms, HTTP headers, and acronyms."
+icon: "book"
 ---
 
-<Note>This page is coming soon. Terms defined will include: GID, JWS, JWE, merchantUniqueId, SI, mandate, PayCollect, PayDirect, GPI, and more.</Note>
+Terms are listed alphabetically. Each entry links to the most relevant documentation page.
+
+### AFA (Additional Factor of Authentication)
+A second verification step during a card payment — typically OTP or 3DS. Required by RBI for most domestic card transactions.
+
+### Auto Debit
+A Standing Instruction subtype where PayGlocal debits the customer automatically on a configured schedule. Contrast with [On-Demand SI](#si-standing-instructions). See: [Recurring Payments](/payments/types/recurring-payment)
+
+### CAVV (Cardholder Authentication Verification Value)
+A cryptographic value produced during 3DS authentication, included in the authorization request to prove the customer authenticated.
+
+### CodeDrop
+PayGlocal's JavaScript SDK for embedding a payment flow directly on the merchant page — no redirect to PayGlocal's hosted checkout. Available for PayCollect only. See: [CodeDrop Integration](/payments/paycollect/codedrop)
+
+### DCC (Dynamic Currency Conversion)
+An optional feature where foreign cardholders are offered the option to pay in their home currency. Settlement remains in INR.
+
+### DigiLocker
+India's government digital document locker. Used during merchant VKYC to verify identity documents. See: [Merchant Requirements](/set-up/partner-onboarding/merchant-requirements)
+
+### ECI (Electronic Commerce Indicator)
+A value returned from 3DS authentication indicating the outcome (fully authenticated, attempted, not authenticated).
+
+### FIRC (Foreign Inward Remittance Certificate)
+An RBI-mandated certificate issued for each inward foreign currency remittance. PayGlocal generates this after MCA settlement. See: [FIRC Compliance](/mca/firc-compliance)
+
+### GCC (Glocal Command Center)
+PayGlocal's merchant dashboard. Used to manage credentials, view transactions, and configure products. See: [GCC Overview](/set-up/dashboard/gcc-overview)
+
+### GID (PayGlocal ID)
+The unique identifier assigned to a GPI by PayGlocal. Use this as the canonical transaction reference for status checks and refunds.
+
+### GPI (Global Payment Initiation)
+The payment request object created when a merchant calls the initiate endpoint. Each GPI gets a unique GID.
+
+### IEC (Import Export Code)
+A mandatory field for certain MCA document uploads — identifies the merchant's foreign trade registration.
+
+### JWE (JSON Web Encryption)
+Encryption wrapper used to protect card data in PayDirect flows. The card payload is JWE-encrypted before being included in the JWS-signed request body. See: [Key Management](/set-up/keys/overview)
+
+### JWS (JSON Web Signature)
+The RSA-signed JWT wrapper used to authenticate all Payment API requests. The entire request body is serialized and signed with the merchant's private key. See: [Request Construction](/set-up/keys/request-construction)
+
+### KID (Key ID)
+A unique identifier for a key pair. Extracted from the key filename in GCC (format: PVT-KEY-`<kid>`.pem). Sent as the `x-gl-kid` request header. See: [Private Key](/set-up/keys/private-key)
+
+### mandateId
+The unique identifier for a Standing Instruction mandate, returned after the initial mandate-registration payment. Must be stored by the merchant for all subsequent SI charges.
+
+### MCA (Multi-Currency Account)
+A PayGlocal product that provides virtual accounts for receiving foreign currency collections, with automatic FX conversion and INR settlement. See: [MCA Overview](/mca/concepts)
+
+### merchantCallbackURL
+The HTTPS endpoint on the merchant server where PayGlocal POSTs the `x-gl-token` JWT after each payment. Must return HTTP 200. See: [Verifying Signatures](/key-management/verifying-signatures)
+
+### merchantUniqueId
+The merchant's own unique identifier for a transaction — used as an idempotency key. Must be unique per merchant. See: [Idempotency](/resources/idempotency)
+
+### MID (Merchant ID)
+The unique identifier assigned to a merchant in PayGlocal. Sent as `x-gl-merchantid` in Payment API requests.
+
+### MUID
+Abbreviation for merchantUniqueId. See [merchantUniqueId](#merchantuniqueid).
+
+### NACH
+National Automated Clearing House — the RBI-mandated network for recurring debit mandates. PayGlocal SI auto-debit uses NACH for bank account debits.
+
+### onboardingId
+The unique identifier for a merchant onboarding application, returned by the Create Onboarding endpoint.
+
+### PAN (Primary Account Number)
+The 16-digit card number. PayGlocal does not store PANs. See: [Security Overview](/resources/security-overview)
+
+### PayCollect
+PayGlocal's hosted checkout integration mode. The customer is redirected to a PayGlocal-hosted payment page — merchants have no PCI DSS card data scope. See: [PayCollect Overview](/payments/paycollect/overview)
+
+### PayDirect
+PayGlocal's seamless (non-redirect) integration mode. Card data is collected by the merchant and passed to PayGlocal — requires PCI DSS Level 1 certification. See: [PayDirect Overview](/payments/paydirect/overview)
+
+### purposeCode
+A mandatory field in MCA document uploads identifying the RBI purpose code for the foreign inward remittance. Required for FIRC generation and RBI compliance.
+
+### resellerMid
+The Merchant ID of a partner (reseller). Used as the path parameter in Onboarding API calls.
+
+### SI (Standing Instructions)
+PayGlocal's recurring payment system. Supports on-demand and auto-debit subtypes. See: [Recurring Payments](/payments/types/recurring-payment)
+
+### UPI AutoPay
+An RBI-mandated recurring payment mechanism over UPI. Used for SI auto-debit flows.
+
+### VKYC (Video KYC)
+Video-based identity verification required for merchant onboarding. Conducted via a live video call on PayGlocal's platform.
+
+### x-gl-auth
+HTTP request header for Onboarding API authentication — contains the static API key. See: [Onboarding Authentication](/set-up/partner-onboarding/authentication)
+
+### x-gl-digest
+HTTP request header for Onboarding API — contains the HMAC-SHA256 digest of the request body. See: [Onboarding Authentication](/set-up/partner-onboarding/authentication)
+
+### x-gl-kid
+HTTP request header for Payment API — the Key ID from the merchant's private key filename. See: [Headers Reference](/set-up/keys/headers-reference)
+
+### x-gl-merchantid
+HTTP request header for Payment API — the merchant's Merchant ID. See: [Headers Reference](/set-up/keys/headers-reference)
+
+### x-gl-token
+HTTP response header / callback payload — the RS256-signed JWT that PayGlocal POSTs to `merchantCallbackURL` after a payment. See: [Verifying Signatures](/key-management/verifying-signatures)
+
+### x-gl-token-external
+HTTP request header for Payment API — the JWS-signed request body token. See: [Headers Reference](/set-up/keys/headers-reference)

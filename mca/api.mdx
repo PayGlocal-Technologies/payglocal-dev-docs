@@ -1,9 +1,232 @@
 ---
-title: "MCA API Guide"
-description: "How to use the PayGlocal MCA API for programmatic account and document management."
+title: "MCA API Integration"
+description: "Step-by-step guide to integrating PayGlocal Multi-Currency Account APIs."
 icon: "code"
 ---
 
-<Note>This page is coming soon. It will provide a conceptual walkthrough of the MCA API before the endpoint reference, covering authentication, common flows, and error handling.</Note>
+<Note>
+MCA APIs use **x-api-key** header authentication only — not the RSA JWS signing required by payment APIs. Your x-api-key is provisioned by your PayGlocal account manager.
+</Note>
 
-For the MCA API endpoint reference, see [MCA APIs](/api-reference/mca/overview).
+## Prerequisites
+
+- Merchant status: APPROVED in PayGlocal onboarding
+- MCA product activated for your Merchant ID
+- x-api-key provided by your account manager
+- Webhook endpoint configured (publicly accessible HTTPS, returns HTTP 200)
+
+## Integration Flow
+
+1. **Activate MCA** — done by your account manager; confirms currencies and collection labels
+2. **Fetch virtual accounts** — retrieve account numbers and routing codes per currency
+3. **Share accounts with payers** — provide virtual account details to your foreign counterparties
+4. **Receive MCA_FUND_RECEIVED webhook** — funds have arrived
+5. **Upload compliance documents** — submit invoice via the presigned URL upload flow
+6. **Receive settlement webhooks** — TXN_SENT_FOR_SETTLEMENT → TXN_SETTLED → FIRC_RECEIVED
+
+## Authentication
+
+All MCA API calls require the `x-api-key` header:
+
+```
+x-api-key: <API_KEY>
+```
+
+| Environment | Base URL |
+|-------------|----------|
+| Production | `https://gcc.prod.payglocal.in` |
+| Sandbox | `https://gcc.uat.payglocal.in` |
+
+For sandbox credentials, see [Sandbox & Testing](/get-started/sandbox).
+
+## Step 1: Fetch Virtual Accounts
+
+```
+GET /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts
+x-api-key: <API_KEY>
+```
+
+Returns virtual accounts grouped by collection label and then by currency. Cache the response — the data changes only when PayGlocal reprovisiones accounts.
+
+**Example response structure:**
+
+```json
+{
+  "data": {
+    "general": {
+      "USD": {
+        "accountNumber": "XXXXXXXXXX4490",
+        "accountHolderName": "Acme Exports",
+        "bankName": "Citibank, N.A.",
+        "bankAddress": "One Penns Way, New Castle, DE 19720",
+        "bankCountry": "US",
+        "currency": "USD",
+        "routingCode": "031100209",
+        "routingCodeType": "ABA Number"
+      }
+    }
+  }
+}
+```
+
+<Note>
+Only call this endpoint after the merchant's onboarding status is `APPROVED`. Calling it earlier returns HTTP 401.
+</Note>
+
+**Routing codes by currency:**
+
+| Currency | Routing Code Type |
+|----------|------------------|
+| USD | ABA Number |
+| GBP | Sort Code |
+| EUR | BIC / IBAN |
+| AUD | BSB Number |
+
+For the full request/response spec, see [Fetch Virtual Accounts](/api-reference/mca/account-fetch).
+
+## Step 2: Configure Webhooks
+
+Share your webhook endpoint URL with your PayGlocal account manager. Your endpoint must:
+
+- Accept HTTP POST
+- Return HTTP 200 within 10 seconds
+- Be publicly accessible over HTTPS
+
+<Warning>
+Always verify the webhook signature before processing the payload. Skipping this step allows forged webhook delivery.
+</Warning>
+
+Verify using HMAC-SHA256:
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(rawBody, signatureHeader, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signatureHeader)
+  );
+}
+```
+
+PayGlocal retries failed deliveries up to 3 times with exponential backoff (1 min, 5 min, 30 min).
+
+## Step 3: Handle MCA_FUND_RECEIVED
+
+When funds land in the merchant's virtual account, PayGlocal fires `MCA_FUND_RECEIVED`. Extract the `gid` — you need it to upload the invoice.
+
+```javascript
+app.post('/webhooks/mca', (req, res) => {
+  const isValid = verifyWebhookSignature(
+    req.rawBody,
+    req.headers['x-gl-signature'],
+    process.env.WEBHOOK_SECRET
+  );
+  if (!isValid) return res.status(401).end();
+
+  res.status(200).send('OK');
+
+  const { eventType, gid, amount, currency, merchantId } = req.body;
+  if (eventType === 'MCA_FUND_RECEIVED') {
+    processIncomingFunds({ gid, amount, currency, merchantId });
+  }
+});
+```
+
+**Payload fields:**
+
+| Field | Description |
+|-------|-------------|
+| `gid` | Transaction ID — pass this to the upload API |
+| `amount` | Received amount |
+| `currency` | Currency of the virtual account |
+| `merchantId` | Merchant this transaction belongs to |
+| `status` | `DOCUMENT_PENDING` at this stage |
+
+## Step 4: Upload Documents
+
+Upload the invoice immediately after receiving `MCA_FUND_RECEIVED`. The flow is two steps: request a presigned URL, then PUT the file to that URL.
+
+**Step 4a — Request a presigned URL:**
+
+```
+POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned
+x-api-key: <API_KEY>
+Content-Type: application/json
+```
+
+```json
+{
+  "amount": "1000.00",
+  "currency": "USD",
+  "invoiceType": "INVOICE",
+  "paymentType": "CARD",
+  "merchantId": "<MERCHANT_ID>",
+  "invoiceNumber": "INV-2026-00321",
+  "customerFullName": "John Doe",
+  "purposeCode": "P0102",
+  "fileName": "invoice_INV-2026-00321.pdf"
+}
+```
+
+<Note>
+`purposeCode` is effectively mandatory for RBI compliance even though the schema marks it optional. Always include it.
+</Note>
+
+**Step 4b — Upload the file:**
+
+```bash
+curl -X PUT "<presignedUrl>" \
+  --upload-file invoice_INV-2026-00321.pdf
+```
+
+The presigned URL is single-use and short-lived. Upload the file immediately after receiving the URL — do not cache it.
+
+For the full request schema, see [Get Upload Presigned URL](/api-reference/mca/document-upload).
+
+## Step 5: Handle Settlement Webhooks
+
+After a successful upload, PayGlocal fires three more events in sequence:
+
+| Event | Status | Your Action |
+|-------|--------|-------------|
+| `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
+| `TXN_SETTLED` | `SETTLED` | Mark complete, share FX rate and settled amount |
+| `FIRC_RECEIVED` | `FIRC_RECEIVED` | Download FIRC immediately — URL expires in 10 minutes |
+
+<Warning>
+The `fircUrl` in the `FIRC_RECEIVED` event is valid for **10 minutes only**. Download and store it to your own storage (S3, GCS, etc.) as soon as you receive the event.
+</Warning>
+
+For full payload shapes and handling best practices, see [MCA Webhook Events](/mca/webhooks).
+
+## Error Reference
+
+| HTTP Status | Scenario |
+|-------------|----------|
+| 400 | Invalid `merchantId` format |
+| 401 | Merchant not activated, or invalid `x-api-key` |
+| 404 | Virtual account not found — refresh your accounts cache |
+| 409 | Document already uploaded for this `gid` |
+| 422 | Invalid document or missing required fields |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Fetch Virtual Accounts" icon="bank" href="/api-reference/mca/account-fetch">
+    Full request/response spec for the account fetch endpoint.
+  </Card>
+  <Card title="Get Upload Presigned URL" icon="file-arrow-up" href="/api-reference/mca/document-upload">
+    Full request schema for the document upload endpoint.
+  </Card>
+  <Card title="MCA Webhook Events" icon="bell" href="/mca/webhooks">
+    All four lifecycle events and handling best practices.
+  </Card>
+  <Card title="MCA Overview" icon="book" href="/mca/overview">
+    Concepts, lifecycle states, and integration surfaces.
+  </Card>
+</CardGroup>

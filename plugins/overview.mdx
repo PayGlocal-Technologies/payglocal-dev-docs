@@ -4,6 +4,8 @@ description: "Accept PayGlocal on Shopify, WooCommerce, Magento, OpenCart, or Wi
 icon: "puzzle-piece"
 ---
 
+<Note>E-commerce plugins are best for platforms (WooCommerce, Magento, Shopify, OpenCart, Wix) that need quick integration without custom API work. For custom checkout flows, use the [Payment API](/payments/overview) instead.</Note>
+
 <div className="not-prose payg-plugin-hero">
   <p className="payg-plugin-hero-title">Merchant store plugins</p>
   <p>
@@ -32,10 +34,20 @@ icon: "puzzle-piece"
   </Card>
 </CardGroup>
 
+## Compatibility
+
+| Platform | Plugin Version | PHP Version | PayCollect | PayDirect |
+|---|---|---|---|---|
+| Shopify | App Store (latest) | N/A | Yes | Yes |
+| WooCommerce | Latest ZIP | 7.1, 7.2–7.4, 8.0 | Yes | Contact account manager |
+| Magento | 1.9 / 2.x / 2.0.0 | 5.6, 7.2–7.4 | Yes | Contact account manager |
+| OpenCart | 1.5, 2.3, 3.0 | Any | Yes | Contact account manager |
+| Wix | Velo (latest) | N/A | Yes | Contact account manager |
+
 ## What you will need
 
-Before any plugin setup, have merchant credentials from [GCC](/getting-started/dashboard-and-key-management) and review [Key Management](/key-management/overview) for signing material (merchant ID, keys, PEM files) referenced in each admin UI.
+<Snippet file="plugin-merchant-account-prerequisite.mdx" />
 
 <Note>
-  If your PHP, Magento, OpenCart, or WooCommerce version is not listed in a download table, contact your **PayGlocal account manager** for the correct build.
+  If your PHP, Magento, OpenCart, or WooCommerce version is not listed in the compatibility table above, contact your **PayGlocal account manager** for the correct build.
 </Note>

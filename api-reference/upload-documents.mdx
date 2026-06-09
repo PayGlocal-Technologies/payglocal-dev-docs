@@ -7,9 +7,7 @@ openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/docs"
 
 Uploads a single compliance document for the merchant. Call this endpoint **once per document type** required.
 
-<Warning>
-  Documents cannot be uploaded or updated after the merchant's verification step is complete.
-</Warning>
+<Snippet file="post-verification-lock-warning.mdx" />
 
 <Note>
   Check `documentsToBeUploaded` in the [Get Onboarding Status](/api-reference/get-status) response to see which documents are pending. After each upload, poll GET /status to confirm the list has updated. See the full [Dynamic document pendencies](/guides/merchant-requirements#dynamic-document-pendencies) matrix for trigger conditions and `merchantDocType` mappings.

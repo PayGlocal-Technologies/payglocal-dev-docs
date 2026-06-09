@@ -1,7 +1,48 @@
 ---
 title: "Postman Collection"
-description: "Download the PayGlocal Postman collection to test APIs without writing code."
-icon: "satellite-dish"
+description: "PayGlocal API Postman collection for testing and exploration."
+icon: "rectangle-code"
 ---
 
-<Note>The Postman collection download is coming soon. It will include pre-configured requests for all Payment and Onboarding APIs, with environment variables for sandbox and production.</Note>
+## Overview
+
+PayGlocal provides a Postman collection covering Onboarding and Payment APIs. The collection includes pre-request scripts that handle JWS token generation automatically — you only need to configure your credentials as environment variables.
+
+## Getting Started
+
+<Steps>
+  <Step title="Request the collection">
+    Contact merchant.support@payglocal.in with subject "Postman Collection Request" to receive the latest collection file.
+  </Step>
+  <Step title="Import into Postman">
+    In Postman: **File → Import** → select the downloaded .json file.
+  </Step>
+  <Step title="Create a Postman environment">
+    Create a new environment with these variables:
+
+    | Variable | Description | Example |
+    |---|---|---|
+    | merchantId | Your Merchant ID from GCC | (from GCC TID Details) |
+    | kidPublic | Key ID from your public certificate filename | |
+    | kidPrivate | Key ID from your private key filename | |
+    | privateKeyPath | Absolute path to your private key PEM file | /home/user/pvt-key.pem |
+    | pubCertPath | Absolute path to your public certificate PEM file | /home/user/pubcert.pem |
+    | baseUrl | API base URL | https://uat.payglocal.in |
+
+  </Step>
+  <Step title="Run a request">
+    Select the environment, open a request from the collection, and click **Send**. The pre-request script signs the request body automatically.
+  </Step>
+</Steps>
+
+## What's Included
+
+- Onboarding API: Create Onboarding, Update Business Details, Add Beneficial Owner, Update Bank Details, Upload Documents, Configure Products, Get Status
+- Payment APIs: GPI (PayCollect + PayDirect), Standing Instructions, Auth & Capture, Refund, Get Status
+
+## Limitations
+
+- JWE encryption for PayDirect card data requires a custom pre-request script (not included by default)
+- The collection targets UAT by default — update `baseUrl` for production
+
+<Tip>For SDK-based integrations, see [Developer SDKs](/resources/sdks).</Tip>

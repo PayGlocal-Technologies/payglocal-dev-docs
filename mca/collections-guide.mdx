@@ -1,7 +1,54 @@
 ---
 title: "Collections Guide"
-description: "How to receive inbound cross-border payments via MCA virtual accounts."
-icon: "arrow-down-to-line"
+description: "How to fetch MCA virtual accounts and receive foreign currency collections."
+icon: "inbox"
 ---
 
-<Note>This page is coming soon. It will cover: creating virtual accounts, sharing account details with payers, tracking inbound transfers, and reconciling collections against your ledger.</Note>
+## Prerequisites
+
+- Merchant APPROVED in PayGlocal onboarding
+- MCA product activated (contact your account manager with desired currencies)
+- x-api-key provisioned (provided by account manager)
+
+<Note>MCA APIs use x-api-key header authentication, not the RSA JWS signing used by payment APIs.</Note>
+
+## Step 1: Fetch Virtual Accounts
+
+Call GET /mca/accounts to retrieve your virtual account details.
+
+```bash
+GET /mca/accounts
+x-api-key: <API_KEY>
+```
+
+The response contains one virtual account per enabled currency + collection label combination. Each account includes:
+- Virtual account number
+- Bank name and branch
+- SWIFT/routing codes
+- Currency
+- Collection label
+
+**Cache these accounts.** Refresh daily or when you receive a 404 (account reassigned).
+
+## Step 2: Share with Payers
+
+Provide your foreign payer with:
+- Virtual account number
+- Bank name and SWIFT code
+- Any reference field your payer requires
+
+Funds are credited to your virtual account when the payer's SWIFT/wire transfer is processed.
+
+## Step 3: Receive MCA_FUND_RECEIVED Webhook
+
+Configure your webhook endpoint to receive MCA events (see [MCA API Integration](/mca/api)). When funds arrive, PayGlocal POSTs an MCA_FUND_RECEIVED event to your webhook URL.
+
+After receiving this event:
+1. Acknowledge with HTTP 200
+2. Call GET /mca/accounts to confirm the credited amount
+3. Proceed with document upload for FIRC compliance
+
+<CardGroup cols={2}>
+  <Card title="Upload Documents" href="/mca/document-upload" icon="file-arrow-up">Complete FIRC compliance for each settlement</Card>
+  <Card title="MCA Webhooks" href="/mca/webhooks" icon="webhook">Full webhook event reference</Card>
+</CardGroup>

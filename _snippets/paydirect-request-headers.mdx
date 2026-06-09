@@ -1,0 +1,8 @@
+| Header | Value | Description |
+|---|---|---|
+| Content-Type | application/json | Required for all requests |
+| x-gl-token-external | `<JWS_TOKEN>` | RSA-signed JWT of the serialized request body |
+| x-gl-merchantid | `<MERCHANT_ID>` | Your Merchant ID from GCC dashboard TID Details |
+| x-gl-kid | `<KEY_ID>` | Key ID extracted from your private key filename |
+
+<Note>Sign the request body with your RSA private key to produce the JWS token. See [Request Construction](/set-up/keys/request-construction) for signing code samples.</Note>

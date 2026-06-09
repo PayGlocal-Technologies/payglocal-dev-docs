@@ -1,9 +1,90 @@
 ---
 title: "Payment Status Lifecycle"
-description: "All payment statuses, their transitions, and which are terminal."
-icon: "circle-dot"
+description: "All PayGlocal transaction, mandate, and onboarding status values with meanings and finality."
+icon: "circle-nodes"
 ---
 
-<Note>This page is coming soon. It will provide a canonical Mermaid state machine for all 13 payment statuses (CREATED, INPROGRESS, AUTHORIZED, SENT_FOR_CAPTURE, FAILED, REFUNDED, DISPUTED, CANCELLED, EXPIRED, INITIATED, PENDING, REVERSED, REFUND_INITIATED) with finality flags and recommended actions per state.</Note>
+## Transaction Statuses
 
-For now, the status table is available on [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status).
+| Status | Meaning | Final? |
+|---|---|---|
+| `CREATED` | Payment initiated, awaiting customer action | No |
+| `PENDING` | Processing — awaiting bank/network response | No |
+| `AUTHORIZED` | Card authorized; capture pending (Auth & Capture flow only) | No |
+| `SENT_FOR_CAPTURE` | Capture request sent to bank; funds captured | Yes |
+| `CONDITIONAL_DECLINE` | Soft decline — eligible for retry with a new transaction | No |
+| `ISSUER_DECLINE` | Hard decline from the issuing bank — do not retry same card | Yes |
+| `CUSTOMER_CANCELLED` | Customer cancelled on the payment page | Yes |
+| `ABANDONED` | Customer left the payment page without completing | Yes |
+| `REQUEST_ERROR` | Invalid request (missing fields, bad format) | Yes |
+| `GENERAL_DECLINE` | Generic decline — see `reasonCode` for details | Yes |
+| `REFUND_INITIATED` | Refund requested, awaiting processing | No |
+| `REFUNDED` | Refund successfully processed | Yes |
+| `REVERSED` | Transaction reversed before settlement | Yes |
+| `DISPUTED` | Chargeback or dispute raised by the cardholder | No |
+| `EXPIRED` | Payment session expired before the customer acted | Yes |
+| `FAILED` | Transaction failed due to a processing error | Yes |
+
+<Note>
+**SENT_FOR_CAPTURE is the success status.** It means the payment has been captured and will settle in your merchant account. Settlement typically takes 1–3 business days depending on the card network and your contract terms.
+</Note>
+
+<Note>
+**CONDITIONAL_DECLINE** is a soft decline. A payment may very rarely arrive for this transaction later (under 1% of cases). Always call [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) with the original `merchantUniqueId` before retrying, and use a new `merchantUniqueId` for any retry.
+</Note>
+
+<Warning>
+Never fulfill an order based solely on a callback. Always confirm with a server-to-server [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) call.
+</Warning>
+
+---
+
+## Mandate Statuses (Standing Instructions)
+
+| Status | Meaning |
+|---|---|
+| `ACTIVE` | Mandate is active and eligible for charges |
+| `INACTIVE` | Mandate is paused — no auto-debits will fire |
+| `EXHAUSTED` | Mandate has reached its configured end date or debit count |
+| `CANCELLED` | Mandate has been permanently cancelled |
+
+---
+
+## Onboarding Statuses
+
+| Status | Meaning |
+|---|---|
+| `INITIATED` | Onboarding application created |
+| `IN_PROGRESS` | Partner is submitting documents and details |
+| `PENDING_REVIEW` | All documents submitted; under PayGlocal compliance review |
+| `UNDER_REVIEW` | Active compliance/KYC review in progress |
+| `RFI` | Request for Information — PayGlocal needs additional documents |
+| `APPROVED` | Merchant approved and activated |
+| `REJECTED` | Merchant onboarding rejected |
+
+<Note>
+For `RFI` status: check the `documentsToBeUploaded` array in the [Get Onboarding Status](/api-reference/onboarding/get-status) response to determine which documents are required.
+</Note>
+
+<Note>
+`PENDING_REVIEW` is a normal intermediate state — no action is required from you or the merchant. PayGlocal notifies you via the onboarding status API when the compliance review completes.
+</Note>
+
+---
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Get Transaction Status" href="/api-reference/payments-v2/common/get-transaction-status" icon="magnifying-glass">
+    Fetch the current status of any transaction using its GID or merchantUniqueId.
+  </Card>
+  <Card title="Webhooks" href="/merchant/webhooks" icon="bell">
+    Receive real-time status change events via server-to-server POST notifications.
+  </Card>
+  <Card title="Payment Response Handling" href="/merchant/payment-response-handling" icon="arrow-right-from-bracket">
+    Decode and act on the x-gl-token callback your merchantCallbackURL receives.
+  </Card>
+  <Card title="FAQ" href="/reference/faq" icon="circle-question">
+    Common integration questions including status-specific guidance.
+  </Card>
+</CardGroup>

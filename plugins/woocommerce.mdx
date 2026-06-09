@@ -4,40 +4,21 @@ description: "Accept payments on your WooCommerce store using PayGlocal — down
 icon: "wordpress"
 ---
 
-## What is WooCommerce?
-
-WooCommerce is an open-source plugin for WordPress that allows creating online eCommerce sites. The plugin is easy to set up and is being used by thousands of businesses around the world.
-
 ## WooCommerce with PayGlocal
 
 Integrating your WooCommerce store with PayGlocal allows you to accept online payments securely through net banking and debit/credit card. Our WooCommerce plugin makes the PayGlocal integration seamless for the merchants.
 
-<Note>
-  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
-</Note>
+<Snippet file="plugin-merchant-account-prerequisite.mdx" />
 
 ## Plugin Download
-
-Download the ZIP package based on your PHP version. If you are not able to see the package for your PHP version, kindly reach out to your account manager.
 
 <Note>
   **Technical Requirements** — PHP 7.0 or higher · WooCommerce compatible version · Minimum 25 MB free disk space.
 </Note>
 
-### Without Elementor
-
-| PHP Version | Download |
-|---|---|
-| 7.1 | [Download](mailto:support@payglocal.in?subject=WooCommerce%20Plugin%20PHP%207.1) |
-| 7.2 – 7.4 | [Download](mailto:support@payglocal.in?subject=WooCommerce%20Plugin%20PHP%207.2-7.4) |
-| 8.0 | [Download](mailto:support@payglocal.in?subject=WooCommerce%20Plugin%20PHP%208.0) |
-
-### With Elementor
-
-| PHP Version | Download |
-|---|---|
-| 7.4 | [Download](https://drops.meetanshi.com/f/ac2l2B) |
-| 8.0 | [Download](https://drops.meetanshi.com/f/8Xkr8t) |
+<Note>
+  Download the plugin ZIP from your GCC dashboard. If you cannot find the package for your PHP version, reach out to your account manager.
+</Note>
 
 ## Plugin Installation
 
@@ -49,25 +30,22 @@ Follow the steps below to install the PayGlocal WooCommerce plugin and start acc
   </Step>
   <Step title="Go to Plugins → Installed Plugins → Add New">
     From the left navigation, go to **Plugins → Installed Plugins → Add New**.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+      <img src="/images/plugins/woo-plugins-add-new.png" alt="WordPress Plugins screen with Add New highlighted" />
+    </div>
   </Step>
-</Steps>
-
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
-  <img src="/images/plugins/woo-plugins-add-new.png" alt="WordPress Plugins screen with Add New highlighted" />
-</div>
-
-<Steps>
   <Step title="Click Upload Plugin">
     On the Add Plugins screen, click **Upload Plugin**.
   </Step>
   <Step title="Upload the ZIP package and install">
     WordPress will ask you to upload a ZIP package. Upload the downloaded ZIP package and click **Install Now**.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+      <img src="/images/plugins/woo-upload-plugin.png" alt="WordPress Add Plugins screen showing Upload Plugin and Install Now" />
+    </div>
   </Step>
 </Steps>
-
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
-  <img src="/images/plugins/woo-upload-plugin.png" alt="WordPress Add Plugins screen showing Upload Plugin and Install Now" />
-</div>
 
 ## Configuration
 
@@ -83,43 +61,28 @@ Follow the steps below to install the PayGlocal WooCommerce plugin and start acc
   </Step>
   <Step title="Open the configuration form">
     Click **Manage** to configure the plugin.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+      <img src="/images/plugins/woo-payments-enable.png" alt="WooCommerce Payments settings with PayGlocal enabled and Manage highlighted" />
+    </div>
   </Step>
-</Steps>
-
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
-  <img src="/images/plugins/woo-payments-enable.png" alt="WooCommerce Payments settings with PayGlocal enabled and Manage highlighted" />
-</div>
-
-<Steps>
   <Step title="Configure the plugin fields">
     Fill in the fields as described in the table below.
+
+    <div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+      <img src="/images/plugins/woo-payglocal-settings.png" alt="PayGlocal WooCommerce plugin configuration form" />
+    </div>
   </Step>
   <Step title="Save the configuration">
     Click **Save Changes** to save the configuration.
   </Step>
 </Steps>
 
-<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
-  <img src="/images/plugins/woo-payglocal-settings.png" alt="PayGlocal WooCommerce plugin configuration form" />
-</div>
-
 ### Field Reference
 
-| Field | Description |
-|---|---|
-| **Enable / Disable** | Enable or disable the PayGlocal payment gateway. |
-| **Title** | Custom title for PayGlocal payments shown to customers on the checkout page. |
-| **Description** | Payment method description displayed to customers on the checkout page. |
-| **Payment Mode** | Select Sandbox (for testing) or Production. |
-| **Merchant ID** | Your Merchant ID from the PayGlocal dashboard — visible in the top bar when logged in. |
-| **Public KID** | The Public Key ID provided by PayGlocal. |
-| **Private KID** | The Private Key ID provided by PayGlocal. |
-| **Public PEM** | Download the public PEM file from the PayGlocal merchant account and upload it here. |
-| **Private PEM** | Download the private PEM file from the PayGlocal merchant account and upload it here. |
+<Snippet file="plugin-credential-fields.mdx" />
 
-<Note>
-  For details on fetching your Merchant ID, keys, and PEM files, refer to the [Key Management](/getting-started/dashboard-and-key-management) section.
-</Note>
+<Snippet file="plugin-key-management-note.mdx" />
 
 <Check>
   **Setup Successful** — After following the steps above, your WooCommerce store is ready to accept online payments from customers using PayGlocal.

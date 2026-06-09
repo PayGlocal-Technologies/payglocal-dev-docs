@@ -1,118 +1,42 @@
 ---
-title: "Introduction"
-sidebarTitle: "Introduction"
-description: "PayGlocal — RBI-licensed payment gateway for global businesses. Secure, scalable, and trusted by thousands of merchants worldwide."
-icon: "house"
+title: "PayGlocal Developer Documentation"
+description: "API reference, integration guides, and platform documentation for PayGlocal payment services."
 ---
 
-PayGlocal is a focused platform for global payments — built for high approval rates, fraud reduction, customized flows, recurring payments, and dynamic currency conversion.
+## What You Can Build
 
-<CardGroup cols={2}>
-  <Card title="Start Onboarding" icon="rocket" href="/onboarding/overview">
-    Pick the path that matches your role and get your account ready to accept payments.
-  </Card>
-  <Card title="Start Integration" icon="code" href="/integration/overview">
-    Find the integration that's right for you — No-Code or API — and start building.
-  </Card>
-</CardGroup>
-
----
-
-## Platform overview
-
-<CardGroup cols={2}>
-  <Card title="A focused platform for global payments" icon="globe" color="#1A6FE8">
-    PayGlocal streamlines global payments with advanced technology for high approval rates, fraud reduction, customized flows, recurring payments, and dynamic currency conversion.
-  </Card>
-  <Card title="All-in-one acceptance" icon="credit-card" color="#10B981">
-    Receive payments in any mode on one platform — **130+ currencies**, **20+ payment methods**, **10+ integration options**, and major debit and credit cards.
-  </Card>
-  <Card title="Client-first approach" icon="headset" color="#F59E0B">
-    Tailored payment solutions with a customizable payment flow and round-the-clock support via phone, email, and a dedicated account manager.
-  </Card>
-  <Card title="Secure by design" icon="shield-check" color="#8B5CF6">
-    Zero-trust architecture with end-to-end encryption, multi-factor authentication, and custom data control — so every payment stays protected.
-  </Card>
-  <Card title="Multi-currency account" icon="building-columns" color="#1A6FE8">
-    Collect foreign funds through a multi-currency account — operate globally like a local entity, with hassle-free setup, quick settlement, and lower conversion costs.
-  </Card>
-  <Card title="Local payment methods" icon="earth-americas" color="#10B981">
-    Offer locally prominent payment methods in your target markets — familiar methods, increased trust, and less checkout friction.
-  </Card>
-</CardGroup>
+PayGlocal is an RBI-licensed payment aggregator. These docs cover three products:
 
 <CardGroup cols={3}>
-  <Card title="130+" icon="coins" color="#1A6FE8">
-    **Currencies** supported
+  <Card title="Payment Gateway" icon="credit-card" href="/payments/overview">
+    Accept one-time and recurring payments. PayCollect (hosted) or PayDirect (seamless).
   </Card>
-  <Card title="20+" icon="wallet" color="#10B981">
-    **Local payment** methods
+  <Card title="Merchant Onboarding" icon="user-check" href="/set-up/overview">
+    Programmatically onboard sub-merchants onto the PayGlocal platform.
   </Card>
-  <Card title="10+" icon="puzzle-piece" color="#F59E0B">
-    **Integration** options
-  </Card>
-</CardGroup>
-
----
-
-## Built for global commerce
-
-PayGlocal is built with the vision to foster global commerce. You are at the forefront of growth beyond borders — and we are built to back you.
-
-<CardGroup cols={2}>
-  <Card title="Payments platform for cross border" icon="globe" color="#1A6FE8">
-    Built to securely process international payments with high approval rates while minimizing fraud.
-  </Card>
-  <Card title="Easy setup and integration" icon="bolt" color="#10B981" href="/integration/overview">
-    Access payment methods and features through a single, one-time integration.
-  </Card>
-  <Card title="Competitive pricing" icon="tags" color="#F59E0B">
-    Pay for what you process, as you go — everything you need at competitive pricing.
-  </Card>
-  <Card title="Dedicated support" icon="headset" color="#8B5CF6">
-    Dedicated account manager plus 24×7 email, phone, and ticket support from payment experts.
-  </Card>
-  <Card title="Customisations on demand" icon="sliders" color="#F59E0B">
-    Have a specific payment requirement? At scale, complexity grows — PayGlocal can build bespoke solutions tailored to your business.
+  <Card title="Multi-Currency Accounts" icon="globe" href="/mca/concepts">
+    Receive foreign currency collections and settle in INR.
   </Card>
 </CardGroup>
 
-### Easily manage global payments
+## Where to Start
 
-<CardGroup cols={4}>
-  <Card title="Accept" icon="hand-holding-dollar" color="#1A6FE8">
-    Take payments across cards, wallets, and local methods.
-  </Card>
-  <Card title="Collect" icon="money-bill-transfer" color="#10B981">
-    Receive cross-border funds in multiple currencies.
-  </Card>
-  <Card title="Automate" icon="rotate" color="#F59E0B" href="/merchant/recurring-payment">
-    Standing Instructions and recurring billing flows.
-  </Card>
-  <Card title="Manage" icon="chart-line" color="#8B5CF6" href="/getting-started/payglocal-dashboards">
-    Track status, settlements, and risk from a single dashboard.
-  </Card>
-</CardGroup>
+| I want to… | Start here |
+|---|---|
+| Accept card/UPI payments on my website | [Choose Your Integration](/get-started/choose-your-path) |
+| Build a platform that onboards merchants | [Partner Onboarding](/set-up/partner-onboarding/quickstart) |
+| Receive USD/EUR/GBP collections | [MCA Overview](/mca/concepts) |
+| Understand the platform model | [Core Concepts](/get-started/concepts) |
+| Set up API credentials | [Key Management](/set-up/keys/overview) |
+| Test in sandbox | [Sandbox & Testing](/get-started/sandbox) |
 
-Track and manage all your payments through one dashboard — transaction status, daily settlement reports, and risk analysis on your payments.
+## How These Docs Are Organized
 
----
+- **Get Started** — concepts, sandbox setup, and choosing your integration
+- **Set Up** — GCC dashboard, API keys, and partner merchant onboarding
+- **Payments** — integration modes, payment types, webhooks, and testing
+- **Multi-Currency Accounts** — foreign currency collection and settlement
+- **API Reference** — complete endpoint reference for all APIs
+- **Resources** — changelog, SDKs, rate limits, and support
 
-## Built for developers
-
-<CardGroup cols={2}>
-  <Card title="RBI Licensed" icon="building-columns" color="#1A6FE8">
-    Online payment aggregator license from the Reserve Bank of India.
-  </Card>
-  <Card title="Flexible Compliance" icon="shield-check" color="#10B981">
-    Support for both PCI DSS-compliant and non-PCI DSS merchants.
-  </Card>
-  <Card title="Advanced Fraud Detection" icon="shield" color="#F59E0B">
-    Dedicated risk engine to identify fraudulent transactions.
-  </Card>
-  <Card title="Easy Integration" icon="code" color="#8B5CF6" href="/integration/overview">
-    SDKs for major platforms, plus Checkout Flow (PayCollect) and Seamless Flow (PayDirect) API flows.
-  </Card>
-</CardGroup>
-
-Questions? Contact [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in).
+<Note>New to PayGlocal? Read [Core Concepts](/get-started/concepts) first, then follow the [Sandbox & Testing](/get-started/sandbox) guide to make your first test API call.</Note>

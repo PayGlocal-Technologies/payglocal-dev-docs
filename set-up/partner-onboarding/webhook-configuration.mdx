@@ -1,0 +1,93 @@
+---
+title: "Webhook Configuration"
+description: "How to register and manage your partner webhook endpoint for onboarding events."
+icon: "webhook"
+---
+
+## Overview
+
+Before any onboarding events are delivered, you must register a webhook endpoint with PayGlocal. Events will not be sent until a valid endpoint is configured.
+
+## Configuring Your Webhook Endpoint
+
+Call `POST /gcc/v2/partner/{resellerMid}/webhook` to register or update your webhook URL:
+
+```bash
+POST /gcc/v2/partner/{resellerMid}/webhook
+x-gl-auth: <API_KEY>
+x-gl-digest: <HMAC_DIGEST>
+Content-Type: application/json
+
+{
+  "webhookUrl": "https://your-server.com/webhooks/payglocal"
+}
+```
+
+Replace `{resellerMid}` with your partner Merchant ID.
+
+<Note>
+  To list available event types that can be subscribed to, call `GET /gcc/v2/partner/webhook`.
+</Note>
+
+## Endpoint Requirements
+
+Your webhook endpoint must:
+
+- Be accessible over **HTTPS** (not HTTP)
+- Return **HTTP 200** within 10 seconds of receiving a webhook
+- Be publicly reachable (not localhost or a private network)
+- Handle duplicate delivery — PayGlocal retries on non-200 responses
+
+## Verifying Configuration
+
+After registering, trigger a test by initiating a new merchant onboarding. You should receive a `MERCHANT_TERMS_AND_CONDITIONS_ACKNOWLEDGED` or similar event at your configured endpoint once the merchant progresses through onboarding steps.
+
+If no event arrives within 5 minutes of a new onboarding activity, check the following:
+
+<Steps>
+  <Step title="Confirm the webhook URL">
+    Verify the registered URL is correct and publicly accessible from the internet.
+  </Step>
+  <Step title="Check your server response">
+    Ensure your endpoint returns HTTP 200. Any other status code is treated as a failure.
+  </Step>
+  <Step title="Review firewall rules">
+    Confirm no firewall or security group is blocking inbound requests from PayGlocal's servers.
+  </Step>
+  <Step title="Poll as a fallback">
+    Call [Get Onboarding Status](/api-reference/get-status) to confirm the current state independently of webhook delivery.
+  </Step>
+</Steps>
+
+## Updating the Webhook URL
+
+Call the same `POST /gcc/v2/partner/{resellerMid}/webhook` endpoint with the new URL. The update takes effect immediately for all subsequent events.
+
+## Retry Policy
+
+If your endpoint returns a non-200 status or does not respond within 10 seconds, PayGlocal retries delivery:
+
+| Attempt | Delay after previous failure |
+|---------|------------------------------|
+| 1st retry | 1 minute |
+| 2nd retry | 5 minutes |
+| 3rd retry | 30 minutes |
+
+After 3 failed retries the event is dropped. Use the [Get Onboarding Status](/api-reference/get-status) polling fallback to reconcile any missed events.
+
+<Warning>
+  Webhooks alone should not be treated as the source of truth for go-live decisions. Always confirm the final onboarding state with a server-side Get Onboarding Status call.
+</Warning>
+
+## Event Reference
+
+For the full list of onboarding webhook events and their payload schemas, see [Partner Onboarding Events](/guides/partner-onboarding-events).
+
+<CardGroup cols={2}>
+  <Card title="Partner Onboarding Events" icon="bell" href="/guides/partner-onboarding-events">
+    All supported webhook events, payload fields, and example payloads.
+  </Card>
+  <Card title="Get Onboarding Status" icon="circle-check" href="/api-reference/get-status">
+    Poll for the current merchant onboarding state as a reliable fallback.
+  </Card>
+</CardGroup>

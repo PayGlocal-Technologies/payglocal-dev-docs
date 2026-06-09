@@ -4,17 +4,11 @@ description: "Accept cross-border payments on your Magento store using PayGlocal
 icon: "store"
 ---
 
-## What is Magento?
-
-Magento is an open-source eCommerce platform built for B2B and B2C businesses. The platform allows building strong and powerful storefronts, which can be customised as per the business requirements. In 2018, this open-source eCommerce platform was acquired by Adobe and is now known as Adobe Commerce.
-
 ## Magento with PayGlocal
 
 PayGlocal integration with Magento allows merchants to accept cross-border payments securely through internet banking and debit/credit cards. The Magento extension makes it possible for merchants to easily integrate the PayGlocal Payment Gateway with their stores.
 
-<Note>
-  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
-</Note>
+<Snippet file="plugin-merchant-account-prerequisite.mdx" />
 
 ## Plugin Download
 
@@ -59,8 +53,8 @@ Download the extension based on your Magento and PHP version. If you are not abl
 | **Title** | Enter a custom title for the payment method shown to customers on the frontend. |
 | **Sandbox Mode** | Enable or disable sandbox mode as per your requirements. |
 | **Merchant ID** | Enter your Merchant ID from the PayGlocal dashboard — visible in the top bar when logged in. |
-| **Public Key** | Enter the PayGlocal public key from the merchant account dashboard. |
-| **Private Key** | Enter the PayGlocal private key from the merchant account dashboard. |
+| **Public KID** | The KID from your public PEM file, provided by PayGlocal. |
+| **Private KID** | The KID from your private PEM file, provided by PayGlocal. |
 | **Public PEM** | Upload the public PEM file downloaded from the PayGlocal merchant account dashboard. |
 | **Private PEM** | Upload the private PEM file downloaded from the PayGlocal merchant account dashboard. |
 | **Payment from Applicable Countries** | Select whether to allow customers from all countries or only selected countries. |
@@ -68,8 +62,12 @@ Download the extension based on your Magento and PHP version. If you are not abl
 | **Sort Order** | Enter the sort order for PayGlocal in case of multiple payment methods in your store. |
 | **Minimum Order Amount** | Enter the minimum order amount required to use the PayGlocal payment gateway. |
 
+<Snippet file="plugin-credential-fields.mdx" />
+
+<Snippet file="plugin-key-management-note.mdx" />
+
 <Note>
-  For details on fetching your Merchant ID, keys, and PEM files, refer to the [Key Management](/getting-started/dashboard-and-key-management) section.
+  Switch the Base URL in plugin settings from `https://uat.payglocal.in` to `https://pay.payglocal.in` when going live.
 </Note>
 
 <div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">

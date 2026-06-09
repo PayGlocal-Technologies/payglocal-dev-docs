@@ -1,0 +1,140 @@
+---
+title: "Partner Onboarding Quickstart"
+description: "Programmatically onboard a sub-merchant onto PayGlocal in 6 API calls."
+icon: "rocket"
+---
+
+The Partner Onboarding API lets you onboard merchants onto PayGlocal without manual intervention. Authentication uses HMAC-SHA256 (not RSA JWS — that is only for payment APIs).
+
+## Prerequisites
+
+- A **Partner API key** (`x-gl-auth`) and **API secret** issued from the PayGlocal Partner Dashboard
+- Your server can make HTTPS calls to `https://api.onboard.payglocal.in` (production) or `https://api.onboard.uat.payglocal.in` (sandbox)
+
+See [Authentication](/set-up/partner-onboarding/authentication) for how to construct the `x-gl-digest` HMAC signature on every request.
+
+---
+
+## The 6-step sequence
+
+<Steps>
+  <Step title="Fetch allowed business categories">
+    Before onboarding, pull the valid MCC codes so you can set `natureOfBusiness` correctly.
+
+    ```
+    GET /gcc/v2/partner/merchant/onboard/business-category
+    ```
+
+    Returns a list of category objects — use the `subCategoryCode` value as `natureOfBusiness` in Step 3.
+
+    → [Get Business Categories](/api-reference/get-business-categories)
+  </Step>
+
+  <Step title="Create the onboarding record">
+    Start with the merchant's PAN and entity type. The `onboardingId` returned here is required in every subsequent call.
+
+    ```
+    POST /gcc/v2/partner/merchant/onboard
+    ```
+
+    ```json
+    {
+      "pan": "<MERCHANT_PAN>",
+      "panType": "C",
+      "entityType": "PRIVATE_LIMITED",
+      "businessName": "Acme Pvt Ltd"
+    }
+    ```
+
+    Store the `onboardingId` from the response.
+
+    → [Create Onboarding](/api-reference/create-onboarding)
+  </Step>
+
+  <Step title="Submit business details, bank account, and beneficial owners">
+    Three parallel calls using the `onboardingId` — can be made in any order:
+
+    | Call | Endpoint |
+    |------|----------|
+    | Business profile, address, MCC | [Update Business Details](/api-reference/update-business-details) |
+    | Settlement bank account (IFSC + account number) | [Update Bank Details](/api-reference/update-bank-details) |
+    | UBOs holding > 10% equity | [Add Beneficial Owner](/api-reference/add-beneficial-owner) |
+
+    For entity types that require an authorized signatory (Companies, LLPs), also call [Update Auth Signatory](/api-reference/update-auth-signatory).
+  </Step>
+
+  <Step title="Upload compliance documents">
+    Call [Get Onboarding Status](/api-reference/get-status) to read `documentsToBeUploaded`, then upload each document one call at a time.
+
+    ```
+    PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/docs
+    ```
+
+    Each request uploads one document (`merchantDocType` + base64 content). Poll GET status after each upload to confirm the list shrinks.
+
+    → [Upload Documents](/api-reference/upload-documents) · [Merchant Requirements](/set-up/partner-onboarding/merchant-requirements)
+  </Step>
+
+  <Step title="Configure payment products">
+    Enable which PayGlocal products the merchant can use and set their fee structure.
+
+    ```
+    PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/products
+    ```
+
+    Must be completed before the verification step.
+
+    → [Configure Products](/api-reference/configure-products)
+  </Step>
+
+  <Step title="Trigger the verification iFrame">
+    Once all prior steps are complete, generate a time-limited iFrame URL for document and video KYC/KYB.
+
+    ```
+    GET /gcc/v2/partner/merchant/onboard/{onboardingId}/verification-redirect
+    ```
+
+    Embed the returned URL in your platform UI or redirect the merchant to it. The merchant completes identity and document verification. Poll [Get Onboarding Status](/api-reference/get-status) for `VERIFICATION_COMPLETE`.
+
+    → [Get Verification Redirect](/api-reference/get-verification-redirect) · [iFrame Integration](/set-up/partner-onboarding/iframe-integration)
+  </Step>
+</Steps>
+
+---
+
+## Track progress with Get Status
+
+Poll `GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status` after each step to track:
+
+- `documentsToBeUploaded` — which documents are still pending
+- `onboardingStatus` — overall state (`IN_PROGRESS`, `PENDING_VERIFICATION`, `VERIFICATION_COMPLETE`, etc.)
+- `rfiDetails` — if PayGlocal raises a Request for Information, the outstanding items appear here
+
+→ [Get Onboarding Status](/api-reference/get-status) · [RFI Handling](/set-up/partner-onboarding/rfi-handling)
+
+---
+
+## Handle onboarding events
+
+Subscribe to webhook events to get real-time updates instead of polling.
+
+→ [Partner Events](/set-up/partner-onboarding/events) · [Webhook Configuration](/set-up/partner-onboarding/webhook-configuration)
+
+---
+
+## Full API reference
+
+<CardGroup cols={2}>
+  <Card title="Authentication" href="/set-up/partner-onboarding/authentication" icon="key">
+    HMAC-SHA256 signing for every request
+  </Card>
+  <Card title="API Flow Overview" href="/set-up/partner-onboarding/api-flow" icon="arrow-right-arrow-left">
+    End-to-end sequence diagram
+  </Card>
+  <Card title="Merchant Requirements" href="/set-up/partner-onboarding/merchant-requirements" icon="file-check">
+    Documents required per entity type
+  </Card>
+  <Card title="Onboarding API Reference" href="/api-reference/onboarding-overview" icon="book">
+    All endpoint pages
+  </Card>
+</CardGroup>

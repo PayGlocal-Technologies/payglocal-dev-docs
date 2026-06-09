@@ -14,7 +14,7 @@ Submits or updates the settlement bank account. PayGlocal performs a **penny dro
 ## Notes
 
 - If penny drop verification fails in Production, `CANCELLED_CHEQUE` is added to `documentsToBeUploaded`. Upload a cancelled cheque via [Upload Documents](/api-reference/upload-documents) with `merchantDocType: CANCELLED_CHEQUE`.
-- In UAT, use account number `1234567890` and IFSC `SBIN0000000` for successful verification. Any other combination triggers a `CANCELLED_CHEQUE` pendency. See [Sandbox Testing → Partner Onboarding](/guides/testing#partner-onboarding-bank-verification).
+- In UAT, use account number `1234567890` and IFSC `SBIN0000000` for successful verification. Any other combination triggers a `CANCELLED_CHEQUE` pendency. See [Sandbox Testing → Partner Onboarding](/payments/testing-guide#partner-onboarding-bank-verification).
 
 ## Example
 

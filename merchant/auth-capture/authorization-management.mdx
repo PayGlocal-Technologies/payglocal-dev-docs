@@ -13,9 +13,9 @@ POST /gl/v1/payments/{gid}/reversal  →  Release hold without charging
 
 | Action | When to use |
 |---|---|
-| [Auth Full Capture](/merchant/auth-capture-guide#auth-full-capture) | Collect the entire authorized amount |
-| [Auth Partial Capture](/merchant/auth-capture-guide#auth-partial-capture) | Collect less than authorized; remainder is released |
-| [Auth Reversal](/merchant/auth-capture-guide#auth-reversal) | Cancel before capture — no charge occurs |
+| [Auth Full Capture](/payments/types/auth-capture#auth-full-capture) | Collect the entire authorized amount |
+| [Auth Partial Capture](/payments/types/auth-capture#auth-partial-capture) | Collect less than authorized; remainder is released |
+| [Auth Reversal](/payments/types/auth-capture#auth-reversal) | Cancel before capture — no charge occurs |
 
 <Warning>
   Auth Reversal applies only to **AUTHORIZED** transactions that have not been captured. If funds were already captured, use the standard refund flow instead.

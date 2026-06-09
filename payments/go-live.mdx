@@ -8,7 +8,7 @@ Complete these steps before switching to production credentials.
 
 <Steps>
   <Step title="Confirm merchant approval">
-    Verify your merchant status is APPROVED in [GCC](/set-up/dashboard/gcc-overview). Payments cannot go live without an approved merchant account.
+    Verify your merchant status is APPROVED in [GCC](/getting-started/payglocal-dashboards). Payments cannot go live without an approved merchant account.
   </Step>
   <Step title="Generate production keys">
     Generate a new key pair in production GCC (`gcc.prod.payglocal.in`). See [Private Key](/set-up/keys/private-key) and [Public Certificate](/set-up/keys/public-certificate). Do not reuse sandbox keys.
@@ -29,7 +29,7 @@ Complete these steps before switching to production credentials.
     Ensure your server calls Get Status if the callback is not received within your timeout window. Do not rely solely on callback delivery.
   </Step>
   <Step title="Validate error handling">
-    Confirm your integration handles all decline and error status codes. Review [Payments Error Codes](/payments/error-codes) and test each branch.
+    Confirm your integration handles all decline and error status codes. Review [Payments Error Codes](/reference/response-codes-and-errors) and test each branch.
   </Step>
   <Step title="PCI DSS certification (PayDirect only)">
     If using PayDirect, confirm PCI DSS Level 1 certification is current before processing live card data.

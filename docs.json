@@ -62,6 +62,7 @@
               {
                 "group": "Partner Onboarding",
                 "pages": [
+                  "set-up/partner-onboarding/quickstart",
                   "set-up/partner-onboarding/authentication",
                   "set-up/partner-onboarding/merchant-requirements",
                   "set-up/partner-onboarding/api-flow",

@@ -35,7 +35,7 @@ Poll `GET /status` and confirm `documentsToBeUploaded` is empty before calling r
 - Request field is `callBackUrl` (camelCase with capital **B**).
 - Response field is `redirectLink`, not `redirectUrl`.
 - `redirectLink` format: `{baseUrl}?token={sessionToken}&onboardingId={onboardingId}`. The session token is valid for **24 hours** and must not be cached or reused.
-- `callBackUrl` is persisted on the merchant record and used as the post-verification redirect target. Its domain must be [whitelisted](/guides/iframe-integration#step-1-domain-whitelisting-action-required).
+- `callBackUrl` is persisted on the merchant record and used as the post-verification redirect target. Its domain must be [whitelisted](/set-up/partner-onboarding/iframe-integration#step-1-domain-whitelisting-action-required).
 - Environment base URLs for `redirectLink`:
 
 | Environment | Base URL |

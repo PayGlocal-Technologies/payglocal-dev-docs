@@ -1,6 +1,7 @@
 ---
 title: "Get Verification Redirect"
-openapi: "PUT /gcc/v2/partner/merchant/verification/{onboardingId}/redirect"
+description: "Returns a time-limited iFrame URL for merchant document and video KYC/KYB verification after all prior onboarding steps are complete."
+openapi: "GET /gcc/v2/partner/merchant/verification/{onboardingId}/redirect"
 ---
 
 ## When to Use
@@ -50,6 +51,27 @@ Poll `GET /status` and confirm `documentsToBeUploaded` is empty before calling r
 4. Returns the composed `redirectLink` for iFrame embedding.
 
 See [iFrame Integration](/set-up/partner-onboarding/iframe-integration) for embed instructions and [Partner Onboarding Events](/set-up/partner-onboarding/events) for completion signals.
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "callBackUrl": "https://your-platform.example.com/onboarding/callback"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "data": {
+    "redirectLink": "https://uat.dashboard.payglocal.in/app/partner-onboarding?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example&onboardingId=<ONBOARDING_ID>"
+  }
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

@@ -1,5 +1,6 @@
 ---
 title: "Update Business Details"
+description: "Submit or update the business profile — address, nature of business, and entity details — for a merchant onboarding record."
 openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/business-details"
 ---
 
@@ -16,6 +17,46 @@ Submits or updates business information for a merchant onboarding record. Must b
 - `address.businessOperatingAddress` is required **only when** `address.isOperatingSameAsRegistered` is `false`. When addresses differ, `OPERATING_ADDRESS_PROOF` is added to `documentsToBeUploaded`.
 - `natureOfBusiness` must be a subcategory code from [Get Business Categories](/api-reference/get-business-categories). State codes follow the 2-letter format — see [State Codes](/reference/state-codes).
 - For Partnership Firm entities, set `noPartnershipRegistrationCheck: true` when the partnership is not registered. This exempts `PARTNERSHIP_REGISTRATION_CERTIFICATE` from required documents.
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "address": {
+    "businessRegisteredAddress": {
+      "addressLine1": "123 MG Road",
+      "addressLine2": "Suite 4B",
+      "city": "Bengaluru",
+      "state": "KA",
+      "pincode": "560001",
+      "country": "IN"
+    },
+    "isOperatingSameAsRegistered": true
+  },
+  "natureOfBusiness": "5411",
+  "entityDetails": {
+    "entityType": "PRIVATE_LIMITED",
+    "incorporationDate": "2018-04-01",
+    "noPartnershipRegistrationCheck": false
+  }
+}
+```
+
+```json Response (200)
+{
+  "onboardingId": "<ONBOARDING_ID>",
+  "status": "BUSINESS_DETAILS_SUBMITTED",
+  "documentsToBeUploaded": [
+    "CERTIFICATE_OF_INCORPORATION",
+    "PAN_CARD"
+  ],
+  "message": "Business details updated successfully."
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

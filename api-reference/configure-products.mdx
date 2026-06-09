@@ -1,5 +1,6 @@
 ---
 title: "Configure Products and Fees"
+description: "Enable payment products and set the fee structure for a merchant before verification."
 openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/products"
 ---
 
@@ -16,6 +17,51 @@ The `productFees` object is keyed by product name. The shape of each value depen
 - **`DOMESTIC_CARDS_UPI_AND_INB`** — single object with `feeType` (`FIXED` or `PERCENTAGE`) and `feeRate` (up to 2 decimal places).
 
 Enable all three products in the `products` array to offer the full PayGlocal product suite.
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "products": [
+    "GLOBAL_FUND_TRANSFER",
+    "INTERNATIONAL_CARDS_AND_ALT_PAYS",
+    "DOMESTIC_CARDS_UPI_AND_INB"
+  ],
+  "productFees": {
+    "GLOBAL_FUND_TRANSFER": {
+      "feeType": "PERCENTAGE",
+      "fee": 1.5
+    },
+    "INTERNATIONAL_CARDS_AND_ALT_PAYS": [
+      { "network": "AMERICAN_EXPRESS", "feeType": "PERCENTAGE", "fee": 2.5 },
+      { "network": "DINERS",           "feeType": "PERCENTAGE", "fee": 2.5 },
+      { "network": "DISCOVER",         "feeType": "PERCENTAGE", "fee": 2.0 },
+      { "network": "OTHER_DEBIT_CARDS","feeType": "PERCENTAGE", "fee": 1.5 },
+      { "network": "OTHER_CREDIT_CARDS","feeType": "PERCENTAGE", "fee": 2.0 }
+    ],
+    "DOMESTIC_CARDS_UPI_AND_INB": {
+      "feeType": "PERCENTAGE",
+      "feeRate": 0.90
+    }
+  }
+}
+```
+
+```json Response (200)
+{
+  "onboardingId": "<ONBOARDING_ID>",
+  "status": "PRODUCTS_CONFIGURED",
+  "products": [
+    "GLOBAL_FUND_TRANSFER",
+    "INTERNATIONAL_CARDS_AND_ALT_PAYS",
+    "DOMESTIC_CARDS_UPI_AND_INB"
+  ]
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

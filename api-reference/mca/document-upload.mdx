@@ -1,30 +1,57 @@
 ---
-title: "Get Upload Presigned URL"
-openapi: "POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned"
+title: "Upload Compliance Document"
+description: "Upload a compliance document for an MCA account using multipart/form-data."
+openapi: "POST /gcc/v1/mca/document"
 ---
 
 ## When to Use
 
-Call this when you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. It returns a temporary `presignedUrl` you then use to upload the supporting document (e.g. invoice) directly via HTTP PUT.
+Call this endpoint to submit a compliance document (such as a business registration certificate, identity proof, or agreement) for an MCA account. Use it during the merchant onboarding or compliance review process when PayGlocal requests supporting documentation. Do not call this endpoint for transaction-level document uploads — use the presigned-URL flow for those. Ensure the `documentType` value matches the document category indicated in your onboarding checklist before uploading.
 
-## Upload Flow
+## Example
 
+<CodeGroup>
+
+```http Request
+POST /gcc/v1/mca/document HTTP/1.1
+Host: api.payglocal.in
+x-api-key: <API_KEY>
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="documentType"
+
+BUSINESS_REGISTRATION
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="registration.pdf"
+Content-Type: application/pdf
+
+<binary file content>
+------FormBoundary--
 ```
-Step 1 — POST this endpoint → receive presignedUrl
-Step 2 — PUT <presignedUrl> with file binary (no auth headers needed)
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "data": {
+    "documentId": "doc_a1b2c3d4e5f6",
+    "documentType": "BUSINESS_REGISTRATION",
+    "uploadedAt": "2026-06-09T10:30:00Z",
+    "message": "Document uploaded successfully."
+  }
+}
 ```
 
-<Warning>
-  The `presignedUrl` is temporary — upload the file immediately. Do not cache or reuse it.
-</Warning>
+</CodeGroup>
 
 ## Error Scenarios
 
 | Scenario | HTTP Code |
 |----------|-----------|
-| Missing or invalid fields | `400` |
-| Invalid or missing API key | `401` |
-| `merchantId` does not match the transaction | `403` |
-| `gid` does not exist | `404` |
-| Document already uploaded for this transaction | `409` |
+| Missing or invalid `documentType` field | `400` |
+| Missing file part in the request | `400` |
+| Invalid or missing `x-api-key` header | `401` |
+| Caller does not have permission for this MCA account | `403` |
+| MCA account not found | `404` |
+| Document of this type already uploaded | `409` |
 | Internal server error | `500` |

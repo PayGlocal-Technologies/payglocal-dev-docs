@@ -27,6 +27,17 @@ Registration uses the same PayCollect initiate endpoint as [GPI](/api-reference/
 
 ---
 
+## When to Use
+
+Use this endpoint when you need to register a **scheduled, fixed-amount recurring mandate** and want PayGlocal to automatically trigger each subsequent debit without any further API calls from your side. This is the right flow when:
+
+- The debit amount is fixed and the schedule is known upfront (e.g. monthly subscription, quarterly fee).
+- You want the customer to register the mandate on the **PayGlocal hosted checkout** — no card data is handled on your servers.
+- The customer is paying with an **international card**; UPI, net banking, and domestic-only methods are not supported for SI registration on hosted checkout.
+- You do **not** want to call the [SI subsequent payment API](/api-reference/standing-instructions/si-subsequent-payment) for each recurring charge — use [on-demand SI](/api-reference/payments-v2/paycollect/si-on-demand) instead if you need to control each debit individually.
+
+---
+
 ## Supported payment methods
 
 | Method | Domestic | International |
@@ -53,7 +64,74 @@ Standing instruction registration on hosted checkout supports **international ca
 
 Set `standingInstruction.data` (`amount`, scheduled `frequency`, `type: FIXED`, `startDate`) in **Request body** below.
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing or invalid `standingInstruction.data` fields (e.g. `amount`, `frequency`, `startDate`) | 400 |
+| `frequency` set to `ONDEMAND` when auto debit is enabled on the MID | 400 |
+| `type` set to `VARIABLE` when auto debit is enabled on the MID | 400 |
+| Missing required `paymentData` fields (`totalAmount`, `txnCurrency`) | 400 |
+| Invalid or expired `x-gl-token-external` JWS token | 401 |
+| `merchantTxnId` already used for a previous transaction | 400 |
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "merchantCallbackURL": "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback",
+  "standingInstruction": {
+    "data": {
+      "amount": "15000",
+      "numberOfPayments": "N",
+      "frequency": "MONTHLY",
+      "type": "FIXED",
+      "startDate": "20260903"
+    }
+  },
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  }
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07",
+    "mandateId": "md_925996a0-9da6-42df-b968-8a14729885fd"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next actions
 

@@ -65,7 +65,71 @@ Authorize (auth only) on hosted checkout supports **cards** and **international 
   Only **one** successful capture is allowed per authorisation.
 </Warning>
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing or invalid `captureTxn` field (must be `false`) | 400 |
+| Missing required field (`merchantTxnId`, `paymentData`, `merchantCallbackURL`) | 400 |
+| Invalid or missing `x-gl-token-external` JWS header | 401 |
+| `totalAmount` is zero, negative, or non-numeric | 400 |
+| Unsupported payment method for auth (e.g. UPI, net banking) | 400 |
+| Duplicate `merchantTxnId` for the same merchant | 400 |
+
+---
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "captureTxn": false,
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "merchantCallbackURL": "https://your-domain.example.com/payments/callback"
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=<TOKEN>",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=<TOKEN>",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
+
+Redirect the customer's browser to `data.redirectUrl` via HTTP GET. After the customer completes authentication, poll `data.statusUrl` or use [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) — the transaction will show `AUTHORIZED` until you capture.
+
+---
 
 ## Next steps
 

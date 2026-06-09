@@ -1,13 +1,51 @@
 ---
 title: "Auth Reversal"
 description: "Reverse (void) an authorized payment before it is captured."
-openapi: "POST /gl/v1/payments/{gid}/auth-reversal"
+openapi: "POST /gl/v1/payments/{gid}/reversal"
 ---
 
 ## When to Use
 
-Void an `AUTHORIZED` transaction that has not yet been captured. This releases the hold on the customer's card.
+Void an `AUTHORIZED` transaction that has not yet been captured. This releases the hold on the customer's card. Use this endpoint when an order is cancelled or abandoned after authorization but before the capture step. If the payment has already been captured, use the [Refund](/api-reference/payment/refund) endpoint instead — reversals cannot be applied post-capture.
 
 <Note>
   Only **full reversals** are supported. If the payment has already been captured, use the [Refund](/api-reference/payment/refund) service instead.
 </Note>
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "TXN-REVERSAL-001"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "code": "200",
+  "message": "Payment reversed successfully.",
+  "data": {
+    "gid": "GID-XXXXXXXXXXXXXXXX",
+    "merchantTxnId": "TXN-REVERSAL-001",
+    "paymentStatus": "REVERSED",
+    "amount": 1000.00,
+    "currency": "INR"
+  }
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Payment already captured — reversal not allowed | 422 |
+| Payment not in AUTHORIZED state | 422 |
+| Invalid or unknown `gid` | 404 |
+| Missing or malformed `merchantTxnId` | 400 |
+| Authentication failure (invalid API key or KID) | 401 |
+| Merchant not authorized for this operation | 403 |

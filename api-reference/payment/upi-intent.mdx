@@ -1,6 +1,6 @@
 ---
 title: "UPI Intent"
-description: "PayCollect UPI Intent flow — minimal and enriched requests, initiation response (redirectUrl), post-success statusData, headers, and merchant callback."
+description: "Initiate a UPI Intent payment via PayCollect: POST to /gl/v1/payments/initiate/paycollect, redirect the customer to the returned redirectUrl, and poll status for the final outcome."
 openapi: "POST /gl/v1/payments/initiate/paycollect"
 ---
 
@@ -240,11 +240,62 @@ After the customer completes UPI and the transaction moves to a captured (or sen
 
 ---
 
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "paymentData": {
+    "totalAmount": "1044",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "TestName",
+      "emailId": "test@payglocal.in",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "merchantCallbackURL": "https://www.example.com/payglocal/callback"
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_9f9ff90dfc95c19a",
+  "status": "SUCCESS",
+  "message": "Got the response from txn server",
+  "timestamp": "11/05/2026 14:26:52",
+  "reasonCode": "GL-201-001",
+  "data": {
+    "gid": "gl_o-9f9ff90e82cfafb07515k0ZX2",
+    "status": "INPROGRESS",
+    "message": "Transaction Created Successfully",
+    "timestamp": "11/05/2026 14:26:52",
+    "reasonCode": "200",
+    "data": {
+      "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=<TOKEN>",
+      "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-9f9ff90e82cfafb07515k0ZX2/status?x-gl-token=<TOKEN>",
+      "merchantTxnId": "23AEE8CB6B62EE2AF07"
+    },
+    "errors": null
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
+
+---
+
 ## Error Scenarios
 
-| Scenario | Typical signal | Action |
-|----------|----------------|--------|
-| Initiate validation failure | HTTP 4xx, `errors` populated | Fix body fields per OpenAPI / support feedback and retry. |
-| Auth / signing failure | HTTP 401 | Check `x-gl-token-external`, key id, and clock skew. |
-| Customer abandons hosted page | No callback | Poll **Get Status** and expire your own checkout session. |
-| Token validation fails on callback | Invalid `x-gl-token` | Use **Get Status** with stored `gid` / `merchantTxnId` before showing success. |
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing or invalid required fields (`merchantTxnId`, `totalAmount`, `txnCurrency`) | 400 |
+| Invalid or expired `x-gl-token-external` JWS signature | 401 |
+| Merchant ID not found or not authorised for PayCollect | 403 |
+| Duplicate `merchantTxnId` for the same merchant | 409 |
+| Customer abandons the hosted page — no callback received | — (poll Get Status) |
+| Callback `x-gl-token` validation fails | — (use Get Status with stored `gid`) |

@@ -12,6 +12,12 @@ openapi: "openapi-v2-paydirect-gpi.yaml POST /gl/v1/payments/initiate"
 
 ---
 
+## When to Use
+
+Use PayDirect GPI when you are collecting **raw card data or a network token** directly from the customer and need a one-step sale (immediate capture intent) with 3DS step-up. Choose this endpoint over PayCollect GPI when your integration handles card entry on your own checkout form rather than redirecting the customer to a PayGlocal-hosted page. If you need UPI, net banking, or global alternative payment methods, use [PayCollect GPI](/api-reference/payments-v2/paycollect/gpi) instead. For authorize-only (capture later) flows, use the PayDirect Authorize endpoint.
+
+---
+
 ## Supported payment methods
 
 | Method | Domestic | International |
@@ -37,7 +43,66 @@ PayDirect GPI does not support UPI, net banking, or global alternative payments 
 
 <Snippet file="paydirect-request-headers.mdx" />
 
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Invalid request fields or error processing request (`GL-400-001`) | 400 |
+| Card domicile or card type not configured for merchant (`GL-201-020`) | 400 |
+| Duplicate `merchantUniqueId` / too many requests (`GL-400-001`) | 429 |
+| Merchant is blacklisted and not permitted to transact (`GL-403-001`) | 403 |
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "4111111111111111",
+      "expiryMonth": "05",
+      "expiryYear": "2026",
+      "securityCode": "111"
+    },
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "merchantCallbackURL": "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback"
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next steps
 

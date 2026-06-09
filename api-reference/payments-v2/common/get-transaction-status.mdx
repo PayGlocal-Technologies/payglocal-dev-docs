@@ -4,6 +4,8 @@ description: "Poll payment status after GPI — recommended after every transact
 openapi: "GET /gl/v1/payments/{id}/status"
 ---
 
+<span className="payments-v2-page hidden" aria-hidden="true" />
+
 ## When to Use
 
 Call status **after every payment initiation**, once the customer completes (or abandons) the flow. PayGlocal also sends lifecycle updates to your `merchantCallbackURL`, but **status polling is the recommended way to confirm the final outcome** and reconcile orders if a callback is delayed, retried, or missed.
@@ -49,3 +51,51 @@ Pass PayGlocal `gid` or your `merchantTxnId` as `{id}`. Alternatively, call the 
 |----------|-----------|
 | Unknown or invalid `gid` / `merchantTxnId` | `404` |
 | Missing or invalid JWS | `401` |
+
+<div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+GET /gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status
+x-gl-merchantid: <MERCHANT_ID>
+x-gl-kid: <KID>
+x-gl-token-external: <JWS_TOKEN>
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Transaction Successful",
+  "timestamp": "02/06/2026 21:52:10",
+  "reasonCode": "200",
+  "data": {
+    "merchantTxnId": "23AEE8CB6B62EE2AF07",
+    "merchantUniqueId": "IFNN939494NJFJ",
+    "status": "SENT_FOR_CAPTURE",
+    "paymentMethod": "CARD",
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "maskedCardNumber": "411111XXXXXX1111",
+      "cardScheme": "VISA",
+      "cardType": "CREDIT"
+    }
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
+
+## Next actions
+
+| Action | API |
+|--------|-----|
+| Refund a captured payment | [Refund](/api-reference/payment/refund) |
+| Capture an authorized payment | [Standalone Capture](/api-reference/payment/standalone-capture) |
+
+</div>

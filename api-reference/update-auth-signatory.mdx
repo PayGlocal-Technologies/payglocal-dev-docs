@@ -1,5 +1,6 @@
 ---
 title: "Update Authorised Signatory"
+description: "Submit or update the authorised signatory's personal details, PAN, and designation for a merchant onboarding application."
 openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory"
 ---
 
@@ -8,6 +9,31 @@ openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/auth-signatory"
 Submits the authorised signatory details. The signatory's phone and email are used to conduct VKYC, DigiLocker verification, and T&C acknowledgement — so accuracy is critical.
 
 <Snippet file="tnc-lock-warning.mdx" />
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "firstName": "Priya",
+  "lastName": "Sharma",
+  "email": "priya.sharma@example.com",
+  "phone": "9876543210",
+  "pan": "ABCPS1234D",
+  "designation": "Director"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "message": "Authorised signatory details updated successfully.",
+  "onboardingId": "<ONBOARDING_ID>"
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

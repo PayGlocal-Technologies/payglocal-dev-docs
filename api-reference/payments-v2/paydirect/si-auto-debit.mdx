@@ -1,6 +1,6 @@
 ---
 title: "Standing instruction — auto debit"
-description: "AUTO DEBIT standing instructions — scheduled FIXED debits after PayDirect mandate registration."
+description: "Register a scheduled FIXED auto-debit mandate via PayDirect so PayGlocal debits the customer on your configured frequency without further API calls."
 openapi: "openapi-v2-paydirect-si-auto-debit.yaml POST /gl/v1/payments/initiate"
 ---
 
@@ -22,6 +22,14 @@ Registration uses the same PayDirect initiate endpoint as [GPI](/api-reference/p
 <Warning>
   When **Auto Debit** is enabled for your MID, `ONDEMAND` frequency and `VARIABLE` type are not supported.
 </Warning>
+
+---
+
+## When to Use
+
+Use this endpoint when you need to register a recurring debit mandate for **international cards** where the charge amount and schedule are known upfront and do not vary. Auto-debit is appropriate for subscription billing, EMI plans, or any fixed-amount recurring charge where you want PayGlocal to initiate each debit automatically on your behalf.
+
+Choose [on-demand SI](/api-reference/standing-instructions/si-subsequent-payment) instead if the amount or timing of each charge may differ, or if your MID does not have Auto Debit enabled. Do not use this flow for domestic cards or token-based payments — `cardData` with a raw international PAN is required.
 
 ---
 
@@ -51,7 +59,79 @@ Set `standingInstruction.data` (`amount`, scheduled `frequency`, `type: FIXED`, 
   Store the `mandateId` returned from the initial mandate-registration payment. It is required for all subsequent auto-debit charges.
 </Note>
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Invalid or missing request fields (e.g. missing `startDate`, wrong `type`) | 400 |
+| Card domicile or card type not configured for your MID (`GL-201-020`) | 400 |
+| Duplicate `merchantUniqueId` — same ID sent more than once (`GL-400-001`) | 429 |
+| Merchant is blacklisted and not permitted to transact (`GL-403-001`) | 403 |
+| Authentication failure — invalid or expired JWS token | 403 |
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "merchantCallbackURL": "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback",
+  "standingInstruction": {
+    "data": {
+      "amount": "15000",
+      "numberOfPayments": "N",
+      "frequency": "MONTHLY",
+      "type": "FIXED",
+      "startDate": "20260903"
+    }
+  },
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "4111111111111111",
+      "expiryMonth": "05",
+      "expiryYear": "2026",
+      "securityCode": "111"
+    },
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  }
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07",
+    "mandateId": "md_925996a0-9da6-42df-b968-8a14729885fd"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next actions
 

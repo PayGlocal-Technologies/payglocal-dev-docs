@@ -1,0 +1,135 @@
+# PayGlocal Developer Documentation
+
+> API reference, integration guides, and platform docs for PayGlocal — an RBI-licensed payment aggregator accepting international cards, UPI, and alternative payment methods.
+
+PayGlocal covers three products: a payment gateway (PayCollect hosted checkout and PayDirect seamless), a partner merchant onboarding API, and multi-currency foreign-currency collection accounts (MCA). All APIs are REST/JSON over HTTPS.
+
+## Get Started
+
+- [Core Concepts](/get-started/concepts): Platform model — partners, merchants, payment lifecycle, standing instructions, and identifiers
+- [Sandbox & Testing](/get-started/sandbox): Test environment URLs, test card numbers, UPI VPAs, 3DS OTPs, and sandbox constraints
+- [Choose Your Integration](/get-started/choose-your-path): Decision guide — PayCollect vs PayDirect vs No-Code vs Plugins with PCI scope comparison
+- [Glossary](/get-started/glossary): Definitions for platform terms (GPI, GID, MID, KID, SI, MCA, FIRC, etc.)
+
+## Set Up
+
+- [GCC Dashboard](/getting-started/payglocal-dashboards): PayGlocal Control Centre overview — credentials, transactions, settlement
+- [Key Management Overview](/set-up/keys/overview): RSA key pair lifecycle for payment API authentication
+- [Generate Private Key](/set-up/keys/private-key): Generate and securely store your RSA private key
+- [Upload Public Certificate](/set-up/keys/public-certificate): Submit your public key to PayGlocal
+- [Request Construction](/set-up/keys/request-construction): How to construct and sign JWS tokens for payment requests
+- [Verify Signatures](/set-up/keys/verifying-signatures): RS256 callback signature verification to authenticate PayGlocal responses
+- [HTTP Headers Reference](/set-up/keys/headers-reference): All required headers for every API surface (Payments V2, legacy payments, onboarding, MCA)
+
+## Partner Onboarding
+
+- [Onboarding Authentication](/set-up/partner-onboarding/authentication): HMAC-SHA256 auth (x-gl-auth + x-gl-digest) for the Partner Onboarding API
+- [Merchant Requirements](/set-up/partner-onboarding/merchant-requirements): Documents and data fields required per entity type (Individual, Company, LLP, etc.)
+- [API Flow Overview](/set-up/partner-onboarding/api-flow): End-to-end onboarding API sequence from Create to Verification
+- [Partner Events](/set-up/partner-onboarding/events): Webhook events for the merchant onboarding lifecycle
+- [iFrame Integration](/set-up/partner-onboarding/iframe-integration): Embed the PayGlocal KYC/KYB verification iFrame in your platform
+- [Webhook Configuration](/set-up/partner-onboarding/webhook-configuration): Register your webhook endpoint with PayGlocal
+- [RFI Handling](/set-up/partner-onboarding/rfi-handling): Handle Request for Information (RFI) status during merchant review
+
+## Payments
+
+- [Payments Overview](/payments/overview): PayCollect vs PayDirect capabilities, PCI scope, and supported payment methods
+- [Initiation Flow](/payments/lifecycle/initiation-flow): End-to-end payment lifecycle — from API call to callback to status confirmation
+- [Request Signing](/payments/lifecycle/request-signing): How to construct JWS tokens and encrypt payment request payloads
+- [Standing Instructions Flow](/payments/lifecycle/standing-instructions-flow): Mandate registration lifecycle, ONDEMAND vs AUTO DEBIT, and subsequent billing
+- [Regular Payment Guide](/payments/types/regular-payment): One-time GPI payment integration guide
+- [Recurring Payments (SI)](/payments/types/recurring-payment): Standing instruction registration, mandate management, and billing guide
+- [Auth & Capture Guide](/payments/types/auth-capture): Two-step authorization and deferred capture integration
+- [UPI Payments](/payments/types/upi-overview): UPI intent and collect flows for Indian customers
+- [Apple Pay](/payments/payment-types/apple-pay): Apple Pay requirements and integration overview
+- [Google Pay](/payments/payment-types/google-pay): Google Pay requirements and integration overview
+- [PayCollect Overview](/payments/paycollect/overview): Hosted checkout — card data never touches your server (SAQ A PCI scope)
+- [PayCollect CodeDrop](/payments/paycollect/codedrop): Embed the PayGlocal hosted checkout in your page with a code drop
+- [PayCollect API Quickref](/payments/paycollect/api-quickref): PayCollect API authentication headers and key request fields
+- [PayDirect Overview](/payments/paydirect/overview): Seamless checkout — raw card data on your server (PCI Level 1 required)
+- [PayDirect API Quickref](/payments/paydirect/api-quickref): PayDirect API authentication headers and key request fields
+- [Webhooks Overview](/payments/webhooks/overview): Payment lifecycle webhook events, payload structure, and retry policy
+- [Handle Callback](/payments/webhooks/handle-callback): Process and decode payment result callbacks from PayGlocal
+- [Node.js Callback Handler](/payments/webhooks/nodejs-callback): Complete RS256-verified callback handler with signature verification
+- [Handle SI Webhook](/payments/webhooks/handle-webhook): Process SI auto-debit lifecycle webhooks
+- [No-Code Overview](/payments/no-code/overview): Payment Links, Invoice Links, and Payment Buttons — no integration required
+- [Payment Link](/payments/no-code/payment-link): Create and share one-click payment links from the GCC dashboard
+- [Invoice Link](/payments/no-code/invoice-link): Send itemized invoices with integrated payment collection
+- [Payment Button](/payments/no-code/payment-button): Embed a hosted payment button on your website
+- [Plugins Overview](/payments/plugins/overview): E-commerce platform plugin integrations
+- [WooCommerce Plugin](/payments/plugins/woocommerce): Install and configure the PayGlocal WooCommerce plugin
+- [Magento Extension](/payments/plugins/magento): Install and configure the PayGlocal Magento 2 extension
+- [Shopify App](/payments/plugins/shopify): Install and configure the PayGlocal Shopify payment app
+- [OpenCart Extension](/payments/plugins/opencart): Install and configure the PayGlocal OpenCart extension
+- [Wix Integration](/payments/plugins/wix): Set up PayGlocal as a payment provider on Wix
+- [Testing Guide](/payments/testing-guide): Sandbox scenario walkthroughs — happy path, card declines, 3DS, UPI, SI
+- [Payments Go Live Checklist](/payments/go-live): Pre-production verification steps before accepting live payments
+
+## Multi-Currency Accounts
+
+- [MCA Concepts](/mca/concepts): Foreign currency collection accounts — how collections, FX, and INR settlement work
+- [Collections Guide](/mca/collections-guide): Receive international payments into your virtual accounts
+- [Settlement & FX](/mca/settlement-and-fx): Exchange rate mechanism, settlement timeline, and FX webhook events
+- [FIRC Compliance](/mca/firc-compliance): RBI FIRC requirements, download flow, and 5-year retention rules
+- [MCA Dashboard](/mca/dashboard): GCC dashboard MCA view — accounts, balances, transactions
+- [MCA API](/mca/api): MCA API integration using x-api-key authentication
+- [MCA Testing](/mca/testing): Sandbox testing guide for MCA collection and settlement flows
+- [MCA Go Live](/mca/go-live): Pre-production checklist for MCA activation
+
+## API Reference — Payments V2
+
+- [Authentication](/api-reference/payments-v2/common/authentication): RSA JWS signing for Payments V2 — headers, token construction, and key IDs
+- [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status): Poll payment outcome after any GPI initiation (PayDirect and PayCollect)
+- [PayCollect GPI](/api-reference/payments-v2/paycollect/gpi): Hosted checkout one-time payment — POST /gl/v1/payments/initiate/paycollect
+- [PayCollect SI On-Demand](/api-reference/payments-v2/paycollect/si-on-demand): Hosted mandate registration for merchant-triggered recurring billing
+- [PayCollect SI Auto-Debit](/api-reference/payments-v2/paycollect/si-auto-debit): Hosted mandate registration for scheduled automatic billing
+- [PayCollect Auth & Capture](/api-reference/payments-v2/paycollect/auth-capture-authorise): Hosted authorize-only initiation (captureTxn: false)
+- [PayDirect GPI](/api-reference/payments-v2/paydirect/gpi): Seamless one-time payment with raw card data — POST /gl/v1/payments/initiate
+- [PayDirect SI On-Demand](/api-reference/payments-v2/paydirect/si-on-demand): Seamless mandate registration — merchant-triggered billing with cardData
+- [PayDirect SI Auto-Debit](/api-reference/payments-v2/paydirect/si-auto-debit): Seamless mandate registration — scheduled billing with cardData
+- [PayDirect Auth & Capture](/api-reference/payments-v2/paydirect/auth-capture-authorise): Seamless authorize-only with raw card data
+
+## API Reference — Payments (Legacy v1)
+
+- [Initiate Payment (PayCollect)](/api-reference/payment/gpi-paycollect): Legacy hosted checkout initiation — POST /gl/v1/payments/initiate/paycollect
+- [Get Status](/api-reference/payment/get-status): Legacy payment status — GET /gl/v1/payments/{gid}/status
+- [Refund](/api-reference/payment/refund): Full or partial refund for a captured transaction
+- [Standalone Capture](/api-reference/payment/standalone-capture): Capture a previously authorized transaction
+- [Auth Reversal](/api-reference/payment/standalone-reversal): Release a hold on an authorized-but-not-captured transaction
+- [UPI Intent](/api-reference/payment/upi-intent): UPI intent flow initiation and deep-link response
+
+## API Reference — Standing Instructions
+
+- [SI Subsequent Payment](/api-reference/standing-instructions/si-subsequent-payment): Trigger a manual debit on an ONDEMAND mandate — POST /gl/v1/payments/si/sale
+- [SI Status](/api-reference/standing-instructions/si-status): Check the current state of a mandate
+- [Cancel Standing Instruction](/api-reference/standing-instructions/si-cancellation): Permanently revoke an active mandate
+
+## API Reference — Partner Onboarding
+
+- [Create Onboarding](/api-reference/create-onboarding): Start a merchant onboarding record — returns onboardingId for all subsequent calls
+- [Update Business Details](/api-reference/update-business-details): Submit or update merchant business profile, address, and entity information
+- [Add Beneficial Owner](/api-reference/add-beneficial-owner): Submit UBOs (individuals holding >10% equity) — replaces the entire list on each call
+- [Update Auth Signatory](/api-reference/update-auth-signatory): Submit the authorized signatory who signs agreements on behalf of the merchant
+- [Update Bank Details](/api-reference/update-bank-details): Submit the merchant's settlement bank account (IFSC + account number)
+- [Upload Documents](/api-reference/upload-documents): Upload a KYC/KYB compliance document (call once per document type)
+- [Configure Products](/api-reference/configure-products): Set payment products (GPI, SI, MCA) and fee structure for the merchant
+- [Get Business Categories](/api-reference/get-business-categories): Fetch allowed MCC codes and business category list for natureOfBusiness field
+- [Get Onboarding Status](/api-reference/get-status): Check merchant verification state, pending documents, and onboarding progress
+- [Get Verification Redirect](/api-reference/get-verification-redirect): Generate a time-limited iFrame URL for document and video KYC/KYB verification
+- [Payload Templates](/api-reference/payload-templates): Copy-ready request payloads for all payment flows (GPI, SI, Auth/Capture, refund)
+
+## API Reference — MCA
+
+- [Fetch Virtual Accounts](/api-reference/mca/account-fetch): Retrieve assigned virtual account details for an activated MCA merchant
+- [Upload MCA Document](/api-reference/mca/document-upload): Upload a compliance document for an MCA account
+
+## Resources
+
+- [Postman Collection](/resources/postman): Download and configure the PayGlocal Postman workspace
+- [Idempotency](/resources/idempotency): merchantUniqueId semantics, safe retry patterns, and 429 handling
+- [Currencies & Amounts](/resources/currencies): Supported currencies, INR paise format, and amount field rules
+- [Service Status](/resources/status): Real-time service status and incident escalation contacts
+- [Security Overview](/resources/security-overview): PCI DSS scope by integration mode, API security model, and data minimization
+- [Error Codes](/reference/response-codes-and-errors): Payment API error reason codes (GL-xxx) and their meanings
+- [Payment Status Lifecycle](/reference/payment-status-lifecycle): Transaction, mandate, and onboarding status state transitions
+- [Support](/resources/support): Contact channels — email, Slack, and business hours escalation

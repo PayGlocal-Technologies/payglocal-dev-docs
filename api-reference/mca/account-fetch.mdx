@@ -1,11 +1,12 @@
 ---
 title: "Fetch Virtual Accounts"
+description: "Retrieve virtual account details for a fully activated merchant, grouped by collection label and currency."
 openapi: "GET /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts"
 ---
 
 ## When to Use
 
-Call this after a merchant is **fully activated** on PayGlocal to retrieve their assigned global virtual accounts. Accounts are grouped by collection label (e.g. `general`) and within each label by currency code.
+Call this after a merchant is **fully activated** on PayGlocal to retrieve their assigned global virtual accounts. Accounts are grouped by collection label (e.g. `general`) and within each label by currency code. Do not call this endpoint during merchant onboarding or before activation is confirmed — the response will be empty or return an error. Use the merchant dashboard or the merchant status API to verify activation state before calling.
 
 <Note>
   Returns data only for activated merchants. Calling for a merchant still in onboarding or pending review returns HTTP 401.
@@ -22,9 +23,50 @@ data
         └── VirtualAccount    (account number, bank name, routing code, etc.)
 ```
 
+## Example
+
+<CodeGroup>
+
+```http Request
+GET /gcc/v3/merchants/<MERCHANT_ID>/ffms/virtualAccounts HTTP/1.1
+Host: api.payglocal.in
+x-api-key: <API_KEY>
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "data": {
+    "general": {
+      "USD": {
+        "accountNumber": "1234567890",
+        "bankName": "Example Bank NA",
+        "routingCode": "021000021",
+        "swiftCode": "EXBKUS33",
+        "currency": "USD",
+        "collectionLabel": "general"
+      },
+      "GBP": {
+        "accountNumber": "9876543210",
+        "bankName": "Example Bank UK",
+        "routingCode": "200415",
+        "swiftCode": "EXBKGB2L",
+        "currency": "GBP",
+        "collectionLabel": "general"
+      }
+    }
+  }
+}
+```
+
+</CodeGroup>
+
 ## Error Scenarios
 
 | Scenario | HTTP Code |
 |----------|-----------|
 | `merchantId` is not valid | `400` |
 | Merchant is not activated | `401` |
+| Missing or invalid `x-api-key` header | `401` |
+| Caller does not have permission for this merchant | `403` |
+| `merchantId` not found | `404` |

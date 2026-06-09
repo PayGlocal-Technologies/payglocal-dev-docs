@@ -8,9 +8,54 @@ openapi: "POST /gl/v1/payments/{gid}/capture"
 
 Capture an `AUTHORIZED` transaction (i.e., one initiated with `captureTxn=false`). Until captured, the authorization holds funds on the customer's card but does not settle them to you.
 
+Use this endpoint after you have confirmed the order can be fulfilled and you are ready to collect payment. Do not call this endpoint if the transaction was already auto-captured (i.e., initiated with `captureTxn=true`). Only one capture is allowed per authorization — the remaining authorized amount is released after the first capture.
+
 ## Full vs Partial
 
 - `captureType=F` — full capture of the authorized amount. Omit `paymentData.totalAmount`.
 - `captureType=P` — partial capture. `paymentData.totalAmount` is required and must be ≤ the authorized amount.
 
 Only one capture is allowed per authorization. The remaining authorized amount is released after the first capture.
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "captureType": "P",
+  "paymentData": {
+    "totalAmount": 800.00,
+    "currencyCode": "INR"
+  }
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "code": "200",
+  "message": "Capture successful.",
+  "data": {
+    "gid": "<GID>",
+    "merchantTxnId": "<MERCHANT_TXN_ID>",
+    "status": "CAPTURED",
+    "captureType": "P",
+    "capturedAmount": 800.00,
+    "currencyCode": "INR"
+  }
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Transaction not in `AUTHORIZED` state | 400 |
+| `captureType=P` but `paymentData.totalAmount` missing | 400 |
+| Capture amount exceeds authorized amount | 400 |
+| `gid` not found or does not belong to merchant | 404 |
+| Capture already performed on this authorization | 409 |
+| Authentication failure (invalid signature or headers) | 401 |

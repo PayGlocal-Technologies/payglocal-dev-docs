@@ -1,5 +1,6 @@
 ---
 title: "Create Onboarding"
+description: "Initiates a new merchant onboarding record and returns the onboardingId required for all subsequent onboarding calls."
 openapi: "POST /gcc/v2/partner/merchant/onboard"
 ---
 
@@ -10,6 +11,30 @@ Always the **first API call** in the onboarding sequence. The `onboardingId` ret
 A merchant is uniquely identified by their PAN. Each PAN can have only one active onboarding record in the PayGlocal system.
 
 Valid PAN types: `P` (Individual), `C` (Company), `T` (Trust), `F` (Firm).
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "pan": "AAAAA1234A",
+  "panType": "P",
+  "entityType": "INDIVIDUAL",
+  "businessName": "Acme Traders"
+}
+```
+
+```json Response (200)
+{
+  "onboardingId": "onb_0001abc123",
+  "status": "INITIATED",
+  "pan": "AAAAA1234A",
+  "businessName": "Acme Traders"
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

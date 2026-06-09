@@ -1,5 +1,6 @@
 ---
 title: "Add / Update Beneficial Owner"
+description: "Submit or replace the full list of Ultimate Beneficial Owners (UBOs) for a merchant onboarding application."
 openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/beneficial-owner"
 ---
 
@@ -14,6 +15,37 @@ Submits or replaces the list of Ultimate Beneficial Owners (UBOs) for a merchant
 A **beneficial owner** is any individual holding more than **10% equity** in the entity. For Partnerships, LLPs, and Companies, include every such individual with their PAN and shareholding percentage. See [Merchant Requirements](/guides/merchant-requirements#documents-by-entity-type) for the full list per entity type.
 
 <Snippet file="post-verification-lock-warning.mdx" />
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "beneficialOwners": [
+    {
+      "name": "Anita Sharma",
+      "panNumber": "ABCPS1234P",
+      "shareholdingPercentage": 55
+    },
+    {
+      "name": "Rohan Mehta",
+      "panNumber": "DEFPM5678P",
+      "shareholdingPercentage": 20
+    }
+  ]
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "message": "Beneficial owners updated successfully.",
+  "onboardingId": "<ONBOARDING_ID>"
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

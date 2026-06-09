@@ -8,9 +8,60 @@ openapi: "POST /gl/v1/payments/{gid}/refund"
 
 Refund all or part of a captured transaction. If the transaction is still in `AUTHORIZED` state (not yet captured), use [Auth Reversal](/api-reference/payment/standalone-reversal) instead.
 
+This endpoint only works on transactions in `SENT_FOR_CAPTURE` (i.e., fully captured) state. For partial refunds, you may call this endpoint multiple times as long as the cumulative refunded amount does not exceed the original captured amount.
+
 ## Full vs Partial
 
 - `refundType=F` — full refund. Omit `paymentData.totalAmount`.
 - `refundType=P` — partial refund. `paymentData.totalAmount` is required and must be ≤ the captured amount.
 
 Multiple partial refunds are allowed as long as the cumulative refunded amount does not exceed the original capture.
+
+## Example
+
+<CodeGroup>
+
+```json Request (full refund)
+{
+  "refundType": "F"
+}
+```
+
+```json Request (partial refund)
+{
+  "refundType": "P",
+  "paymentData": {
+    "totalAmount": 50.00
+  }
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "code": "GC000",
+  "message": "Refund initiated successfully.",
+  "data": {
+    "gid": "GID-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "refundId": "RFD-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "refundType": "F",
+    "refundStatus": "INITIATED",
+    "refundAmount": 100.00,
+    "currency": "INR"
+  }
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Transaction not in `SENT_FOR_CAPTURE` state | 400 |
+| `refundType=P` but `paymentData.totalAmount` is missing | 400 |
+| Partial refund amount exceeds remaining refundable amount | 400 |
+| Invalid or unknown `gid` | 404 |
+| Duplicate refund request (idempotency conflict) | 409 |
+| Authentication failure (invalid signature or key) | 401 |
+| Merchant not authorised for refunds | 403 |

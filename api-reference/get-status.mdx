@@ -1,5 +1,6 @@
 ---
 title: "Get Onboarding Status"
+description: "Check the current onboarding progress, verification state, pending documents, and RFI status for a merchant application."
 openapi: "GET /gcc/v2/partner/merchant/onboard/{onboardingId}/status"
 ---
 
@@ -62,9 +63,43 @@ if (status.onboardingStatus === 'RFI') {
 
 See [Upload Documents](/api-reference/upload-documents) for the upload API. After uploading, continue polling — status will transition back to `PENDING_REVIEW`.
 
+## Example
+
+<CodeGroup>
+
+```json Request
+GET /gcc/v2/partner/merchant/onboard/ONB-20240601-000123/status
+x-gl-auth: <API_KEY>
+x-gl-digest: <COMPUTED_DIGEST>
+```
+
+```json Response (200)
+{
+  "onboardingId": "ONB-20240601-000123",
+  "merchantStatus": "UNDER_REVIEW",
+  "onboardingStatus": "UNDER_REVIEW",
+  "checklistStatus": {
+    "businessDetails": true,
+    "bankDetails": true,
+    "kycDocuments": true,
+    "vkycCompleted": false,
+    "digiLockerCompleted": false
+  },
+  "documentsToBeUploaded": [],
+  "vkycCompleted": false,
+  "digiLockerCompleted": false,
+  "reasonCode": null
+}
+```
+
+</CodeGroup>
+
 ## Error Scenarios
 
 | Scenario | HTTP Code |
 |----------|-----------|
 | `onboardingId` does not exist | `404` |
 | `onboardingId` does not belong to this partner | `403` |
+| Missing or invalid `x-gl-auth` / `x-gl-digest` headers | `401` |
+| Malformed `onboardingId` path parameter | `400` |
+| Internal server error | `500` |

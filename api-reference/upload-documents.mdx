@@ -1,17 +1,43 @@
 ---
 title: "Upload Documents"
+description: "Upload a single base64-encoded KYC/KYB document for a merchant onboarding application."
 openapi: "PUT /gcc/v2/partner/merchant/onboard/{onboardingId}/docs"
 ---
 
 ## When to Use
 
-Uploads a single compliance document for the merchant. Call this endpoint **once per document type** required.
+Call this endpoint once per document type that appears in the `documentsToBeUploaded` list returned by [Get Onboarding Status](/api-reference/get-status). Each invocation uploads exactly one document — if the merchant requires multiple document types (e.g. both `PAN_CARD` and `CERTIFICATE_OF_INCORPORATION`), make a separate call for each. After every upload, poll GET /status to confirm the document has been accepted and the pending list has shrunk. This endpoint is blocked once the onboarding application has passed the verification step; do not call it after verification is complete.
 
 <Snippet file="post-verification-lock-warning.mdx" />
 
 <Note>
   Check `documentsToBeUploaded` in the [Get Onboarding Status](/api-reference/get-status) response to see which documents are pending. After each upload, poll GET /status to confirm the list has updated. See the full [Dynamic document pendencies](/guides/merchant-requirements#dynamic-document-pendencies) matrix for trigger conditions and `merchantDocType` mappings.
 </Note>
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantDocType": "PAN_CARD",
+  "documentContent": "JVBERi0xLjQKJeLjz9MKMSAwIG9iagA..."
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "message": "Document uploaded successfully.",
+  "data": {
+    "onboardingId": "onb_a1b2c3d4e5f6",
+    "merchantDocType": "PAN_CARD",
+    "documentStatus": "UPLOADED"
+  }
+}
+```
+
+</CodeGroup>
 
 ## Error Scenarios
 

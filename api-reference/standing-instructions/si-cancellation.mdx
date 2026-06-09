@@ -8,14 +8,40 @@ openapi: "PUT /gl/v1/payments/si/status"
 
 Revoke an active standing-instruction mandate. Future scheduled or on-demand debits will not be attempted. Once revoked, the mandate cannot be reactivated — register again via [PayDirect](/api-reference/payments-v2/paydirect/si-on-demand) or [PayCollect](/api-reference/payments-v2/paycollect/si-on-demand) initiate. See **Standing Instruction Sale** in the API Reference sidebar.
 
-## Common Failure Responses
+## Example
 
-**Already inactive:**
-```json
-{ "status": "REQUEST_ERROR", "message": "Mandate was inactive" }
+<CodeGroup>
+
+```json Request
+{
+  "merchantUniqueId": "MERCH-SI-CANCEL-001",
+  "merchantId": "<MERCHANT_ID>",
+  "siMandateId": "SI-MANDATE-20240101-001",
+  "action": "REVOKE"
+}
 ```
 
-**Not found:**
-```json
-{ "status": "REQUEST_ERROR", "message": "Mandate id not found" }
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "code": "00",
+  "message": "Mandate revoked successfully",
+  "data": {
+    "siMandateId": "SI-MANDATE-20240101-001",
+    "merchantUniqueId": "MERCH-SI-CANCEL-001",
+    "merchantId": "<MERCHANT_ID>",
+    "mandateStatus": "REVOKED"
+  }
+}
 ```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Mandate is already inactive (previously revoked or expired) | 400 |
+| Mandate ID not found for the given merchant | 400 |
+| Missing or invalid `merchantId` in the request | 400 |
+| Authentication failure (invalid or missing credentials) | 401 |

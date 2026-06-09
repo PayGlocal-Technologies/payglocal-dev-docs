@@ -26,3 +26,46 @@ PayGlocal also posts async updates to your `merchantCallbackURL` on terminal tra
 | `REQUEST_ERROR` | Yes | Fix request fields and retry |
 | `SYSTEM_ERROR` | Yes | Retry after some time |
 | `CONFIG_ERROR` | Yes | Contact PayGlocal support |
+
+## Example
+
+<CodeGroup>
+
+```json Request
+GET /gl/v1/payments/gl-13bbd3c4-0000-0000-0000-000000000001/status HTTP/1.1
+Host: api.payglocal.in
+x-gl-merchantId: <MERCHANT_ID>
+x-gl-reqid: req-0001
+x-gl-ts: 1700000000000
+x-gl-enc: <RSA_JWS_SIGNATURE>
+Content-Type: application/json
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "httpStatusCode": 200,
+  "message": "Payment transaction details fetched successfully.",
+  "data": {
+    "gid": "gl-13bbd3c4-0000-0000-0000-000000000001",
+    "merchantUniqueId": "ORD-20240101-001",
+    "paymentType": "CARD",
+    "status": "SENT_FOR_CAPTURE",
+    "amount": 100.00,
+    "currency": "INR",
+    "merchantCallbackURL": "https://merchant.example.com/callback"
+  }
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Invalid or missing RSA JWS headers | 401 |
+| `{id}` not found for this merchant | 404 |
+| Malformed GID / merchantUniqueId format | 400 |
+| Rate limit exceeded | 429 |
+| Upstream system error | 500 |

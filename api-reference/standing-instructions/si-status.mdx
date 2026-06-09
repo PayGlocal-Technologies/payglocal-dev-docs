@@ -1,45 +1,65 @@
 ---
 title: "Check Mandate Status"
-description: "Retrieve the current status, payment count, and details of a standing instruction mandate."
+description: "Retrieve the current lifecycle state, payment count, and details of a standing instruction mandate."
 openapi: "POST /gl/v1/payments/si/status"
 ---
 
 ## When to Use
 
-Check the current lifecycle state of a standing-instruction mandate — e.g., whether it's still active, how many debits have been processed, and how many remain. Applies to **on-demand and auto debit** mandates (PayDirect and PayCollect). See **Standing Instruction Sale** in the API Reference sidebar.
+Call this endpoint to check whether a standing-instruction mandate is still usable before initiating a subsequent debit. Use it to confirm the mandate state (`ACTIVE`, `PAUSED`, `REVOKED`, `EXHAUSTED`), the number of payments completed so far, and the remaining payment count. Applies to both on-demand and auto-debit mandates (PayDirect and PayCollect). If the mandate is `EXHAUSTED` or `REVOKED`, do not attempt a Standing Instruction Sale — create a new mandate instead.
 
 ## Mandate Status Values
 
 | Status | Description |
 |--------|-------------|
 | `ACTIVE` | Mandate is active and can be used for subsequent payments |
-| `INACTIVE` | Mandate was revoked via API or Control Center |
+| `PAUSED` | Mandate has been temporarily paused and cannot be debited until resumed |
+| `REVOKED` | Mandate was revoked via API or Control Center and cannot be used |
 | `EXHAUSTED` | All configured payments have been processed |
 
-## Example Data Payloads
+## Example
 
-**Active mandate:**
-```json
+<CodeGroup>
+
+```json Request
 {
+  "merchantUniqueId": "si_status_check_001",
+  "mandateId": "md_94fxxxxxx3e15"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
   "mandateData": {
+    "mandateId": "md_94fxxxxxx3e15",
     "mandateStatus": "ACTIVE",
-    "mandateCreateDate": "20211204",
-    "maskedMandateId": "md_94fxxxxxx3e15",
-    "siId": "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32",
-    "numberOfPaymentsProcessed": "4",
-    "numberOfPaymentsRemaining": "2"
+    "amount": "500.00",
+    "frequency": "MONTHLY",
+    "startDate": "20240101",
+    "mandateCreateDate": "20231215",
+    "numberOfPaymentsCompleted": 4,
+    "numberOfPaymentsRemaining": 2
   }
 }
 ```
 
-**Exhausted mandate:**
-```json
-{
-  "mandateData": {
-    "mandateStatus": "EXHAUSTED",
-    "mandateExhaustionDate": "20211209",
-    "numberOfPaymentsProcessed": "6",
-    "numberOfPaymentsRemaining": "0"
-  }
-}
-```
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| `mandateId` is missing or malformed | 400 |
+| Mandate not found for the given merchant | 404 |
+| Authentication headers missing or invalid | 401 |
+| Merchant not authorized to access this mandate | 403 |
+| Downstream service unavailable | 503 |
+
+## Next Steps
+
+| Action | API |
+|--------|-----|
+| Initiate a debit on an active mandate | Standing Instruction Sale |
+| Revoke a mandate that is no longer needed | Revoke Mandate |
+| Create a new mandate if the current one is exhausted or revoked | Create Mandate |

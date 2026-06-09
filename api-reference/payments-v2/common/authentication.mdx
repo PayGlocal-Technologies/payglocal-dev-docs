@@ -6,6 +6,10 @@ icon: "key"
 
 All Payment API requests (PayCollect and PayDirect, GPI, SI, Auth & Capture) use the same authentication scheme: RSA JWS signing.
 
+## When to Use
+
+Use this authentication scheme for every request you send to PayGlocal Payment APIs (PayCollect, PayDirect, GPI, Standing Instructions, and Auth & Capture). There is no alternative — all environments (sandbox and production) require RSA JWS-signed headers. Obtain your RSA key pair and key ID (`x-gl-kid`) from the PayGlocal merchant portal before making your first API call. If you are on a parent-child (Portfolio) MID setup, also read the Portfolio / Multi-MID section below.
+
 ## Required Headers
 
 <Snippet file="paydirect-request-headers.mdx" />
@@ -43,3 +47,35 @@ For parent-child MID configurations, add the `x-gl-kid-mid` header with the chil
 <Snippet file="private-key-not-stored-warning.mdx" />
 
 See [Key Management](/set-up/keys/overview) for key download and rotation steps.
+
+## Example
+
+<CodeGroup>
+
+```json Request (headers)
+{
+  "x-gl-merchantid": "<MERCHANT_ID>",
+  "x-gl-kid": "<KID>",
+  "x-gl-token-external": "<JWS_TOKEN>",
+  "Content-Type": "application/json"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "message": "Request authenticated successfully."
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Missing or malformed `x-gl-token-external` header | 401 |
+| JWS signature verification failed (wrong private key or tampered payload) | 401 |
+| `x-gl-merchantid` does not match the signing key | 403 |
+| Unknown or expired `x-gl-kid` | 403 |
+| Request body does not match the signed payload | 400 |

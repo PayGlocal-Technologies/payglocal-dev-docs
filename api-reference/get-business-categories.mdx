@@ -1,5 +1,6 @@
 ---
 title: "Get Business Categories"
+description: "Returns the full list of allowed MCC codes and business category names that can be used when onboarding a merchant."
 openapi: "GET /gcc/v2/partner/merchant/onboard/business-category"
 ---
 
@@ -7,4 +8,63 @@ openapi: "GET /gcc/v2/partner/merchant/onboard/business-category"
 
 Returns the full list of supported business category codes and their subcategory codes. Use the **subcategory code** (dotted format, e.g., `BUS.IT_SERVICES`) as the value for `natureOfBusiness` in [Update Business Details](/api-reference/update-business-details).
 
+Call this endpoint once before submitting merchant onboarding details to discover valid values. The list of categories is relatively stable but may be updated by PayGlocal; cache the response for your session rather than hardcoding values.
+
 For a static reference, see [Business Categories](/reference/business-categories).
+
+## Example
+
+<CodeGroup>
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "data": [
+    {
+      "categoryCode": "BUS",
+      "categoryName": "Business Services",
+      "subcategories": [
+        {
+          "subcategoryCode": "BUS.IT_SERVICES",
+          "subcategoryName": "IT Services",
+          "mccCode": "7372"
+        },
+        {
+          "subcategoryCode": "BUS.CONSULTING",
+          "subcategoryName": "Consulting",
+          "mccCode": "7389"
+        }
+      ]
+    },
+    {
+      "categoryCode": "RETAIL",
+      "categoryName": "Retail",
+      "subcategories": [
+        {
+          "subcategoryCode": "RETAIL.CLOTHING",
+          "subcategoryName": "Clothing & Apparel",
+          "mccCode": "5651"
+        }
+      ]
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Missing or invalid `x-gl-auth` header | 401 |
+| Invalid or expired `x-gl-digest` signature | 401 |
+| Partner account not authorized to access merchant onboarding | 403 |
+| Internal server error | 500 |
+
+## Next steps
+
+| Action | API |
+|---|---|
+| Submit merchant's business category during onboarding | [Update Business Details](/api-reference/update-business-details) |
+| Continue merchant onboarding flow | [Partner Onboarding APIs](/api-reference/partner-onboarding) |

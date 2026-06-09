@@ -37,6 +37,12 @@ Standing instruction registration on hosted checkout supports **international ca
 
 ---
 
+## When to Use
+
+Use this endpoint when PayGlocal has enabled **on-demand SI** on your MID and you want to register a recurring mandate via the hosted checkout page. Choose this flow — rather than the [auto-debit SI flow](/api-reference/payments-v2/paycollect/si-auto-debit) — when you need full control over the timing and amount of each subsequent debit (you call the [SI sale API](/api-reference/standing-instructions/si-subsequent-payment) yourself for every charge). This flow supports **international cards only**; do not use it for UPI, net banking, or domestic-card-only payment methods. If your MID is not configured for on-demand SI, contact PayGlocal support before calling this endpoint.
+
+---
+
 ## API
 
 <Snippet file="paydirect-api-endpoint-table.mdx" />
@@ -47,7 +53,74 @@ Standing instruction registration on hosted checkout supports **international ca
 
 <Snippet file="paydirect-request-headers.mdx" />
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing or invalid required field (e.g. `paymentData.totalAmount`) | 400 |
+| `standingInstruction.data` block absent or incomplete | 400 |
+| `cardData` or `tokenData` included in request body | 400 |
+| Invalid or expired `x-gl-token-external` header | 401 |
+| MID not configured for on-demand SI | 400 |
+| Duplicate `merchantTxnId` for an existing transaction | 400 |
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "merchantCallbackURL": "https://merchant.example.com/callback",
+  "standingInstruction": {
+    "data": {
+      "maxAmount": "15000",
+      "amount": "15000",
+      "numberOfPayments": "N",
+      "frequency": "ONDEMAND",
+      "type": "VARIABLE"
+    }
+  },
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  }
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.payglocal.in/gl/payflow-ui/?x-gl-token=<TOKEN>",
+    "statusUrl": "https://api.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=<TOKEN>",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07",
+    "mandateId": "md_925996a0-9da6-42df-b968-8a14729885fd"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next actions
 

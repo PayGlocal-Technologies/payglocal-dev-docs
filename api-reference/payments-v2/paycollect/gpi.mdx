@@ -12,6 +12,12 @@ openapi: "openapi-v2-paycollect-gpi.yaml POST /gl/v1/payments/initiate/paycollec
 
 ---
 
+## When to Use
+
+Use this endpoint when you want PayGlocal to host the payment page and handle card data — your server never touches raw card details, which reduces PCI DSS scope. Choose GPI (PayCollect) over PayDirect when you do not have your own PCI-compliant card input form, when you need to support multiple payment methods (UPI, net banking, international cards, Apple Pay) from a single integration, or when you want the simplest path to go live. If you need to accept payments via a stored token or a standing instruction (subscription), use the corresponding PayCollect SI or auto-debit endpoint instead.
+
+---
+
 ## Supported payment methods
 
 The customer chooses on the hosted page:
@@ -42,7 +48,58 @@ See [Get transaction status](/api-reference/payments-v2/common/get-transaction-s
 
 <Snippet file="paydirect-request-headers.mdx" />
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Missing required field (`merchantTxnId`, `totalAmount`, `merchantCallbackURL`) | 400 |
+| Invalid field value (e.g. non-numeric amount, unsupported currency) | 400 |
+| Duplicate `merchantTxnId` for the same merchant | 400 |
+| Invalid or expired JWS token (`x-gl-token-external`) | 401 |
+| JWS digest mismatch (payload altered after signing) | 401 |
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "order_1712345678",
+  "paymentData": {
+    "totalAmount": "100.00",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "emailId": "john.doe@example.com",
+      "addressCountry": "IND"
+    }
+  },
+  "merchantCallbackURL": "https://merchant.example.com/callback"
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_9c2645ed09edb22e",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=<TOKEN>",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_9c2645ed09edb22e/status?x-gl-token=<TOKEN>",
+    "merchantTxnId": "order_1712345678"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next steps
 

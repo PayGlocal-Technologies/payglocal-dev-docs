@@ -58,7 +58,71 @@ Set **`captureTxn`** to **`false`** in **Request body** below, with **`cardData`
   Only **one** successful capture is allowed per authorisation.
 </Warning>
 
+---
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|:---------:|
+| Invalid request fields or error processing request (`GL-400-001`) | 400 |
+| Card domicile or card type not configured for merchant (`GL-201-020`) | 400 |
+| Duplicate `merchantUniqueId` / too many requests (`GL-400-001`) | 429 |
+| Merchant blacklisted — not permitted to transact (`GL-403-001`) | 403 |
+
+---
+
 <div id="next-actions" className="payments-v2-after-api">
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "captureTxn": false,
+  "paymentData": {
+    "totalAmount": "10.00",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "4111111111111111",
+      "expiryMonth": "05",
+      "expiryYear": "2026",
+      "securityCode": "111"
+    },
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressStreet1": "221B Baker Street",
+      "addressCity": "Bengaluru",
+      "addressCountry": "IND",
+      "emailId": "john.doe@example.com",
+      "callingCode": "+91",
+      "phoneNumber": "9999999999"
+    }
+  },
+  "merchantCallbackURL": "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback"
+}
+```
+
+```json Response (200)
+{
+  "gid": "gl_o-a057c4d6b6c620741apzp0ZX2",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "02/06/2026 21:47:33",
+  "reasonCode": "200",
+  "data": {
+    "redirectUrl": "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example",
+    "statusUrl": "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example",
+    "merchantTxnId": "23AEE8CB6B62EE2AF07"
+  },
+  "errors": null
+}
+```
+
+</CodeGroup>
 
 ## Next steps
 

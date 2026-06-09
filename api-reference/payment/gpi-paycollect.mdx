@@ -39,3 +39,44 @@ PayGlocal supports global alternative payment methods (iDeal, Sofort, Trustly, g
   "merchantCallbackURL": "https://www.yoursite.com/callback"
 }
 ```
+
+## Example
+
+<CodeGroup>
+
+```json Request
+{
+  "merchantTxnId": "TXN20240608001",
+  "paymentData": {
+    "totalAmount": "500.00",
+    "txnCurrency": "INR"
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+```json Response (200)
+{
+  "status": "SUCCESS",
+  "message": "Transaction initiated successfully",
+  "data": {
+    "merchantTxnId": "TXN20240608001",
+    "gid": "PAYGLOCAL_TXN_001",
+    "redirectUrl": "https://pay.payglocal.in/checkout?token=abc123",
+    "status": "INITIATED"
+  }
+}
+```
+
+</CodeGroup>
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|---|---|
+| Missing or invalid `merchantTxnId` | 400 |
+| Missing `paymentData.totalAmount` or `txnCurrency` | 400 |
+| Invalid or expired JWS signature | 401 |
+| Merchant account not found or inactive | 403 |
+| Duplicate `merchantTxnId` for the same merchant | 409 |
+| Downstream payment processor unavailable | 502 |

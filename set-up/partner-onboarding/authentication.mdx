@@ -6,7 +6,7 @@ description: "Authentication for the Merchant Onboarding APIs. Every request is 
 <Note>
   This page covers authentication for the **Partner Merchant Onboarding** APIs (`/gcc/v2/partner/merchant/onboard/*` and `/gcc/v2/partner/merchant/verification/*`).
   The **Payment APIs** (`/gl/v1/payments/*`) use a different scheme — an RSA-signed JWS token sent in
-  the `x-gl-token-external` header. See [Key Management → Overview](/key-management/overview).
+  the `x-gl-token-external` header. See [Key Management → Overview](/set-up/keys/overview).
 </Note>
 
 ## Overview
@@ -313,7 +313,7 @@ https.request(options, (res) => {
   <Card title="Create Onboarding" icon="building-columns" href="/api-reference/create-onboarding">
     Your first authenticated API call.
   </Card>
-  <Card title="Sandbox Testing" icon="flask" href="/guides/testing">
+  <Card title="Sandbox Testing" icon="flask" href="/payments/testing-guide">
     Test your auth setup with Sandbox credentials.
   </Card>
   <Card title="FAQ — 401 Errors" icon="circle-question" href="/reference/faq#authentication">

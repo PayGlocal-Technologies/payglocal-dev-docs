@@ -61,7 +61,7 @@ During intermediate steps, the iFrame may also emit structured events:
 
 - **Validate `event.origin`** — only accept messages from `https://uat.dashboard.payglocal.in` (UAT) or `https://dashboard.payglocal.in` (Production). The iFrame loads the PayGlocal dashboard partner onboarding experience, not a separate verify subdomain.
 - **Follow with GET /status** — the postMessage signals UI completion; confirm `vkyc`, `digiLocker`, and `onboardingStatus` server-side before updating your merchant record.
-- See [iFrame Integration](/guides/iframe-integration) for the full embed workflow.
+- See [iFrame Integration](/set-up/partner-onboarding/iframe-integration) for the full embed workflow.
 
 ---
 
@@ -177,13 +177,13 @@ All onboarding webhook payloads are flat key-value maps (`Map<String, String>`).
 ```
 
 <CardGroup cols={2}>
-  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+  <Card title="iFrame Integration" icon="browser" href="/set-up/partner-onboarding/iframe-integration">
     Embed the verification flow and handle postMessage events.
   </Card>
   <Card title="Get Onboarding Status" icon="circle-check" href="/api-reference/get-status">
     Confirm final merchant state server-side.
   </Card>
-  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
+  <Card title="API Flow Overview" icon="diagram-project" href="/set-up/partner-onboarding/api-flow">
     End-to-end onboarding sequence.
   </Card>
 </CardGroup>

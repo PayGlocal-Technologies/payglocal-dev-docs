@@ -25,19 +25,19 @@ The two axes are independent: pick the mode that matches your PCI status, then i
 The deciding question: **who collects the card details — you or PayGlocal?**
 
 <CardGroup cols={2}>
-  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8" href="/payments/paycollect/overview">
     **PayGlocal collects card details** on a secure hosted page. You send a request and never touch card data.
 
     → No PCI DSS certification needed.
 
-    [Checkout Flow (PayCollect) details →](/merchant/paycollect/overview)
+    [Checkout Flow (PayCollect) details →](/payments/paycollect/overview)
   </Card>
-  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
+  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6" href="/payments/paydirect/overview">
     **You collect card details** in your own checkout UI and send them to PayGlocal. No redirect.
 
     → Requires PCI DSS certification.
 
-    [Seamless Flow (PayDirect) details →](/merchant/paydirect/overview)
+    [Seamless Flow (PayDirect) details →](/payments/paydirect/overview)
   </Card>
 </CardGroup>
 
@@ -48,16 +48,16 @@ The deciding question: **who collects the card details — you or PayGlocal?**
 Payment types are **mode-agnostic** — each works with Checkout Flow (PayCollect) or Seamless Flow (PayDirect).
 
 <CardGroup cols={2}>
-  <Card title="Regular Payment" icon="credit-card" href="/merchant/regular-payment">
+  <Card title="Regular Payment" icon="credit-card" href="/payments/types/regular-payment">
     One-time, immediate payments — status tracking and refunds.
   </Card>
-  <Card title="Recurring Payment" icon="rotate" href="/merchant/recurring-payment">
+  <Card title="Recurring Payment" icon="rotate" href="/payments/types/recurring-payment">
     Standing Instructions — Auto Debit and On-Demand mandate flows.
   </Card>
-  <Card title="Auth & Capture" icon="shield-check" href="/merchant/auth-capture-guide">
+  <Card title="Auth & Capture" icon="shield-check" href="/payments/types/auth-capture">
     Hold funds now, capture when you're ready to fulfill.
   </Card>
-  <Card title="CodeDrop" icon="square-code" href="/merchant/paycollect/codedrop">
+  <Card title="CodeDrop" icon="square-code" href="/payments/paycollect/codedrop">
     Embed the payment form on your page — no full-page redirect.
   </Card>
 </CardGroup>
@@ -76,7 +76,7 @@ Any payment type can run on either mode:
 | CodeDrop | ✓ | ✓ |
 
 <Note>
-  New here? Start with [Choose Your Integration](/integration/overview) for a high-level comparison of No-Code vs API, then come back to pick a mode and payment types.
+  New here? Start with [Choose Your Integration](/payments/overview) for a high-level comparison of No-Code vs API, then come back to pick a mode and payment types.
 </Note>
 
 ---

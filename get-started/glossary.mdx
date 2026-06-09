@@ -58,7 +58,7 @@ The unique identifier for a Standing Instruction mandate, returned after the ini
 A PayGlocal product that provides virtual accounts for receiving foreign currency collections, with automatic FX conversion and INR settlement. See: [MCA Overview](/mca/concepts)
 
 ### merchantCallbackURL
-The HTTPS endpoint on the merchant server where PayGlocal POSTs the `x-gl-token` JWT after each payment. Must return HTTP 200. See: [Verifying Signatures](/key-management/verifying-signatures)
+The HTTPS endpoint on the merchant server where PayGlocal POSTs the `x-gl-token` JWT after each payment. Must return HTTP 200. See: [Verifying Signatures](/set-up/keys/verifying-signatures)
 
 ### merchantUniqueId
 The merchant's own unique identifier for a transaction — used as an idempotency key. Must be unique per merchant. See: [Idempotency](/resources/idempotency)
@@ -112,7 +112,7 @@ HTTP request header for Payment API — the Key ID from the merchant's private k
 HTTP request header for Payment API — the merchant's Merchant ID. See: [Headers Reference](/set-up/keys/headers-reference)
 
 ### x-gl-token
-HTTP response header / callback payload — the RS256-signed JWT that PayGlocal POSTs to `merchantCallbackURL` after a payment. See: [Verifying Signatures](/key-management/verifying-signatures)
+HTTP response header / callback payload — the RS256-signed JWT that PayGlocal POSTs to `merchantCallbackURL` after a payment. See: [Verifying Signatures](/set-up/keys/verifying-signatures)
 
 ### x-gl-token-external
 HTTP request header for Payment API — the JWS-signed request body token. See: [Headers Reference](/set-up/keys/headers-reference)

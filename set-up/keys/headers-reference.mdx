@@ -16,7 +16,7 @@ Used with the partner merchant onboarding API endpoints (`/gcc/v2/partner/mercha
 | x-gl-auth | `<API_KEY>` | Yes | Static API key generated from the PayGlocal Partner Dashboard |
 | x-gl-digest | `<HMAC_SHA256_BASE64>` | Yes | HMAC-SHA256 of the raw request body (POST/PUT) or the request URI path (GET), Base64-encoded. Recomputed per request. |
 
-See [Onboarding Authentication](/authentication) for digest computation details and common mistakes.
+See [Onboarding Authentication](/set-up/partner-onboarding/authentication) for digest computation details and common mistakes.
 
 ## Payment API Request Headers
 
@@ -44,7 +44,7 @@ Sent by PayGlocal on the callback POST to your `merchantCallbackURL`.
 
 The token payload contains `status`, `gid`, `merchantUniqueId`, and `iat`. If signature verification fails, do not trust the callback — query the payment status via [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status) using the `gid` from your original GPI response.
 
-See [Downloading the Public Certificate](/key-management/public-certificate) and [Verifying Callback Signatures](/key-management/verifying-signatures).
+See [Downloading the Public Certificate](/set-up/keys/public-certificate) and [Verifying Callback Signatures](/set-up/keys/verifying-signatures).
 
 ## MCA API Headers
 
@@ -68,16 +68,16 @@ See [MCA API Reference](/api-reference/mca/overview) for endpoint details.
 | Callback receipt (inbound from PayGlocal) | `x-gl-token` (verify signature — do not send) |
 
 <CardGroup cols={2}>
-  <Card title="Onboarding Authentication" icon="key" href="/authentication">
+  <Card title="Onboarding Authentication" icon="key" href="/set-up/partner-onboarding/authentication">
     HMAC-SHA256 digest computation and code samples.
   </Card>
   <Card title="Payment API Authentication" icon="lock" href="/api-reference/payments-v2/common/authentication">
     JWS signing flow for all payment endpoints.
   </Card>
-  <Card title="Key Management" icon="gear" href="/key-management/overview">
+  <Card title="Key Management" icon="gear" href="/set-up/keys/overview">
     Download your private key and PayGlocal's public certificate.
   </Card>
-  <Card title="Verifying Callback Signatures" icon="shield-check" href="/key-management/verifying-signatures">
+  <Card title="Verifying Callback Signatures" icon="shield-check" href="/set-up/keys/verifying-signatures">
     Validate the x-gl-token before trusting a callback.
   </Card>
 </CardGroup>

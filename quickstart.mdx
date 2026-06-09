@@ -38,7 +38,7 @@ This guide walks you through the essential steps to go from zero to your first s
     - **API Key** — a static identifier sent in the `x-gl-auth` header on every request
     - **API Secret** — used as the HMAC signing key; never exposed in requests
 
-    Store both values securely (e.g., in a secrets manager). You will use them to generate the `x-gl-digest` header. See [Authentication](/authentication) for the full signing specification.
+    Store both values securely (e.g., in a secrets manager). You will use them to generate the `x-gl-digest` header. See [Authentication](/set-up/partner-onboarding/authentication) for the full signing specification.
   </Step>
 
   <Step title="Generate your authentication digest">
@@ -129,7 +129,7 @@ This guide walks you through the essential steps to go from zero to your first s
     | 6. Configure products & fees | `PUT .../products` | [Configure Products](/api-reference/configure-products) |
     | 7. Trigger verification | `PUT .../verification/{id}/redirect` | [Get Verification Redirect](/api-reference/get-verification-redirect) |
 
-    See the [API Flow Overview](/guides/api-flow-overview) for an end-to-end visual walkthrough of the onboarding sequence.
+    See the [API Flow Overview](/set-up/partner-onboarding/api-flow) for an end-to-end visual walkthrough of the onboarding sequence.
   </Step>
 </Steps>
 
@@ -138,13 +138,13 @@ This guide walks you through the essential steps to go from zero to your first s
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Authentication Deep Dive" icon="lock" href="/authentication">
+  <Card title="Authentication Deep Dive" icon="lock" href="/set-up/partner-onboarding/authentication">
     Understand HmacSHA256 digest generation for all request types
   </Card>
-  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+  <Card title="iFrame Integration" icon="browser" href="/set-up/partner-onboarding/iframe-integration">
     Embed the VKYC and DigiLocker flow inside your platform
   </Card>
-  <Card title="Merchant Requirements" icon="clipboard-check" href="/guides/merchant-requirements">
+  <Card title="Merchant Requirements" icon="clipboard-check" href="/set-up/partner-onboarding/merchant-requirements">
     Compliance obligations before going live
   </Card>
   <Card title="Response Structure" icon="code" href="/reference/response-structure">

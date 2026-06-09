@@ -79,7 +79,7 @@ Browser                  Client/Merchant Server         PayGlocal Server
   <Step title="Receive and verify the callback">
     PayGlocal POSTs an HTTP request to your `merchantCallbackURL` with an `x-gl-token` header. This is an RS256-signed JWT.
 
-    **Never process the payload before verifying the signature.** See [Verifying Signatures](/key-management/verifying-signatures).
+    **Never process the payload before verifying the signature.** See [Verifying Signatures](/set-up/keys/verifying-signatures).
 
     ```javascript
     const jwt = require('jsonwebtoken');
@@ -156,7 +156,7 @@ Contact PayGlocal merchant support to configure your preferred model.
 
 ## Standing Instructions
 
-To set up a recurring payment mandate alongside the first payment, include the `standingInstruction` data block in your GPI request. See [Standing Instructions Flow](/integration/standing-instructions-flow) for the complete setup.
+To set up a recurring payment mandate alongside the first payment, include the `standingInstruction` data block in your GPI request. See [Standing Instructions Flow](/payments/lifecycle/standing-instructions-flow) for the complete setup.
 
 ## Error Handling
 

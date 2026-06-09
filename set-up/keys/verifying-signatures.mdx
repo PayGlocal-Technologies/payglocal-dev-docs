@@ -14,7 +14,7 @@ After each payment, PayGlocal POSTs an HTTP request to your `merchantCallbackURL
 
 ## Prerequisites
 
-- PUBCERT downloaded from GCC dashboard (see [Public Certificate](/key-management/public-certificate))
+- PUBCERT downloaded from GCC dashboard (see [Public Certificate](/set-up/keys/public-certificate))
 - An HTTPS endpoint configured as your `merchantCallbackURL`
 - `jsonwebtoken` npm package (Node.js) or equivalent
 
@@ -59,7 +59,7 @@ After each payment, PayGlocal POSTs an HTTP request to your `merchantCallbackURL
 | Field | Description |
 |---|---|
 | gid | PayGlocal transaction ID |
-| status | Transaction status (see [Payment Response Handling](/merchant/payment-response-handling)) |
+| status | Transaction status (see [Payment Response Handling](/payments/webhooks/handle-callback)) |
 | merchantUniqueId | Your transaction ID, echoed back |
 | txnCurrency | ISO 4217 currency code (e.g., INR) |
 | txnAmount | Amount in smallest unit (paise for INR) |

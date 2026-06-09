@@ -17,13 +17,13 @@ Complete these steps before switching to production credentials.
     Retrieve your production MID from GCC TID Details. Update your configuration — it differs from the UAT MID.
   </Step>
   <Step title="Update base URLs">
-    Switch from `https://api.uat.payglocal.in` to `https://api.prod.payglocal.in` in all API calls. See [Sandbox Testing](/guides/testing) for the full environment URL table.
+    Switch from `https://api.uat.payglocal.in` to `https://api.prod.payglocal.in` in all API calls. See [Sandbox Testing](/payments/testing-guide) for the full environment URL table.
   </Step>
   <Step title="Configure production callback and webhook URLs">
     Update your `merchantCallbackURL` to your production server. Configure webhook URLs in GCC. Both must be publicly accessible HTTPS endpoints.
   </Step>
   <Step title="Verify callback signature implementation">
-    Confirm your callback handler verifies the RS256 signature on the `x-gl-token` using the production PUBCERT. See [Key Management Overview](/key-management/overview).
+    Confirm your callback handler verifies the RS256 signature on the `x-gl-token` using the production PUBCERT. See [Key Management Overview](/set-up/keys/overview).
   </Step>
   <Step title="Implement Get Status fallback">
     Ensure your server calls Get Status if the callback is not received within your timeout window. Do not rely solely on callback delivery.

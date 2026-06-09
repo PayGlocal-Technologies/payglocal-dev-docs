@@ -62,11 +62,11 @@
               {
                 "group": "Partner Onboarding",
                 "pages": [
-                  "authentication",
-                  "guides/merchant-requirements",
-                  "guides/api-flow-overview",
-                  "guides/partner-onboarding-events",
-                  "guides/iframe-integration",
+                  "set-up/partner-onboarding/authentication",
+                  "set-up/partner-onboarding/merchant-requirements",
+                  "set-up/partner-onboarding/api-flow",
+                  "set-up/partner-onboarding/events",
+                  "set-up/partner-onboarding/iframe-integration",
                   "set-up/partner-onboarding/webhook-configuration",
                   "set-up/partner-onboarding/rfi-handling"
                 ]
@@ -84,18 +84,17 @@
             "pages": [
               "getting-started/payglocal-dashboards",
               "getting-started/dashboard-and-key-management",
-              "getting-started/payglocal-identifiers",
-              "getting-started/gcc-dashboard"
+              "getting-started/payglocal-identifiers"
             ]
           },
           {
             "group": "Keys & Security",
             "pages": [
-              "key-management/overview",
-              "key-management/private-key",
-              "key-management/public-certificate",
-              "key-management/request-construction",
-              "key-management/verifying-signatures",
+              "set-up/keys/overview",
+              "set-up/keys/private-key",
+              "set-up/keys/public-certificate",
+              "set-up/keys/request-construction",
+              "set-up/keys/verifying-signatures",
               "set-up/keys/headers-reference"
             ]
           }
@@ -107,19 +106,17 @@
           {
             "group": "Overview",
             "pages": [
-              "payments/overview",
-              "integration/overview",
-              "integration/api-overview"
+              "payments/overview"
             ]
           },
           {
             "group": "No-Code Integration",
             "icon": "sparkles",
             "pages": [
-              "no-code/overview",
-              "no-code/payment-link",
-              "no-code/invoice-link",
-              "no-code/payment-button"
+              "payments/no-code/overview",
+              "payments/no-code/payment-link",
+              "payments/no-code/invoice-link",
+              "payments/no-code/payment-button"
             ]
           },
           {
@@ -130,19 +127,19 @@
                 "group": "Integration Modes",
                 "icon": "shuffle",
                 "pages": [
-                  "merchant/paycollect/overview",
-                  "merchant/paydirect/overview"
+                  "payments/paycollect/overview",
+                  "payments/paydirect/overview"
                 ]
               },
               {
                 "group": "Payment Types",
                 "icon": "layer-group",
                 "pages": [
-                  "merchant/regular-payment",
-                  "api-reference/payment/upi",
-                  "merchant/recurring-payment",
-                  "merchant/auth-capture-guide",
-                  "merchant/paycollect/codedrop",
+                  "payments/types/regular-payment",
+                  "payments/types/upi-overview",
+                  "payments/types/recurring-payment",
+                  "payments/types/auth-capture",
+                  "payments/paycollect/codedrop",
                   "payments/payment-types/apple-pay",
                   "payments/payment-types/google-pay"
                 ]
@@ -152,36 +149,35 @@
           {
             "group": "Handle the Result",
             "pages": [
-              "merchant/webhooks",
-              "merchant/payment-response-handling",
-              "guides/webhooks"
+              "payments/webhooks/overview",
+              "payments/webhooks/handle-callback",
+              "payments/webhooks/handle-webhook"
             ]
           },
           {
             "group": "Payment Lifecycle",
             "pages": [
-              "merchant/payment-flow",
-              "integration/payment-flow",
-              "integration/standing-instructions-flow"
+              "payments/lifecycle/request-signing",
+              "payments/lifecycle/initiation-flow",
+              "payments/lifecycle/standing-instructions-flow"
             ]
           },
           {
             "group": "Build & Test",
             "pages": [
-              "guides/testing",
-              "guides/integration-chooser",
+              "payments/testing-guide",
               "payments/go-live"
             ]
           },
           {
             "group": "E-commerce Plugins",
             "pages": [
-              "plugins/overview",
-              "plugins/shopify",
-              "plugins/woocommerce",
-              "plugins/magento",
-              "plugins/opencart",
-              "plugins/wix"
+              "payments/plugins/overview",
+              "payments/plugins/shopify",
+              "payments/plugins/woocommerce",
+              "payments/plugins/magento",
+              "payments/plugins/opencart",
+              "payments/plugins/wix"
             ]
           }
         ]
@@ -330,7 +326,7 @@
                 "icon": "webhook",
                 "expanded": true,
                 "pages": [
-                  "api-reference/callback-handling"
+                  "payments/webhooks/nodejs-callback"
                 ]
               },
               {
@@ -626,6 +622,170 @@
       "source": "/merchant/payload-templates",
       "destination": "/api-reference/payload-templates",
       "permanent": false
+    },
+    {
+      "source": "/key-management/overview",
+      "destination": "/set-up/keys/overview"
+    },
+    {
+      "source": "/key-management/private-key",
+      "destination": "/set-up/keys/private-key"
+    },
+    {
+      "source": "/key-management/public-certificate",
+      "destination": "/set-up/keys/public-certificate"
+    },
+    {
+      "source": "/key-management/request-construction",
+      "destination": "/set-up/keys/request-construction"
+    },
+    {
+      "source": "/key-management/verifying-signatures",
+      "destination": "/set-up/keys/verifying-signatures"
+    },
+    {
+      "source": "/authentication",
+      "destination": "/set-up/partner-onboarding/authentication"
+    },
+    {
+      "source": "/guides/merchant-requirements",
+      "destination": "/set-up/partner-onboarding/merchant-requirements"
+    },
+    {
+      "source": "/guides/api-flow-overview",
+      "destination": "/set-up/partner-onboarding/api-flow"
+    },
+    {
+      "source": "/guides/partner-onboarding-events",
+      "destination": "/set-up/partner-onboarding/events"
+    },
+    {
+      "source": "/guides/iframe-integration",
+      "destination": "/set-up/partner-onboarding/iframe-integration"
+    },
+    {
+      "source": "/guides/webhooks",
+      "destination": "/payments/webhooks/handle-webhook"
+    },
+    {
+      "source": "/guides/testing",
+      "destination": "/payments/testing-guide"
+    },
+    {
+      "source": "/no-code/overview",
+      "destination": "/payments/no-code/overview"
+    },
+    {
+      "source": "/no-code/payment-link",
+      "destination": "/payments/no-code/payment-link"
+    },
+    {
+      "source": "/no-code/invoice-link",
+      "destination": "/payments/no-code/invoice-link"
+    },
+    {
+      "source": "/no-code/payment-button",
+      "destination": "/payments/no-code/payment-button"
+    },
+    {
+      "source": "/plugins/overview",
+      "destination": "/payments/plugins/overview"
+    },
+    {
+      "source": "/plugins/shopify",
+      "destination": "/payments/plugins/shopify"
+    },
+    {
+      "source": "/plugins/woocommerce",
+      "destination": "/payments/plugins/woocommerce"
+    },
+    {
+      "source": "/plugins/magento",
+      "destination": "/payments/plugins/magento"
+    },
+    {
+      "source": "/plugins/opencart",
+      "destination": "/payments/plugins/opencart"
+    },
+    {
+      "source": "/plugins/wix",
+      "destination": "/payments/plugins/wix"
+    },
+    {
+      "source": "/merchant/payment-flow",
+      "destination": "/payments/lifecycle/request-signing"
+    },
+    {
+      "source": "/integration/payment-flow",
+      "destination": "/payments/lifecycle/initiation-flow"
+    },
+    {
+      "source": "/integration/standing-instructions-flow",
+      "destination": "/payments/lifecycle/standing-instructions-flow"
+    },
+    {
+      "source": "/merchant/regular-payment",
+      "destination": "/payments/types/regular-payment"
+    },
+    {
+      "source": "/merchant/recurring-payment",
+      "destination": "/payments/types/recurring-payment"
+    },
+    {
+      "source": "/merchant/auth-capture-guide",
+      "destination": "/payments/types/auth-capture"
+    },
+    {
+      "source": "/merchant/webhooks",
+      "destination": "/payments/webhooks/overview"
+    },
+    {
+      "source": "/merchant/payment-response-handling",
+      "destination": "/payments/webhooks/handle-callback"
+    },
+    {
+      "source": "/api-reference/callback-handling",
+      "destination": "/payments/webhooks/nodejs-callback"
+    },
+    {
+      "source": "/merchant/paycollect/overview",
+      "destination": "/payments/paycollect/overview"
+    },
+    {
+      "source": "/merchant/paydirect/overview",
+      "destination": "/payments/paydirect/overview"
+    },
+    {
+      "source": "/merchant/paycollect/codedrop",
+      "destination": "/payments/paycollect/codedrop"
+    },
+    {
+      "source": "/merchant/paycollect/jwt-authentication",
+      "destination": "/payments/paycollect/api-quickref"
+    },
+    {
+      "source": "/merchant/paydirect/jwt-authentication",
+      "destination": "/payments/paydirect/api-quickref"
+    },
+    {
+      "source": "/api-reference/payment/upi",
+      "destination": "/payments/types/upi-overview"
+    },
+    {
+      "source": "/integration/overview",
+      "destination": "/payments/overview"
+    },
+    {
+      "source": "/integration/api-overview",
+      "destination": "/payments/overview"
+    },
+    {
+      "source": "/guides/integration-chooser",
+      "destination": "/get-started/choose-your-path"
+    },
+    {
+      "source": "/getting-started/gcc-dashboard",
+      "destination": "/getting-started/payglocal-dashboards"
     }
   ],
   "api": {

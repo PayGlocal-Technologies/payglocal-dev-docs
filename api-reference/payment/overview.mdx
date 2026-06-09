@@ -23,9 +23,9 @@ The **Payment APIs** handle the full transaction lifecycle: initiating payments,
 | API Area | Auth method | Primary headers |
 |----------|-------------|-----------------|
 | Merchant Onboarding API | HmacSHA256 | `x-gl-auth`, `x-gl-digest` |
-| Payment APIs | RSA-signed JWS in `x-gl-token-external` | `x-gl-token-external` (see [Key Management](/key-management/overview)) |
+| Payment APIs | RSA-signed JWS in `x-gl-token-external` | `x-gl-token-external` (see [Key Management](/set-up/keys/overview)) |
 
-You use your **PVT-KEY** to sign requests; **PUBCERT** verifies responses and may encrypt the body when your integration requires JWE. See [Key Management](/key-management/overview) and [Constructing API Requests](/key-management/request-construction) for setup.
+You use your **PVT-KEY** to sign requests; **PUBCERT** verifies responses and may encrypt the body when your integration requires JWE. See [Key Management](/set-up/keys/overview) and [Constructing API Requests](/set-up/keys/request-construction) for setup.
 
 ---
 
@@ -52,10 +52,10 @@ GPI (POST /initiate)
 
 ## UPI (India)
 
-Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overview, screenshots, and a funds-flow diagram live on **[UPI](/api-reference/payment/upi)**. Request and response shapes (minimal vs enriched body, initiation vs `statusData` after success, headers, callbacks) are documented on **[UPI Intent](/api-reference/payment/upi-intent)**.
+Hosted **PayCollect** supports **UPI** and **UPI Intent** for INR. Product overview, screenshots, and a funds-flow diagram live on **[UPI](/payments/types/upi-overview)**. Request and response shapes (minimal vs enriched body, initiation vs `statusData` after success, headers, callbacks) are documented on **[UPI Intent](/api-reference/payment/upi-intent)**.
 
 <CardGroup cols={2}>
-  <Card title="UPI" icon="wallet" href="/api-reference/payment/upi">
+  <Card title="UPI" icon="wallet" href="/payments/types/upi-overview">
     Checkout experience and how money moves from customer to settlement.
   </Card>
   <Card title="UPI Intent" icon="bolt" href="/api-reference/payment/upi-intent">
@@ -111,10 +111,10 @@ Your MID can be configured for one of two models:
 Contact PayGlocal merchant support to configure your preferred model.
 
 <CardGroup cols={2}>
-  <Card title="Which integration is right for you?" icon="map" href="/guides/integration-chooser">
+  <Card title="Which integration is right for you?" icon="map" href="/get-started/choose-your-path">
     PayCollect vs PayDirect vs Standalone vs Standing Instructions.
   </Card>
-  <Card title="Payment Flow Overview" icon="diagram-project" href="/integration/payment-flow">
+  <Card title="Payment Flow Overview" icon="diagram-project" href="/payments/lifecycle/initiation-flow">
     End-to-end sequence diagram for the GPI payment flow.
   </Card>
 </CardGroup>

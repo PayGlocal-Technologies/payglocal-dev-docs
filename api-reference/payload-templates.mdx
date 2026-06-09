@@ -723,13 +723,13 @@ Payloads for checking transaction status and initiating refunds.
 Every payment initiation payload contains a field called `merchantCallbackURL`. Once the transaction is processed at PayGlocal, the transaction response is sent to this URL using a **server-to-server POST request**. Merchants are required to create and expose a backend endpoint capable of receiving and handling this response. Based on the received transaction status, merchants can redirect customers to success or failure pages and update their internal order status accordingly.
 
 <CardGroup cols={2}>
-  <Card title="Response Handling Guide" icon="arrow-right-from-bracket" href="/merchant/payment-response-handling">
+  <Card title="Response Handling Guide" icon="arrow-right-from-bracket" href="/payments/webhooks/handle-callback">
     Learn how to receive, decode, and act on the PayGlocal callback response.
   </Card>
-  <Card title="Node.js Implementation" icon="node-js" href="/api-reference/callback-handling">
+  <Card title="Node.js Implementation" icon="node-js" href="/payments/webhooks/nodejs-callback">
     Complete working code for your `merchantCallbackURL` endpoint.
   </Card>
-  <Card title="Payment Flow" icon="shield" href="/merchant/payment-flow">
+  <Card title="Payment Flow" icon="shield" href="/payments/lifecycle/request-signing">
     How payloads are encrypted and signed before being sent to PayGlocal.
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/payments-v2/paycollect/overview">

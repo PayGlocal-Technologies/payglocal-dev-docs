@@ -14,7 +14,7 @@ Use **UPI Intent** when your merchant uses hosted PayCollect for **INR UPI** and
 
 ## UPI (India)
 
-Hosted PayCollect is the standard entry point for **UPI** in India: your server calls this endpoint with amount and callback URL, then sends the customer to `redirectUrl`. For the customer journey and funds flow see [UPI](/api-reference/payment/upi). This page covers UPI Intent request/response details, including optional `billingData` / `riskData` and the post-success `statusData` payload.
+Hosted PayCollect is the standard entry point for **UPI** in India: your server calls this endpoint with amount and callback URL, then sends the customer to `redirectUrl`. For the customer journey and funds flow see [UPI](/payments/types/upi-overview). This page covers UPI Intent request/response details, including optional `billingData` / `riskData` and the post-success `statusData` payload.
 
 ---
 
@@ -26,7 +26,7 @@ Hosted PayCollect is the standard entry point for **UPI** in India: your server 
 | Production | `https://api.payglocal.in` | `POST /gl/v1/payments/initiate/paycollect` |
 
 <Note>
-  Traffic captured from **`gcc.uat.payglocal.in`** (merchant console “Test transaction”) may use a different path and **browser cookies**. For production integrations, call only **`api.uat.payglocal.in`** or **`api.payglocal.in`** with [RSA-signed JWS](/key-management/overview) in `x-gl-token-external`.
+  Traffic captured from **`gcc.uat.payglocal.in`** (merchant console “Test transaction”) may use a different path and **browser cookies**. For production integrations, call only **`api.uat.payglocal.in`** or **`api.payglocal.in`** with [RSA-signed JWS](/set-up/keys/overview) in `x-gl-token-external`.
 </Note>
 
 ---
@@ -116,7 +116,7 @@ The example below matches a **fuller integration**: billing contact lines, custo
 - `riskData.customerData`: Merchant-provided signals about the shopper (merchant-assigned id, account age, successful-order count) used to improve risk decisions.
 - `riskData.orderData`: Line items and unit prices to help reconciliation and give context to fraud engines.
 - `riskData.shippingData`: Shipping/delivery address info; required for some alternate payment methods and uses ISO-style country codes for `addressCountry`.
-- `merchantCallbackURL`: HTTPS endpoint PayGlocal POSTs to after checkout completes; verify the `x-gl-token` in the callback before trusting the payload (see [Payment Initiation Flow](/integration/payment-flow)).
+- `merchantCallbackURL`: HTTPS endpoint PayGlocal POSTs to after checkout completes; verify the `x-gl-token` in the callback before trusting the payload (see [Payment Initiation Flow](/payments/lifecycle/initiation-flow)).
 
 ---
 
@@ -224,7 +224,7 @@ After the customer completes UPI and the transaction moves to a captured (or sen
 | Header | Required? | Notes |
 |--------|-----------|--------|
 | `Content-Type` | Yes | `application/json` for JSON bodies (unless your client sends encrypted content per JWE setup). |
-| `x-gl-token-external` | Yes | RSA-signed **JWS** for the Payment API per [Key Management](/key-management/overview). |
+| `x-gl-token-external` | Yes | RSA-signed **JWS** for the Payment API per [Key Management](/set-up/keys/overview). |
 | `x-gl-merchantid`, `x-gl-kid` | Often | Added by official sample clients alongside signing. |
 | `:authority`, `:method`, `:path`, `:scheme` | No | HTTP/2 pseudo-headers set by the client stack. |
 | `cookie`, `origin`, `referer`, `sec-*`, `user-agent` | No | Typical **browser-only** noise when copying DevTools from the GCC console—not part of your merchant server contract. |
@@ -233,7 +233,7 @@ After the customer completes UPI and the transaction moves to a captured (or sen
 
 ## After `redirectUrl`
 
-1. **HTTP GET** redirect the shopper to `redirectUrl` from Response A ([Payment Initiation Flow](/integration/payment-flow)).
+1. **HTTP GET** redirect the shopper to `redirectUrl` from Response A ([Payment Initiation Flow](/payments/lifecycle/initiation-flow)).
 2. Customer completes **UPI** on the hosted page.
 3. PayGlocal **POSTs** to your `merchantCallbackURL` with **`x-gl-token`**; validate and show your confirmation page.
 4. Use **[Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status)** with the payflow / order `gid` whenever you need authoritative state.

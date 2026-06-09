@@ -13,7 +13,7 @@ This checklist applies to all PayGlocal integrations. Product-specific checklist
     Verify merchant status is APPROVED in production GCC (gcc.prod.payglocal.in).
   </Step>
   <Step title="Production keys generated">
-    Generate a new key pair in production GCC. Never reuse sandbox keys in production. See [Private Key](/key-management/private-key).
+    Generate a new key pair in production GCC. Never reuse sandbox keys in production. See [Private Key](/set-up/keys/private-key).
   </Step>
   <Step title="Production Merchant ID confirmed">
     Retrieve your production MID from GCC TID Details. It differs from your UAT MID.
@@ -25,7 +25,7 @@ This checklist applies to all PayGlocal integrations. Product-specific checklist
     Update `merchantCallbackURL` and webhook endpoints to production server URLs. All must be HTTPS and return HTTP 200.
   </Step>
   <Step title="Callback signature verification implemented">
-    Confirm your callback handler verifies RS256 signatures using the production PUBCERT. See [Verifying Signatures](/key-management/verifying-signatures).
+    Confirm your callback handler verifies RS256 signatures using the production PUBCERT. See [Verifying Signatures](/set-up/keys/verifying-signatures).
   </Step>
   <Step title="PCI DSS certification current (PayDirect only)">
     If using PayDirect, confirm your PCI DSS Level 1 certification is current before processing live card data.

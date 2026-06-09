@@ -90,7 +90,7 @@ Partner System                          PayGlocal API
   <Step title="Trigger Merchant Verification">
     `PUT /gcc/v2/partner/merchant/verification/{onboardingId}/redirect`
 
-    Generates a unique `redirectLink` for the merchant to complete VKYC, DigiLocker document verification, and T&C acknowledgement. Embed this URL in an iFrame — see the [iFrame Integration](/guides/iframe-integration) guide.
+    Generates a unique `redirectLink` for the merchant to complete VKYC, DigiLocker document verification, and T&C acknowledgement. Embed this URL in an iFrame — see the [iFrame Integration](/set-up/partner-onboarding/iframe-integration) guide.
 
     Authenticate with `x-gl-auth` and `x-gl-digest` (sign the request body). Call only after all pre-verification checklist steps are complete.
   </Step>

@@ -8,19 +8,19 @@ icon: "map"
 PayGlocal supports three ways to accept payments. The right one depends on how you want to collect money — and, if it's on your own site, who handles the card details.
 
 <CardGroup cols={3}>
-  <Card title="No-Code" icon="sparkles" color="#10B981" href="/no-code/overview">
+  <Card title="No-Code" icon="sparkles" color="#10B981" href="/payments/no-code/overview">
     **Collect without writing code.** Create Payment Links, Invoice Links, and Payment Buttons from the GCC dashboard. PayGlocal hosts the checkout.
   </Card>
-  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8" href="/merchant/paycollect/overview">
+  <Card title="Checkout Flow (PayCollect)" icon="window" color="#1A6FE8" href="/payments/paycollect/overview">
     **API — PayGlocal-hosted checkout.** Your backend sends a request; PayGlocal collects the card details on a secure hosted page. No PCI DSS certification needed.
   </Card>
-  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6" href="/merchant/paydirect/overview">
+  <Card title="Seamless Flow (PayDirect)" icon="code" color="#8B5CF6" href="/payments/paydirect/overview">
     **API — your own checkout.** You collect card details in your own UI and send them to PayGlocal. Requires PCI DSS certification.
   </Card>
 </CardGroup>
 
 <Note>
-  **Checkout Flow (PayCollect)** and **Seamless Flow (PayDirect)** are the two modes of API integration. See the [API Integration overview](/integration/api-overview) to compare them in detail.
+  **Checkout Flow (PayCollect)** and **Seamless Flow (PayDirect)** are the two modes of API integration. See the [API Integration overview](/payments/overview) to compare them in detail.
 </Note>
 
 ---
@@ -48,10 +48,10 @@ graph TD
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="No-Code Integration" icon="sparkles" href="/no-code/overview">
+  <Card title="No-Code Integration" icon="sparkles" href="/payments/no-code/overview">
     Payment Link, Invoice Link, and Payment Button — all dashboard-driven.
   </Card>
-  <Card title="API Integration" icon="code" href="/integration/api-overview">
+  <Card title="API Integration" icon="code" href="/payments/overview">
     Compare Checkout Flow (PayCollect) and Seamless Flow (PayDirect), then build payments into your own product.
   </Card>
 </CardGroup>

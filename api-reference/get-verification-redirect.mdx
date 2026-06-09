@@ -30,7 +30,7 @@ Poll `GET /status` and confirm `documentsToBeUploaded` is empty before calling r
 
 ## Notes
 
-- Authenticate with `x-gl-auth` and `x-gl-digest` — sign the **raw JSON request body** (same as other PUT endpoints). See [Authentication](/authentication).
+- Authenticate with `x-gl-auth` and `x-gl-digest` — sign the **raw JSON request body** (same as other PUT endpoints). See [Authentication](/set-up/partner-onboarding/authentication).
 - Request field is `callBackUrl` (camelCase with capital **B**).
 - Response field is `redirectLink`, not `redirectUrl`.
 - `redirectLink` format: `{baseUrl}?token={sessionToken}&onboardingId={onboardingId}`. The session token is valid for **24 hours** and must not be cached or reused.
@@ -49,7 +49,7 @@ Poll `GET /status` and confirm `documentsToBeUploaded` is empty before calling r
 3. Generates a single-use session token (24-hour TTL).
 4. Returns the composed `redirectLink` for iFrame embedding.
 
-See [iFrame Integration](/guides/iframe-integration) for embed instructions and [Partner Onboarding Events](/guides/partner-onboarding-events) for completion signals.
+See [iFrame Integration](/set-up/partner-onboarding/iframe-integration) for embed instructions and [Partner Onboarding Events](/set-up/partner-onboarding/events) for completion signals.
 
 ## Error Scenarios
 

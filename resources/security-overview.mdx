@@ -21,7 +21,7 @@ icon: "shield"
 
 **Request authentication (Onboarding API):** Requests use HMAC-SHA256 digest over the request body plus a static API key.
 
-**Callback verification:** PayGlocal signs the x-gl-token callback JWT with its private key. Merchants must verify the RS256 signature using the PayGlocal PUBCERT before processing. See [Verifying Signatures](/key-management/verifying-signatures).
+**Callback verification:** PayGlocal signs the x-gl-token callback JWT with its private key. Merchants must verify the RS256 signature using the PayGlocal PUBCERT before processing. See [Verifying Signatures](/set-up/keys/verifying-signatures).
 
 **Transport:** TLS 1.2 or higher is required for all API calls and webhook endpoints.
 
@@ -36,7 +36,7 @@ See [Private Key](/set-up/keys/private-key) for key rotation steps.
 
 ## Webhook Security
 
-Verify HMAC-SHA256 signatures on all inbound webhooks before processing payloads. See the webhook security sections in [MCA Webhooks](/mca/webhooks) and [SI Webhooks](/guides/webhooks).
+Verify HMAC-SHA256 signatures on all inbound webhooks before processing payloads. See the webhook security sections in [MCA Webhooks](/mca/webhooks) and [SI Webhooks](/payments/webhooks/handle-webhook).
 
 ## Responsible Disclosure
 

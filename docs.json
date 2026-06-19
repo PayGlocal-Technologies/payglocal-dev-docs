@@ -38,22 +38,11 @@
             "group": "Onboarding",
             "pages": [
               "onboarding/overview",
-              {
-                "group": "Partner Onboarding",
-                "pages": [
-                  "authentication",
-                  "guides/merchant-requirements",
-                  "guides/api-flow-overview",
-                  "guides/partner-onboarding-events",
-                  "guides/iframe-integration"
-                ]
-              },
-              {
-                "group": "Merchant Onboarding",
-                "pages": [
-                  "onboarding/merchant"
-                ]
-              }
+              "guides/merchant-requirements",
+              "guides/api-flow-overview",
+              "authentication",
+              "guides/partner-onboarding-events",
+              "guides/iframe-integration"
             ]
           },
           {
@@ -259,6 +248,11 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/onboarding/merchant",
+      "destination": "/onboarding/overview",
+      "permanent": false
+    },
     {
       "source": "/api-reference/payment/gpi-initiate",
       "destination": "/api-reference/payments-v2/paydirect/gpi",

@@ -1,38 +1,31 @@
 ---
 title: "Onboarding Overview"
-description: "Pick the path that matches your role — Partner onboarding sub-merchants, or Merchant accepting payments directly."
-icon: "user-plus"
+sidebarTitle: "Overview"
+description: "Onboard your sub-merchants onto PayGlocal programmatically — submit KYC, upload documents, configure products, and trigger verification via the Merchant Onboarding API."
+icon: "book-open"
 ---
 
-This portal serves two distinct audiences. Pick the path that matches your role:
+As a partner, you onboard sub-merchants onto PayGlocal programmatically. Use the **Merchant Onboarding API** to submit KYC data, upload documents, configure products, and trigger verification — all from your own platform.
+
+## Start here
 
 <CardGroup cols={2}>
-  <Card title="I'm a Partner — onboarding sub-merchants" icon="building-columns" color="#1A6FE8" href="/api-reference/onboarding-overview">
-    You operate a platform and onboard sub-merchants onto PayGlocal programmatically. Use the **Partner Merchant Onboarding API** to submit KYC data, upload documents, configure products, and trigger verification.
+  <Card title="Merchant Requirements" icon="clipboard-check" href="/guides/merchant-requirements">
+    Entity types, required documents, and dynamic pendencies.
   </Card>
-  <Card title="I'm a Merchant — accepting payments" icon="credit-card" color="#10B981" href="/onboarding/merchant">
-    You accept payments from your customers. Use the **Merchant Payment APIs**, **Payment Links** (no-code), or an **E-commerce Plugin** (Shopify, WooCommerce, Magento, OpenCart, Wix).
+  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
+    The end-to-end onboarding sequence, step by step.
   </Card>
-</CardGroup>
-
----
-
-## Partner onboarding quick links
-
-<CardGroup cols={2}>
   <Card title="Authentication" icon="lock" href="/authentication">
     API key setup and HmacSHA256 digest generation.
   </Card>
-  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
-    Step-by-step onboarding sequence.
+  <Card title="Partner Onboarding Events" icon="bell" href="/guides/partner-onboarding-events">
+    UI postMessage events and webhook notifications.
   </Card>
-  <Card title="Merchant Requirements" icon="clipboard-check" href="/guides/merchant-requirements">
-    Entity types, documents, and dynamic pendencies.
-  </Card>
-  <Card title="Events & Webhooks" icon="bell" href="/guides/partner-onboarding-events">
-    UI postMessage and webhook notifications.
+  <Card title="iFrame Integration" icon="window-maximize" href="/guides/iframe-integration">
+    Embed the Verification Suite — VKYC, DigiLocker, and T&C — inside your dashboard.
   </Card>
   <Card title="API Reference" icon="code" href="/api-reference/onboarding-overview">
-    All onboarding endpoints with interactive explorer.
+    All onboarding endpoints with the interactive explorer.
   </Card>
 </CardGroup>

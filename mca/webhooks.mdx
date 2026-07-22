@@ -24,7 +24,31 @@ Your webhook endpoint is a publicly accessible POST endpoint on your backend. Sh
 
 ---
 
-## The Four Events
+## The Five Events
+
+### `VIRTUAL_ACCOUNT_PROVISIONED`
+
+Fired once a merchant's virtual accounts have been successfully provisioned across all applicable acquirers. This is your signal that the merchant is ready to start receiving funds.
+
+```json
+{
+  "onboarding_id": "ONB123456",
+  "onboarding_status": "ACCEPTED",
+  "event_timestamp": "1752480000000",
+  "status": "VIRTUAL_ACCOUNT_PROVISIONED",
+  "merchant_id": "M1000234",
+  "ucic_id": "UCIC7890",
+  "virtual_account_provisioned": "true"
+}
+```
+
+**What to do:** Mark the merchant as ready in your system. This event does not include individual account/currency details — the merchant's virtual account details are available through your account management contact.
+
+<Note>
+  This event fires only once per merchant, after virtual account provisioning is fully complete across all acquirers. It must be explicitly enabled for your partner account before you'll receive it.
+</Note>
+
+---
 
 ### `MCA_FUND_RECEIVED`
 
@@ -123,6 +147,7 @@ Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. T
 
 | Event | Status | Your Action |
 |-------|--------|-------------|
+| `VIRTUAL_ACCOUNT_PROVISIONED` | `VIRTUAL_ACCOUNT_PROVISIONED` | Mark merchant as ready |
 | `MCA_FUND_RECEIVED` | `DOCUMENT_PENDING` | Upload the invoice |
 | `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
 | `TXN_SETTLED` | `SETTLED` | Mark complete, share settlement details |

@@ -1181,6 +1181,7 @@ components:
         - paymentType
         - merchantId
         - fileName
+        - presignedUrl
       properties:
         amount:
           type: string
@@ -1230,6 +1231,39 @@ components:
           type: string
           description: File name including extension (extension max 10 characters).
           example: invoice_INV-2026-00321.pdf
+        presignedUrl:
+          type: string
+          format: uri
+          description: >-
+            A presigned URL you control, pointing to the file to attach. The backend downloads
+            the file from this URL and stores it in GCC's storage. Use this instead of a
+            multipart file upload. The URL must remain accessible when the request is made.
+          example: "https://your-bucket.s3.amazonaws.com/invoice.pdf?X-Amz-Signature=..."
+
+    McaDemoFundingIngestionRequest:
+      type: object
+      required:
+        - currency
+        - amount
+        - senderCountry
+        - senderName
+      properties:
+        currency:
+          type: string
+          description: ISO 4217 currency code.
+          example: USD
+        amount:
+          type: string
+          description: Funding amount.
+          example: "1"
+        senderCountry:
+          type: string
+          description: ISO country code of the sender.
+          example: US
+        senderName:
+          type: string
+          description: Name of the sender.
+          example: test
 
     CommonErrorResponse:
       type: object
@@ -2808,11 +2842,13 @@ paths:
       - url: https://gcc.uat.payglocal.in
         description: MCA — Sandbox
     post:
-      operationId: getUploadPresignedUrl
-      summary: Get Upload Presigned URL
+      operationId: uploadDocumentFromPresignedUrl
+      summary: Upload Document via Presigned URL
       description: |
-        Generates a presigned upload URL for attaching a supporting document (e.g. invoice)
-        to an FFMS transaction. Upload the file to the returned URL via HTTP PUT.
+        Attaches a supporting document (e.g. invoice) to an FFMS transaction using a presigned
+        URL you already control. Provide the `presignedUrl` in the request body; the backend
+        downloads the file from that URL and stores it. This is a single-call alternative to
+        uploading the file directly as multipart form data.
       tags:
         - MCA
       security:
@@ -2845,7 +2881,7 @@ paths:
               fileName: invoice_INV-2026-00321.pdf
       responses:
         "200":
-          description: Presigned URL generated successfully.
+          description: Document uploaded successfully.
           content:
             application/json:
               schema:
@@ -2867,19 +2903,6 @@ paths:
                   reasonCode:
                     type: string
                     example: GL-201-001
-                  presignedUrl:
-                    type: string
-                    format: uri
-                    description: Temporary URL — upload the file immediately via HTTP PUT.
-                  fileName:
-                    type: string
-                    example: invoice_INV-2026-00321.pdf
-                  invoiceType:
-                    type: string
-                    example: INVOICE
-                  paymentType:
-                    type: string
-                    example: CARD
                   data:
                     type: object
                     nullable: true
@@ -2914,6 +2937,170 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CommonErrorResponse"
+
+  /gcc/v1/ffms/transaction/demo-funding/{transactingId}/mca-ingestion:
+    servers:
+      - url: https://gcc.uat.payglocal.in
+        description: MCA — Sandbox
+    post:
+      operationId: mcaDemoFundingIngestion
+      summary: MCA Demo Funding Ingestion
+      description: |
+        Simulates an inbound funding event for MCA testing. Available in the UAT (sandbox)
+        environment only — do not use for production transactions.
+      tags:
+        - MCA
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: transactingId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifier for the transacting entity.
+          example: transacting_001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/McaDemoFundingIngestionRequest"
+            example:
+              currency: USD
+              amount: "1"
+              senderCountry: US
+              senderName: test
+      responses:
+        "200":
+          description: Demo funding transaction created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    nullable: true
+                    example: null
+                  status:
+                    type: string
+                    example: "200 OK"
+                  message:
+                    type: string
+                    example: demo funding transaction created
+                  timestamp:
+                    type: string
+                    example: "01/01/2026 00:00:00"
+                  reasonCode:
+                    type: string
+                    example: GL-201-001
+                  data:
+                    type: object
+                    properties:
+                      fundingTransaction:
+                        type: object
+                        properties:
+                          transactionId:
+                            type: string
+                            example: 00000000-0000-0000-0000-000000000000
+                          status:
+                            type: string
+                            example: pending
+                          rawResponse:
+                            type: object
+                            description: Raw response passed through from the underlying funding provider.
+                            properties:
+                              id:
+                                type: string
+                                example: 00000000-0000-0000-0000-000000000000
+                              state:
+                                type: string
+                                example: pending
+                              amount:
+                                type: string
+                                example: "10.00"
+                              currency:
+                                type: string
+                                example: CAD
+                              action:
+                                type: string
+                                example: approve
+                              account_id:
+                                type: string
+                                example: 11111111-1111-1111-1111-111111111111
+                              sender_name:
+                                type: string
+                                example: Jane Doe
+                              sender_address:
+                                type: string
+                                nullable: true
+                                example: null
+                              sender_country:
+                                type: string
+                                example: AE
+                              sender_reference:
+                                type: string
+                                nullable: true
+                                example: null
+                              sender_account_number:
+                                type: string
+                                example: "0000000000000"
+                              sender_routing_code:
+                                type: string
+                                nullable: true
+                                example: null
+                              receiver_account_number:
+                                type: string
+                                example: "000000000"
+                              receiver_routing_code:
+                                type: string
+                                nullable: true
+                                example: null
+                              short_reference:
+                                type: string
+                                example: IF-20260101-ABCDEF
+                              created_at:
+                                type: string
+                                format: date-time
+                                example: "2026-01-01T00:00:00+00:00"
+                              updated_at:
+                                type: string
+                                format: date-time
+                                example: "2026-01-01T00:00:00+00:00"
+                  errors:
+                    type: object
+                    nullable: true
+                    example: null
+              example:
+                gid: null
+                status: "200 OK"
+                message: demo funding transaction created
+                timestamp: "01/01/2026 00:00:00"
+                reasonCode: GL-201-001
+                data:
+                  fundingTransaction:
+                    transactionId: 00000000-0000-0000-0000-000000000000
+                    status: pending
+                    rawResponse:
+                      id: 0000123-0000-0000-0000-000000000123
+                      state: pending
+                      amount: "10.00"
+                      currency: CAD
+                      action: approve
+                      account_id: 11111111-1111-1111-1111-111111111111
+                      sender_name: Jane Doe
+                      sender_address: null
+                      sender_country: AE
+                      sender_reference: null
+                      sender_account_number: "0000000000012"
+                      sender_routing_code: null
+                      receiver_account_number: "000000012"
+                      receiver_routing_code: null
+                      short_reference: IF-20260101-ABCDEF
+                      created_at: "2026-01-01T00:00:00+00:00"
+                      updated_at: "2026-01-01T00:00:00+00:00"
+                errors: null
 
 tags:
   - name: Merchant Onboarding

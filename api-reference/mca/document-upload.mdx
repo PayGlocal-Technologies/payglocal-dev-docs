@@ -1,21 +1,21 @@
 ---
-title: "Get Upload Presigned URL"
+title: "Upload Document via Presigned URL"
 openapi: "POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned"
 ---
 
 ## When to Use
 
-Call this when you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. It returns a temporary `presignedUrl` you then use to upload the supporting document (e.g. invoice) directly via HTTP PUT.
+Call this when you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING` and you already have the supporting document (e.g. invoice) hosted at a presigned URL you control. Include that `presignedUrl` in the request body — the backend downloads the file from it and stores it for the transaction. This is a single-call alternative to uploading the file directly as multipart form data.
 
 ## Upload Flow
 
 ```
-Step 1 — POST this endpoint → receive presignedUrl
-Step 2 — PUT <presignedUrl> with file binary (no auth headers needed)
+POST this endpoint with presignedUrl in the request body → document is fetched and stored
 ```
 
 <Warning>
-  The `presignedUrl` is temporary — upload the file immediately. Do not cache or reuse it.
+  The `presignedUrl` you provide must be reachable at the time of the request — the backend
+  fetches it immediately during this call. It is not stored or reused afterward.
 </Warning>
 
 ## Error Scenarios

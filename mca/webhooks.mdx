@@ -24,7 +24,7 @@ Your webhook endpoint is a publicly accessible POST endpoint on your backend. Sh
 
 ---
 
-## The Five Events
+## The Six Events
 
 ### `VIRTUAL_ACCOUNT_PROVISIONED`
 
@@ -143,6 +143,34 @@ Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. T
 
 ---
 
+### `INVOICE_GENERATED`
+
+Fired when PayGlocal generates the monthly GST invoice for a reseller's MCA business. This is a **reseller-level** notification (keyed by `resellerMid`), separate from the merchant-level lifecycle events above.
+
+```json
+{
+  "resellerMid": "<reseller_mid>",
+  "servicePeriod": "202606",
+  "MONTH": "May",
+  "product": "MCA",
+  "YEAR": "2026",
+  "merchantId": "<merchant_id>",
+  "invoiceUrl": "https://<bucket>.s3.amazonaws.com/backfill/reseller_details/invoice.pdf?X-Amz-Expires=900&X-Amz-Signature=<signature>",
+  "invoiceNumber": "1274376",
+  "type": "MERCHANT_INVOICE_RESELLER_WEBHOOK",
+  "notificationEvent": "INVOICE_GENERATED",
+  "status": "INVOICE_GENERATED"
+}
+```
+
+**What to do:** Download the GST invoice immediately from `invoiceUrl` and store it in your own system, keyed by `resellerMid` and `servicePeriod`.
+
+<Warning>
+  The `invoiceUrl` is a presigned URL valid for **15 minutes only** (`X-Amz-Expires=900`). Download and store the document as soon as you receive this webhook — do not save the URL and fetch later.
+</Warning>
+
+---
+
 ## Event Summary
 
 | Event | Status | Your Action |
@@ -152,6 +180,7 @@ Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. T
 | `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
 | `TXN_SETTLED` | `SETTLED` | Mark complete, share settlement details |
 | `FIRC_RECEIVED` | `FIRC_RECEIVED` | Download and store the FIRC document |
+| `MERCHANT_INVOICE_RESELLER_WEBHOOK` | `INVOICE_GENERATED` | Download and store the GST invoice |
 
 ---
 
@@ -178,3 +207,7 @@ Always confirm that the `merchantId` in the payload belongs to your partner acco
 **Store the FIRC immediately**
 
 Do not cache the `fircUrl` — download the file to your own storage (S3, GCS, etc.) the moment you receive the `FIRC_RECEIVED` event.
+
+**Store the GST invoice immediately**
+
+Do not cache the `invoiceUrl` — download the file to your own storage the moment you receive the `INVOICE_GENERATED` event. It expires in 15 minutes.

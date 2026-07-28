@@ -2879,6 +2879,7 @@ paths:
               purposeCode: P0102
               fxRate: "83.12"
               fileName: invoice_INV-2026-00321.pdf
+              presignedUrl: "https://your-bucket.s3.amazonaws.com/invoice.pdf?X-Amz-Signature=..."
       responses:
         "200":
           description: Document uploaded successfully.
@@ -2938,7 +2939,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CommonErrorResponse"
 
-  /gcc/v1/ffms/transaction/demo-funding/{transactingId}/mca-ingestion:
+  /gcc/v1/ffms/transaction/demo-funding/{transactingMid}/mca-ingestion:
     servers:
       - url: https://gcc.uat.payglocal.in
         description: MCA — Sandbox
@@ -2953,7 +2954,7 @@ paths:
       security:
         - ApiKeyAuth: []
       parameters:
-        - name: transactingId
+        - name: transactingMid
           in: path
           required: true
           schema:

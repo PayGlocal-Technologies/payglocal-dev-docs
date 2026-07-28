@@ -6,18 +6,18 @@ icon: "file-arrow-up"
 
 ## Overview
 
-When funds arrive in a merchant's virtual account, PayGlocal requires a supporting document — typically an invoice — before processing settlement. You upload this document using a **two-step presigned URL flow**:
+When funds arrive in a merchant's virtual account, PayGlocal requires a supporting document — typically an invoice — before initiating compliance. You provide this document via a **single-call presigned URL flow**:
 
-1. **Request** a presigned upload URL from PayGlocal
-2. **Upload** the file directly to that URL
+1. **Host** the file yourself and generate a presigned URL for it from your own storage (e.g. an S3 bucket you control)
+2. **Call** PayGlocal's upload endpoint with that `presignedUrl` in the request body — PayGlocal fetches the file from it and stores it for the transaction
 
-This keeps your API key out of the file upload and lets clients upload large files efficiently without routing through your backend.
+There is no separate "get a URL, then PUT the file" round trip — the presigned URL is yours to begin with, and PayGlocal is the one downloading from it, not the one issuing it.
 
 ---
 
 ## When to Trigger This
 
-Upload the document as soon as you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. Extract the `gid` from the webhook payload — that is what you pass to the upload API.
+Call the upload endpoint as soon as you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. Extract the `gid` from the webhook payload — that is what you pass in the path.
 
 ```
 MCA_FUND_RECEIVED webhook received
@@ -26,23 +26,24 @@ MCA_FUND_RECEIVED webhook received
   Extract gid from payload
          │
          ▼
+  Host the file at a presigned URL you control
+         │
+         ▼
   POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned
+  with presignedUrl in the request body
          │
          ▼
-  Receive presignedUrl
+  PayGlocal fetches the file from presignedUrl and stores it
          │
          ▼
-  PUT <presignedUrl> with file binary
-         │
-         ▼
-  Upload complete — PayGlocal processes settlement
+  Upload complete — PayGlocal initiates compliance check
 ```
 
 ---
 
-## Step 1: Request the Presigned URL
+## Request the Upload
 
-Make a POST request with the transaction and invoice details. The key required fields are:
+Make a single POST request with the transaction, invoice, and presigned URL details. The required fields are:
 
 | Field | What to send |
 |-------|-------------|
@@ -53,6 +54,7 @@ Make a POST request with the transaction and invoice details. The key required f
 | `invoiceType` | The type of document you are uploading (e.g. `INVOICE`) |
 | `paymentType` | The payment type (e.g. `CARD`) |
 | `fileName` | The file name including extension (e.g. `invoice_001.pdf`) |
+| `presignedUrl` | A URL you control that PayGlocal can fetch the file from — must be reachable at request time |
 
 Optional fields like `invoiceNumber`, `customerFullName`, `purposeCode`, and `fxRate` provide additional context that helps PayGlocal's compliance processing.
 
@@ -68,27 +70,15 @@ Optional fields like `invoiceNumber`, `customerFullName`, `purposeCode`, and `fx
   "customerFullName": "John Doe",
   "purposeCode": "P0102",
   "fxRate": "83.12",
-  "fileName": "invoice_INV-2026-00321.pdf"
+  "fileName": "invoice_INV-2026-00321.pdf",
+  "presignedUrl": "https://your-bucket.s3.amazonaws.com/invoice.pdf?X-Amz-Signature=..."
 }
 ```
 
-The response gives you a `presignedUrl` to use in Step 2.
-
----
-
-## Step 2: Upload the File
-
-Use the `presignedUrl` from Step 1 to upload the file with an HTTP **PUT**. No authentication headers are needed — the presigned URL is self-authorising.
-
-```bash
-curl -X PUT "<presignedUrl>" \
-  --upload-file invoice_INV-2026-00321.pdf
-```
-
-A `200 OK` response from the PUT confirms the upload succeeded.
+A `200 OK` response confirms PayGlocal has fetched and stored the file.
 
 <Warning>
-  The presigned URL is **temporary**. Upload the file immediately after receiving it in Step 1 — do not cache or reuse the URL.
+  The `presignedUrl` you provide must be reachable at the time of the request — PayGlocal fetches it immediately during this call. It is not stored or reused afterward, so don't send a URL that expires before the request completes.
 </Warning>
 
 ---
@@ -103,7 +93,7 @@ A `200 OK` response from the PUT confirms the upload succeeded.
 
 ## After the Upload
 
-Once the file is uploaded, PayGlocal will:
+Once the file is fetched, PayGlocal will:
 
 1. Validate the invoice against the transaction
 2. Send you a `TXN_SENT_FOR_SETTLEMENT` webhook when processing begins

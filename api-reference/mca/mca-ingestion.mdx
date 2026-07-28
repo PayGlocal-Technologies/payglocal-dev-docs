@@ -1,0 +1,12 @@
+---
+title: "MCA Demo Funding Ingestion"
+openapi: "POST /gcc/v1/ffms/transaction/demo-funding/{transactingMid}/mca-ingestion"
+---
+
+## When to Use
+
+Use this endpoint to test MCA ingestion by simulating an inbound funding event for a given `transactingMid`.
+
+<Warning>
+  This endpoint is available in the **UAT (sandbox) environment only**. Do not use it for production traffic.
+</Warning>

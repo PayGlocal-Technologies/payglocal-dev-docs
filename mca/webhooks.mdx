@@ -139,18 +139,21 @@ Fired when the funds have been settled to the merchant's INR bank account.
 ```json
 {
   "gid": "glm123456789",
+  "ucicId": "<ucic_id>",
   "merchantId": "<merchant_id>",
   "transaction_amount": "1000.00",
   "transaction_currency": "USD",
   "settled_at": "2024-10-23",
-  "fxRate": "91.39",
   "settlement_amount": "998.00",
   "settlement_currency": "USD",
+  "gstAmount": "17.96",
+  "fxRate": "91.39",
+  "fxRateBookedAt": "2024-10-22T14:30:00Z",
   "status": "SETTLED"
 }
 ```
 
-**What to do:** Mark the transaction as complete. Notify the merchant with settlement details including the FX rate applied and the final settled amount.
+**What to do:** Mark the transaction as complete. Notify the merchant with settlement details including the FX rate applied, when that rate was booked, the GST amount, and the final settled amount.
 
 ---
 

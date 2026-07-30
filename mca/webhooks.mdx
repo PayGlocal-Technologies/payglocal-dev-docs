@@ -24,7 +24,7 @@ Your webhook endpoint is a publicly accessible POST endpoint on your backend. Sh
 
 ---
 
-## The Six Events
+## The Eight Events
 
 ### `VIRTUAL_ACCOUNT_PROVISIONED`
 
@@ -46,6 +46,43 @@ Fired once a merchant's virtual accounts have been successfully provisioned acro
 
 <Note>
   This event fires only once per merchant, after virtual account provisioning is fully complete across all acquirers. It must be explicitly enabled for your partner account before you'll receive it.
+</Note>
+
+---
+
+### `MERCHANT_MCA_ACCEPTED`
+
+Fired when a merchant's onboarding application is accepted for the **MCA** product specifically.
+
+```json
+{
+  "onboarding_status": "ACCEPTED",
+  "onboarding_id": "a2230a44bdb2693a",
+  "merchant_id": "madhavsh317311",
+  "event_timestamp": "1785233067777",
+  "status": "MERCHANT_MCA_ACCEPTED"
+}
+```
+
+---
+
+### `MERCHANT_CARDS_ACCEPTED`
+
+Fired when a merchant's onboarding application is accepted for the **Cards** product specifically.
+
+```json
+{
+  "onboarding_status": "ACCEPTED",
+  "onboarding_id": "a2230a44bdb2693a",
+  "merchant_id": "madhavsh317311",
+  "event_timestamp": "1785233149987",
+  "status": "MERCHANT_CARDS_ACCEPTED"
+}
+```
+
+
+<Note>
+  A merchant onboarding for multiple products fires one `MERCHANT_<PRODUCT>_ACCEPTED` event per product as each is approved. Track product-level acceptance independently rather than assuming one event means the merchant is fully accepted across the board.
 </Note>
 
 ---
@@ -176,6 +213,8 @@ Fired when PayGlocal generates the monthly GST invoice for a reseller's MCA busi
 | Event | Status | Your Action |
 |-------|--------|-------------|
 | `VIRTUAL_ACCOUNT_PROVISIONED` | `VIRTUAL_ACCOUNT_PROVISIONED` | Mark merchant as ready |
+| `MERCHANT_MCA_ACCEPTED` | `MERCHANT_MCA_ACCEPTED` | Mark MCA as approved for the merchant |
+| `MERCHANT_CARDS_ACCEPTED` | `MERCHANT_CARDS_ACCEPTED` | Mark Cards as approved for the merchant |
 | `MCA_FUND_RECEIVED` | `DOCUMENT_PENDING` | Upload the invoice |
 | `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
 | `TXN_SETTLED` | `SETTLED` | Mark complete, share settlement details |

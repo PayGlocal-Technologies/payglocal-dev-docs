@@ -111,7 +111,8 @@
               "plugins/woocommerce",
               "plugins/magento",
               "plugins/opencart",
-              "plugins/wix"
+              "plugins/wix",
+              "plugins/bagisto"
             ]
           },
           {

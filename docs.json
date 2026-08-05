@@ -494,7 +494,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://merchant.payglocal.in"
+      "href": "https://dashboard.payglocal.in/app/login"
     }
   },
   "footer": {

@@ -1,0 +1,58 @@
+---
+title: "Auth Reversal"
+description: "Cancel an authorization and immediately release all held funds back to the customer."
+icon: "ban"
+---
+
+## Auth Reversal
+
+Cancel an authorization that has not yet been captured. Releases all held funds back to the customer immediately.
+
+<Warning>
+  Once reversed, **no capture is possible** on this authorization. Use only when the order is cancelled before fulfillment.
+</Warning>
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/{gid}/auth-reversal
+```
+
+`{gid}` = the GID returned in the original Auth Payment response.
+
+---
+
+## Request
+
+```json
+{
+  "merchantTxnId": "REV-23AEE8CB6B62EE2AF07"
+}
+```
+
+That's it — only the URL `{gid}` and a unique `merchantTxnId` are required.
+
+---
+
+## Key Points
+
+- Immediately releases all held funds
+- Use when order is cancelled before fulfillment
+- **No capture possible after reversal**
+- Funds released instantly to customer's account
+- Helps maintain good customer experience
+- Webhook notification sent upon reversal
+
+---
+
+## When to Use
+
+| Scenario | Use |
+|----------|-----|
+| Order cancelled before shipping | **Auth Reversal** |
+| Customer payment approved, ready to ship | [Capture](/merchant/services/capture-payment) |
+| Already captured and customer wants money back | [Refund](/merchant/services/initiate-refund) |
+
+See the full Auth & Capture flow in [Auth & Capture](/merchant/auth-capture).

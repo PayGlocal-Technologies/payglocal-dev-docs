@@ -1,36 +1,44 @@
 ---
 title: "Plugin Integration"
-description: "Accept PayGlocal payments on your existing e-commerce platform — no API work required."
+description: "Accept PayGlocal on Shopify, WooCommerce, Magento, OpenCart, Wix, or Bagisto - guided installs, downloads, and configuration."
 icon: "puzzle-piece"
 ---
 
-PayGlocal ships official plugins for the major e-commerce platforms. Install the plugin, paste your credentials, and your checkout is live.
+<div className="not-prose payg-plugin-hero">
+  <p className="payg-plugin-hero-title">Merchant store plugins</p>
+  <p>
+    Use PayGlocal on the platform you already run. Pick a guide below for install paths, download matrices, admin screenshots, and
+    credential fields. Same integration outcome as our APIs — less engineering lift when a native plugin fits your stack.
+  </p>
+</div>
 
 ## Supported platforms
 
 <CardGroup cols={2}>
   <Card title="Shopify" icon="shopify" href="/plugins/shopify">
-    App-store install.
+    Two App Store flows: **Seamless** (card fields on your storefront) and **Redirection** (hosted PayGlocal page). Install both when you need both checkout experiences.
   </Card>
   <Card title="WooCommerce" icon="wordpress" href="/plugins/woocommerce">
-    Self-hosted ZIP plugin.
+    WordPress ZIP plugin: PHP-based download matrix (with and without Elementor), upload install, and **WooCommerce → Payments** configuration walkthrough.
   </Card>
   <Card title="Magento" icon="magento" href="/plugins/magento">
-    Self-hosted module.
+    Adobe Commerce / Magento module: copy to root, flush cache, then **System → Configuration → Sales → Payment Methods**.
   </Card>
   <Card title="OpenCart" icon="cart-shopping" href="/plugins/opencart">
-    Self-hosted extension.
+    Extension installer, **Extensions → Payments**, and field reference including gateway and refund URLs for sandbox testing.
   </Card>
   <Card title="Wix" icon="wix" href="/plugins/wix">
-    Code integration via Velo.
+    Velo **Service Plugins → Payment**, npm packages (`jose`, `crypto-js`), publish, then connect under **Accept Payments**.
+  </Card>
+  <Card title="Bagisto" icon="bag-shopping" href="/plugins/bagisto">
+    Laravel-based e-commerce: built-in PayGlocal support via **Configure → Payment Methods**. Paste your credentials and go live.
   </Card>
 </CardGroup>
 
-## What you'll need
+## What you will need
 
-Before starting any plugin setup, generate the required credentials from [GCC](/getting-started/gcc-dashboard):
+Before any plugin setup, have merchant credentials from [GCC](/getting-started/dashboard-and-key-management) and review [Key Management](/key-management/overview) for signing material (merchant ID, keys, PEM files) referenced in each admin UI.
 
-- **API Key** — for API authentication.
-- **RSA Keys** (private + PayGlocal public certificate) — for JWS token signing.
-
-See [Key Management](/key-management/overview) for details.
+<Note>
+  If your PHP, Magento, OpenCart, or WooCommerce version is not listed in a download table, contact your **PayGlocal account manager** for the correct build.
+</Note>

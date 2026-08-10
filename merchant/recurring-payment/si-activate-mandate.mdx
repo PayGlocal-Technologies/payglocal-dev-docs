@@ -1,0 +1,25 @@
+---
+title: "SI Activate Mandate"
+sidebarTitle: "SI Activate Mandate"
+description: "Resume a paused mandate and restart recurring charges."
+---
+
+Resume a paused mandate. The mandate returns to `ACTIVE` status immediately.
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+```json
+{
+  "merchantTxnId": "ACTIVATE-TXN-001",
+  "standingInstruction": {
+    "action": "ACTIVATE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+<Warning>
+  Only activate after confirming the pause reason is resolved. Notify the customer so the upcoming charge isn't a surprise.
+</Warning>

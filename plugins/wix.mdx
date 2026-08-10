@@ -1,40 +1,152 @@
 ---
 title: "Wix"
-description: "Integrate PayGlocal on a Wix site using Velo code."
-icon: "wix"
+description: "Accept payments on your Wix store using PayGlocal — set up the plugin via Velo Dev Mode."
+icon: "w"
 ---
 
-<Info>
-  Wix does not support third-party payment apps in the classic sense. Integration is done by writing Velo (Wix's JavaScript runtime) code that calls the PayGlocal Payment APIs directly.
-</Info>
+## PayGlocal × Wix
 
-## Prerequisites
+Integrating PayGlocal with Wix enables merchants to accept online payments from their customers on the Wix platform. The plugin makes it easier for merchants to accept payments through the PayGlocal payment gateway.
 
-- A Wix site on a plan that supports **Velo** (Wix's code environment).
-- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
-- Familiarity with the [Payment APIs](/api-reference/payment/overview) — Velo integration is API-driven, not plugin-driven.
+<Note>
+  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
+</Note>
 
-## Install
+## Installation Steps
+
+### Step 1 — Log in to Your Wix Site
+
+Log in to your Wix account and select the site on which you need to install the PayGlocal plugin. Click the **Edit Site** button (top-right) from your dashboard.
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-dashboard.png" alt="Wix Dashboard — click Edit Site" />
+</div>
+
+---
+
+### Step 2 — Enable Dev Mode
+
+From the Wix editor top bar, go to **Dev Mode** and click **Turn on Dev Mode** to enable Velo.
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-dev-mode.png" alt="Wix Velo Dev Mode panel" />
+</div>
+
+---
+
+### Step 3 — Plugin Directory Structure
+
+Inside the **Service Plugins** directory, click the **+** (Add) icon and select **Payment** from the list.
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-service-plugins-payment.png" alt="Service Plugins panel with Payment option" />
+</div>
+
+Enter the plugin name as **PayGlocal**. Two files will be created automatically:
+- `PayGlocal.js`
+- `PayGlocal-config.js`
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-add-payment-plugin-modal.png" alt="Add new payment plugin modal with PayGlocal name" />
+</div>
+
+<Note>
+  Replace the contents in both files by copying the code from the repository: [PayGlocal-Plugin-Wix-Github](https://github.com/PayGlocal-Technologies)
+</Note>
+
+---
+
+### Step 4 — Create Backend Configuration Files
+
+In the **Backend** section, create the following configuration files:
+- `payglocal-wrapper.js`
+- `payglocal-constants.js`
+- `http-functions.js` *(if required)*
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-backend-payment-provider.png" alt="Wix Backend & Public panel with payment-provider folder" />
+</div>
+
+<Note>
+  Replace the contents in the above files by copying the code from: [PayGlocal-Plugin-Configuration-Wix-Github](https://github.com/PayGlocal-Technologies)
+</Note>
+
+---
+
+### Step 5 — Set Merchant-Specific Values
+
+In the `payglocal-constants.js` file, enter the values as below:
+
+| Constant | Where to find it |
+|---|---|
+| `ACCOUNT_NAME` | **Settings → Website Settings → Site Address (URL)** — copy the domain name |
+| `WEBSITE_NAME` | Enter your site URI here |
+
+Also enter your **Public Key** in the designated field within the file.
+
+---
+
+### Step 6 — Install npm Packages
+
+Navigate to **Packages & Apps** in the Velo sidebar and install the following libraries via npm:
+
+- `jose`
+- `crypto-js`
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-npm-packages.png" alt="Wix Packages and Apps panel with jose and crypto-js installed" />
+</div>
+
+---
+
+### Step 7 — Publish the Website
+
+Once all the changes are made, click the **Publish** button (top-right of the editor) to make PayGlocal live on your site.
+
+---
+
+### Step 8 — Verify Plugin on Payment Page
+
+After publishing, PayGlocal will appear as a plugin under the **Accept Payments** section.
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-connect-payment.png" alt="PayGlocal listed as a payment provider with Connect button" />
+</div>
+
+---
+
+## Activating PayGlocal for Payment Processing
+
+To activate PayGlocal as a payment method:
 
 <Steps>
-  <Step title="Enable Velo">
-    In the Wix editor, turn on **Dev Mode** to enable Velo.
+  <Step title="Locate the PayGlocal plugin">
+    Once the website is published, ensure PayGlocal is visible as a payment plugin under Accept Payments.
   </Step>
-  <Step title="Add backend code">
-    Create a backend `.jsw` file that builds a JWS token with your RSA private key and calls the PayGlocal `initiate` endpoint. See [Payment Flow](/integration/payment-flow) for the request contract.
+  <Step title="Enter credentials and connect">
+    Enter your **Merchant ID** and **API Key** in the relevant fields and click **Connect**.
   </Step>
-  <Step title="Wire to checkout">
-    From your cart or checkout page, call the backend function and redirect the customer to the returned `redirectUrl`.
-  </Step>
-  <Step title="Handle the return">
-    Implement a return page that calls [Get Status](/api-reference/payment/get-status) to confirm payment outcome before fulfilling the order.
+  <Step title="Ready to process">
+    Upon successful connection, PayGlocal will be ready to process payments.
   </Step>
 </Steps>
 
-## Test
+<Check>
+  **Setup Successful** — Once you have followed all the steps above, the PayGlocal payment gateway is successfully set up with your Wix store.
+</Check>
 
-Use the [test cards](/reference/test-cards) to verify the flow end-to-end in sandbox.
+<Warning>
+  If you face any installation errors, email us at [merchant.support@payglocal.in](mailto:merchant.support@payglocal.in) and we will get back to you at the earliest.
+</Warning>
 
-<Note>
-  Code samples for the Velo backend function are published on the merchant help centre.
-</Note>
+---
+
+## Customer Journey
+
+On the checkout page, PayGlocal will appear as a payment option. Upon selecting **International Credit/Debit cards (PayGlocal)**, the customer will be redirected to the payment page to complete the transaction.
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/wix-checkout-payglocal.png" alt="Wix checkout page showing PayGlocal as a payment option" />
+</div>
+
+After a successful payment, an order entry will be created in the **Orders** tab with all relevant transaction details.

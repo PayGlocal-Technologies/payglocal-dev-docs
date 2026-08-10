@@ -79,9 +79,9 @@ All successful API responses return a JSON object with the following top-level f
       "beneficialOwners": "COMPLETE",
       "bankDetails": "COMPLETE",
       "authorisedSignatory": "COMPLETE",
-      "vkyc": "PENDING",
-      "digiLocker": "PENDING",
-      "tncAcknowledged": "PENDING",
+      "vkyc": "INCOMPLETE",
+      "digiLocker": "INCOMPLETE",
+      "tncAcknowledged": "INCOMPLETE",
       "documents": "COMPLETE",
       "products": "COMPLETE",
       "documentsToBeUploaded": []
@@ -111,15 +111,15 @@ All successful API responses return a JSON object with the following top-level f
 
 | Field | Possible Values | Description |
 |-------|-----------------|-------------|
-| `businessDetails` | `PENDING`, `COMPLETE` | Business information submission status |
-| `beneficialOwners` | `PENDING`, `COMPLETE` | Beneficial owner submission status |
-| `bankDetails` | `PENDING`, `COMPLETE` | Bank details and penny drop status |
-| `authorisedSignatory` | `PENDING`, `COMPLETE` | Authorised signatory submission status |
-| `vkyc` | `PENDING`, `SUCCESS`, `PENDING_REVIEW`, `FAILED` | Video KYC outcome |
-| `digiLocker` | `PENDING`, `SUCCESS`, `PENDING_REVIEW`, `FAILED` | DigiLocker verification outcome |
-| `tncAcknowledged` | `PENDING`, `COMPLETE` | T&C acknowledgement status |
-| `documents` | `PENDING`, `COMPLETE` | Document upload status |
-| `products` | `PENDING`, `COMPLETE` | Product and fee configuration status |
+| `businessDetails` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Business information submission status |
+| `beneficialOwners` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Beneficial owner submission status |
+| `bankDetails` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Bank details and penny drop status |
+| `authorisedSignatory` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Authorised signatory submission status |
+| `vkyc` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Video KYC completion status |
+| `digiLocker` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | DigiLocker verification completion status |
+| `tncAcknowledged` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | T&C acknowledgement status |
+| `documents` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Document upload status |
+| `products` | `COMPLETE`, `INCOMPLETE`, `NOT_APPLICABLE` | Product and fee configuration status |
 | `documentsToBeUploaded` | array of strings | Document types still required (empty when all uploaded) |
 
 ---

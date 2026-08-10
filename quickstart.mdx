@@ -35,14 +35,14 @@ This guide walks you through the essential steps to go from zero to your first s
   <Step title="Download your API credentials">
     Log in to your PayGlocal partner dashboard and navigate to **Settings → API Keys**. Download:
 
-    - **API Key** — a static identifier sent in the `x-api-key` header on every request
+    - **API Key** — a static identifier sent in the `x-gl-auth` header on every request
     - **API Secret** — used as the HMAC signing key; never exposed in requests
 
     Store both values securely (e.g., in a secrets manager). You will use them to generate the `x-gl-digest` header. See [Authentication](/authentication) for the full signing specification.
   </Step>
 
   <Step title="Generate your authentication digest">
-    Every request must include two headers: `x-api-key` and `x-gl-digest`.
+    Every request must include two headers: `x-gl-auth` and `x-gl-digest`.
 
     For a POST request, the digest is computed over the **raw request body** using HmacSHA256 with your API Secret, then Base64-encoded.
 
@@ -85,7 +85,7 @@ This guide walks you through the essential steps to go from zero to your first s
     ```bash
     curl -X POST https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard \
       -H "Content-Type: application/json" \
-      -H "x-api-key: YOUR_API_KEY" \
+      -H "x-gl-auth: YOUR_API_KEY" \
       -H "x-gl-digest: YOUR_COMPUTED_DIGEST" \
       -d '{
         "externalOnboardingId": "partner-123",
@@ -127,7 +127,7 @@ This guide walks you through the essential steps to go from zero to your first s
     | 4. Add authorised signatory | `PUT .../auth-signatory` | [Update Authorised Signatory](/api-reference/update-auth-signatory) |
     | 5. Upload documents | `PUT .../docs` | [Upload Documents](/api-reference/upload-documents) |
     | 6. Configure products & fees | `PUT .../products` | [Configure Products](/api-reference/configure-products) |
-    | 7. Trigger verification | `PUT .../verify` | [Verify Merchant](/api-reference/verify-merchant) |
+    | 7. Trigger verification | `PUT .../verification/{id}/redirect` | [Get Verification Redirect](/api-reference/get-verification-redirect) |
 
     See the [API Flow Overview](/guides/api-flow-overview) for an end-to-end visual walkthrough of the onboarding sequence.
   </Step>
@@ -144,7 +144,7 @@ This guide walks you through the essential steps to go from zero to your first s
   <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
     Embed the VKYC and DigiLocker flow inside your platform
   </Card>
-  <Card title="Partner Requirements" icon="clipboard-check" href="/requirements">
+  <Card title="Merchant Requirements" icon="clipboard-check" href="/guides/merchant-requirements">
     Compliance obligations before going live
   </Card>
   <Card title="Response Structure" icon="code" href="/reference/response-structure">

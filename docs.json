@@ -37,9 +37,11 @@
               {
                 "group": "Partner Onboarding",
                 "pages": [
-                  "requirements",
+                  "authentication",
                   "guides/merchant-requirements",
-                  "guides/api-flow-overview"
+                  "guides/api-flow-overview",
+                  "guides/partner-onboarding-events",
+                  "guides/iframe-integration"
                 ]
               },
               {
@@ -135,7 +137,7 @@
               "api-reference/update-auth-signatory",
               "api-reference/upload-documents",
               "api-reference/configure-products",
-              "api-reference/verify-merchant",
+              "api-reference/get-verification-redirect",
               "api-reference/get-status",
               "api-reference/get-business-categories"
             ]

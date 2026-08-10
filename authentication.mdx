@@ -1,10 +1,10 @@
 ---
 title: "Authentication"
-description: "Authentication for the Merchant Onboarding APIs. Every request is signed with HmacSHA256 and sent via x-api-key + x-gl-digest headers."
+description: "Authentication for the Merchant Onboarding APIs. Every request is signed with HmacSHA256 and sent via x-gl-auth + x-gl-digest headers."
 ---
 
 <Note>
-  This page covers authentication for the **Merchant Onboarding** APIs (`/gcc/v2/partner/merchant/*`).
+  This page covers authentication for the **Partner Merchant Onboarding** APIs (`/gcc/v2/partner/merchant/onboard/*` and `/gcc/v2/partner/merchant/verification/*`).
   The **Payment APIs** (`/gl/v1/payments/*`) use a different scheme — an RSA-signed JWS token sent in
   the `x-gl-token-external` header. See [Key Management → Overview](/key-management/overview).
 </Note>
@@ -15,19 +15,21 @@ The Merchant Onboarding APIs use a two-header authentication scheme:
 
 | Header | Description |
 |--------|-------------|
-| `x-api-key` | Your static API Key, downloaded from the partner dashboard |
+| `x-gl-auth` | Your static API Key, generated from the PayGlocal Partner Dashboard |
 | `x-gl-digest` | A per-request HMAC-SHA256 signature, Base64-encoded |
 
-Both headers are **required on every request**. Requests missing either header will be rejected.
+Both headers are **required on every Partner Onboarding API request**, including [Get Verification Redirect](/api-reference/get-verification-redirect). Requests missing either header will be rejected.
 
 ---
 
 ## Credentials
 
-Log in to the PayGlocal partner dashboard and navigate to **Settings → API Keys** to download your:
+Partners generate API credentials from the PayGlocal Partner Dashboard:
 
-- **API Key** — a static, non-secret identifier. Safe to store in environment variables.
-- **API Secret** — the signing key used to generate the digest. Treat this like a password. Never expose it in client-side code, logs, or version control.
+- **API Key** — sent in the `x-gl-auth` header. A static, non-secret identifier. Safe to store in environment variables.
+- **API Secret** — used as the HMAC signing key to generate `x-gl-digest`. Treat this like a password. Never expose it in client-side code, logs, or version control.
+
+See [Quickstart](/quickstart) for credential download instructions.
 
 <Warning>
   If your API Secret is compromised, rotate it immediately from the dashboard. PayGlocal supports multiple simultaneous active keys to allow zero-downtime rotation.
@@ -47,13 +49,19 @@ digest = Base64( HmacSHA256( signingInput, API_SECRET ) )
 
 | HTTP Method | Signing Input |
 |-------------|---------------|
-| `GET` | The **full request URL** (including path and query string) |
+| `GET` | The **request URI path** (including query string if present). Do not include the host or scheme. |
 | `POST` | The **exact raw request body** (JSON string) |
 | `PUT` | The **exact raw request body** (JSON string) |
 
 <Warning>
   For POST and PUT requests, compute the digest over the **exact same byte sequence** you send as the body. Any difference in whitespace, field ordering, or encoding will produce a mismatched digest and a `401 Unauthorized`.
 </Warning>
+
+For GET requests, sign only the path. Example for [Get Business Categories](/api-reference/get-business-categories):
+
+```
+/gcc/v2/partner/merchant/onboard/business-category
+```
 
 ---
 
@@ -70,7 +78,7 @@ DIGEST=$(echo -n "$BODY" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | ba
 
 curl -X POST https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard \
   -H "Content-Type: application/json" \
-  -H "x-api-key: $API_KEY" \
+  -H "x-gl-auth: $API_KEY" \
   -H "x-gl-digest: $DIGEST" \
   -d "$BODY"
 ```
@@ -92,7 +100,7 @@ def build_headers(body_str: str) -> dict:
     ).decode()
     return {
         "Content-Type": "application/json",
-        "x-api-key": API_KEY,
+        "x-gl-auth": API_KEY,
         "x-gl-digest": digest,
     }
 
@@ -133,7 +141,7 @@ public class PayGlocalAuth {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/gcc/v2/partner/merchant/onboard"))
             .header("Content-Type", "application/json")
-            .header("x-api-key",    API_KEY)
+            .header("x-gl-auth",    API_KEY)
             .header("x-gl-digest",  digest)
             .POST(HttpRequest.BodyPublishers.ofString(body))
             .build();
@@ -166,7 +174,7 @@ const options = {
   method:   "POST",
   headers: {
     "Content-Type":  "application/json",
-    "x-api-key":     API_KEY,
+    "x-gl-auth":     API_KEY,
     "x-gl-digest":   digest,
     "Content-Length": Buffer.byteLength(body),
   },
@@ -192,11 +200,12 @@ req.end();
 API_KEY="your_api_key"
 API_SECRET="your_api_secret"
 
-URL="https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status"
-DIGEST=$(echo -n "$URL" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | base64)
+# Sign the request URI path only — not the full URL
+REQUEST_URI="/gcc/v2/partner/merchant/onboard/business-category"
+DIGEST=$(echo -n "$REQUEST_URI" | openssl dgst -sha256 -hmac "$API_SECRET" -binary | base64)
 
-curl -X GET "$URL" \
-  -H "x-api-key: $API_KEY" \
+curl -X GET "https://api.onboard.uat.payglocal.in${REQUEST_URI}" \
+  -H "x-gl-auth: $API_KEY" \
   -H "x-gl-digest: $DIGEST"
 ```
 
@@ -205,15 +214,16 @@ import hmac, hashlib, base64, requests
 
 API_KEY    = "your_api_key"
 API_SECRET = "your_api_secret"
+BASE_URL   = "https://api.onboard.uat.payglocal.in"
 
-def get_headers(url: str) -> dict:
+def get_headers(request_uri: str) -> dict:
     digest = base64.b64encode(
-        hmac.new(API_SECRET.encode(), url.encode(), hashlib.sha256).digest()
+        hmac.new(API_SECRET.encode(), request_uri.encode(), hashlib.sha256).digest()
     ).decode()
-    return {"x-api-key": API_KEY, "x-gl-digest": digest}
+    return {"x-gl-auth": API_KEY, "x-gl-digest": digest}
 
-url      = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status"
-response = requests.get(url, headers=get_headers(url))
+request_uri = "/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status"
+response = requests.get(f"{BASE_URL}{request_uri}", headers=get_headers(request_uri))
 print(response.json())
 ```
 
@@ -227,6 +237,7 @@ import java.net.URI;
 public class PayGlocalGet {
     static final String API_KEY    = "your_api_key";
     static final String API_SECRET = "your_api_secret";
+    static final String BASE_URL   = "https://api.onboard.uat.payglocal.in";
 
     static String computeDigest(String input) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
@@ -235,12 +246,12 @@ public class PayGlocalGet {
     }
 
     public static void main(String[] args) throws Exception {
-        String url    = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
-        String digest = computeDigest(url);
+        String requestUri = "/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
+        String digest     = computeDigest(requestUri);
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("x-api-key",   API_KEY)
+            .uri(URI.create(BASE_URL + requestUri))
+            .header("x-gl-auth",   API_KEY)
             .header("x-gl-digest", digest)
             .GET()
             .build();
@@ -259,15 +270,14 @@ const https  = require("https");
 const API_KEY    = "your_api_key";
 const API_SECRET = "your_api_secret";
 
-const url    = "https://api.onboard.uat.payglocal.in/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
-const digest = crypto.createHmac("sha256", API_SECRET).update(url).digest("base64");
+const requestUri = "/gcc/v2/partner/merchant/onboard/pg_onboard_abc123/status";
+const digest     = crypto.createHmac("sha256", API_SECRET).update(requestUri).digest("base64");
 
-const reqUrl = new URL(url);
 const options = {
-  hostname: reqUrl.hostname,
-  path:     reqUrl.pathname,
+  hostname: "api.onboard.uat.payglocal.in",
+  path:     requestUri,
   method:   "GET",
-  headers: { "x-api-key": API_KEY, "x-gl-digest": digest },
+  headers: { "x-gl-auth": API_KEY, "x-gl-digest": digest },
 };
 
 https.request(options, (res) => {
@@ -286,7 +296,8 @@ https.request(options, (res) => {
 |---------|--------|
 | Using the API Key (not the Secret) as the HMAC key | `401 Unauthorized` |
 | Computing digest over parsed/re-serialized JSON instead of the raw body | `401 Unauthorized` |
-| Using the body for GET request digest instead of the full URL | `401 Unauthorized` |
+| Using the full URL (with host) for GET request digest instead of the request URI path | `401 Unauthorized` |
+| Using the body for GET request digest instead of the request URI path | `401 Unauthorized` |
 | Not Base64-encoding the HMAC output | `401 Unauthorized` |
 | Sending the digest as hex instead of Base64 | `401 Unauthorized` |
 
@@ -294,14 +305,11 @@ https.request(options, (res) => {
 
 ## Key Management
 
-- Keys can be rotated from the partner dashboard at any time.
+- Keys can be generated and rotated from the PayGlocal Partner Dashboard.
 - PayGlocal supports **multiple simultaneous active keys** — activate the new key before deactivating the old one for zero-downtime rotation.
 - Key expiration policies are configured in accordance with RBI regulations.
 
 <CardGroup cols={2}>
-  <Card title="Key Management" icon="key" href="/key-management/overview">
-    Set up RSA-signed JWS tokens for the Payment APIs.
-  </Card>
   <Card title="Create Onboarding" icon="building-columns" href="/api-reference/create-onboarding">
     Your first authenticated API call.
   </Card>

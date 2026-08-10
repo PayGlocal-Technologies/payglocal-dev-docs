@@ -13,7 +13,7 @@ icon: "building-columns"
 The **Partner Merchant Onboarding API** lets technology partners programmatically onboard sub-merchants onto the PayGlocal platform. It handles the full compliance lifecycle: KYC data collection, document upload, bank account verification, product configuration, and triggered VKYC.
 
 <Note>
-  The interactive API explorer on each endpoint page lets you test requests directly from this portal. Set your `x-api-key` and `x-gl-digest` headers in the authentication panel (top-right of the endpoint page) to make live Sandbox calls.
+  The interactive API explorer on each endpoint page lets you test requests directly from this portal. Set your `x-gl-auth` and `x-gl-digest` headers in the authentication panel (top-right of the endpoint page) to make live Sandbox calls.
 </Note>
 
 ---
@@ -35,8 +35,8 @@ Partner System                          PayGlocal API
       │  PUT /docs (repeat per doc) ─────────▶│
       │  PUT /products ──────────────────────▶│
       │                                       │
-      │  PUT /verify ────────────────────────▶│  Generates VKYC URL
-      │◀──────────────── redirectUrl ─────────│
+      │  PUT /verification/{id}/redirect ────▶│  Generates VKYC URL
+      │◀──────────────── redirectLink ──────────│
       │                                       │
       │  GET /status ────────────────────────▶│  Confirm final outcome
       │◀─────────────────────────────────────│
@@ -55,7 +55,7 @@ Partner System                          PayGlocal API
 | 5 | [Update Auth Signatory](/api-reference/update-auth-signatory) | PUT | Phone/email used for VKYC — must be accurate |
 | 6 | [Upload Documents](/api-reference/upload-documents) | PUT | One call per document |
 | 7 | [Configure Products](/api-reference/configure-products) | PUT | Select products and configure fee structures |
-| 8 | [Trigger Verification](/api-reference/verify-merchant) | PUT | Returns `redirectUrl` for iFrame VKYC |
+| 8 | [Get Verification Redirect](/api-reference/get-verification-redirect) | PUT | Returns `redirectLink` for iFrame verification (24h session token) |
 | 9 | [Get Onboarding Status](/api-reference/get-status) | GET | Always confirm server-side after VKYC redirect |
 | — | [Get Business Categories](/api-reference/get-business-categories) | GET | Lookup table for `natureOfBusiness` field |
 
@@ -65,7 +65,7 @@ Partner System                          PayGlocal API
 
 The Onboarding API uses **HmacSHA256 request signing**:
 
-- `x-api-key` — your static API Key
+- `x-gl-auth` — your static API Key
 - `x-gl-digest` — per-request HMAC-SHA256 signature, Base64-encoded
 
 See [Authentication](/authentication) for the full signing specification and multi-language code examples.
@@ -91,7 +91,7 @@ See [Authentication](/authentication) for the full signing specification and mul
 - `externalOnboardingId` must be unique per merchant — it cannot be reused.
 - Business details and auth signatory cannot be updated after T&C acknowledgement.
 - Beneficial owner and bank details cannot be updated after verification is complete.
-- Calling `/verify` before all required steps are complete returns `400 Bad Request`.
+- Calling the verification redirect endpoint before all required steps are complete returns `400 Bad Request`.
 
 <CardGroup cols={2}>
   <Card title="Onboarding Flow Guide" icon="diagram-project" href="/guides/api-flow-overview">
@@ -99,5 +99,8 @@ See [Authentication](/authentication) for the full signing specification and mul
   </Card>
   <Card title="iFrame Verification" icon="browser" href="/guides/iframe-integration">
     How to embed the VKYC and DigiLocker flow in your product.
+  </Card>
+  <Card title="Events & Webhooks" icon="bell" href="/guides/partner-onboarding-events">
+    UI postMessage and server-side webhook notifications.
   </Card>
 </CardGroup>

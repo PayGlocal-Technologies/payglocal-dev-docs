@@ -1,0 +1,68 @@
+The full payload below shows all supported optional blocks alongside the required fields.
+Include only the blocks relevant to your integration.
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "paymentData": {
+    "totalAmount": "100.00",
+    "txnCurrency": "INR",
+    "billingData": {
+      "firstName": "John",
+      "lastName": "Denver",
+      "addressStreet1": "Rowley street 1",
+      "addressCity": "Bangalore",
+      "addressState": "Karnataka",
+      "addressPostalCode": "560094",
+      "addressCountry": "IND",
+      "emailId": "johndenver@myemail.com",
+      "callingCode": "+91",
+      "phoneNumber": "9008018469"
+    }
+  },
+  "riskData": {
+    "orderData": [
+      {
+        "productDescription": "Apple AirPods Pro",
+        "productSKU": "MNO00390",
+        "productType": "Electronics",
+        "itemUnitPrice": "12000.00",
+        "itemQuantity": "1"
+      }
+    ],
+    "customerData": {
+      "merchantAssignedCustomerId": "11230092",
+      "customerAccountType": "1",
+      "customerSuccessOrderCount": "32",
+      "customerAccountCreationDate": "20180904",
+      "ipAddress": "192.90.40.98",
+      "httpAccept": "text/html,application/xhtml+xml,...",
+      "httpUserAgent": "Mozilla/5.0 ..."
+    },
+    "shippingData": {
+      "firstName": "John",
+      "lastName": "Denver",
+      "addressStreet1": "Rowley street 1",
+      "addressCity": "Bangalore",
+      "addressCountry": "IND",
+      "emailId": "johndenver@myemail.com",
+      "callingCode": "+91",
+      "phoneNumber": "9008018469"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+**Field summary:**
+
+| Field / Block | Required | Constraints | Purpose |
+|---|---|---|---|
+| `merchantTxnId` | Yes | 4–50 chars, alphanumeric | Your unique transaction reference |
+| `merchantUniqueId` | No | 15–40 chars, alphanumeric | Stable merchant-side ID for idempotency and reconciliation |
+| `merchantCallbackURL` | Yes | Valid URI | PayGlocal redirects the customer here after payment |
+| `paymentData.totalAmount` | Yes | Up to 4 decimal places | Transaction amount as a decimal string |
+| `paymentData.txnCurrency` | Yes | Uppercase ISO 4217 | e.g. `INR`, `USD`, `EUR` |
+| `paymentData.billingData` | Yes for international | — | Cardholder billing address |
+| `riskData` | Yes for international; recommended for all | — | Processed by risk engine to prevent fraud |

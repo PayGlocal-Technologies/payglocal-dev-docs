@@ -1,0 +1,30 @@
+A successful PayCollect call returns a `gid` and a `redirectUrl`. Redirect the customer's
+browser to the `redirectUrl` via HTTP GET — they will complete card entry and payment
+selection on PayGlocal's hosted checkout page.
+
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "INPROGRESS",
+  "message": "Transaction Created Successfully",
+  "timestamp": "2021-04-12T07:47:18Z",
+  "reasonCode": "GL-200-001",
+  "data": {
+    "redirectUrl": "https://payments.payglocal.in/checkout/abc123",
+    "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
+  },
+  "errors": null
+}
+```
+
+| Response Field | Description |
+|---|---|
+| `gid` | PayGlocal's unique transaction ID — use this to poll status or initiate a refund |
+| `reasonCode` | `GL-200-001` on success; other codes indicate errors or decline reasons |
+| `data.redirectUrl` | Redirect the customer here to complete payment on PayGlocal's hosted page |
+| `data.statusUrl` | Convenience URL for polling transaction status |
+
+<Note>
+  After redirecting the customer, poll [Get Status](/api-reference/payment/get-status) using
+  the `gid` until the transaction reaches a terminal state (`SUCCESS`, `FAILED`, or `DECLINED`).
+</Note>

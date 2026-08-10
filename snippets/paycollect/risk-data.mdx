@@ -1,0 +1,19 @@
+<Warning>
+  `riskData` is **required for international card transactions** and strongly recommended for all
+  transactions. It is processed by PayGlocal's risk engine to help prevent fraudulent transactions
+  and improve approval rates.
+</Warning>
+
+**RuPay cards** additionally require `ipAddress`, `httpAccept`, and `httpUserAgent` inside
+`riskData.customerData`.
+
+The `riskData` block accepts four sub-objects:
+
+| Sub-object | When required | Contents |
+|---|---|---|
+| `customerData` | Preferred for all | Customer account info, IP address, browser headers |
+| `shippingData` | Required for e-commerce (physical goods) | Delivery address and contact details |
+| `orderData[]` | Preferred for all | Line items: product description, SKU, type, unit price, quantity |
+| `flightData[]` | Required for airline / travel | Flight booking, leg, and passenger data |
+
+See [Risk Data Fields](/api-fields/risk-data-fields) for the complete field reference.

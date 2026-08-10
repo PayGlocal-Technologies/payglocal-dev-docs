@@ -11,10 +11,14 @@ info:
     url: https://payglocal.in
 
 servers:
-  - url: https://api.onboard.uat.payglocal.in
-    description: Onboarding — UAT (default)
   - url: https://api.onboard.payglocal.in
     description: Onboarding — Production
+  - url: https://api.onboard.uat.payglocal.in
+    description: Onboarding — Sandbox
+  - url: https://api.payglocal.in
+    description: Payments — Production
+  - url: https://api.uat.payglocal.in
+    description: Payments — Sandbox
 
 security:
   - ApiKeyAuth: []
@@ -39,7 +43,12 @@ components:
       type: apiKey
       in: header
       name: x-gl-token-external
-      description: RSA-signed JWS in `x-gl-token-external`.
+      description: |
+        RSA-signed JWS (JSON Web Signature) token carrying the request payload.
+        - Header: `{ "alg": "RS256", "kid": "<merchant-key-id>", "iss": "<merchant-id>", "x-gl-enc": "false", "is-digested": "true" }`
+        - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
+        - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
+        Used by all `/gl/v1/payments/*` endpoints.
 
   schemas:
     Address:
@@ -332,6 +341,15 @@ components:
         merchantAssignedCustomerId:
           type: string
           example: cust_12345
+        customerAccountType:
+          type: string
+          description: Merchant-defined account type code for risk scoring.
+        customerSuccessOrderCount:
+          type: string
+          description: Historical successful order count (stringified if numeric).
+        customerAccountCreationDate:
+          type: string
+          description: Account creation date (often YYYYMMDD).
         firstName:
           type: string
         lastName:
@@ -355,6 +373,10 @@ components:
         emailId:
           type: string
           format: email
+        callingCode:
+          type: string
+        phoneNumber:
+          type: string
         addressStreet1:
           type: string
         addressStreet2:
@@ -377,10 +399,25 @@ components:
           type: string
         itemName:
           type: string
+        productDescription:
+          type: string
+          description: Product description (alternative naming to `itemName`).
+        productSKU:
+          type: string
+          description: Product SKU (alternative naming to `itemId`).
+        productType:
+          type: string
+          description: Product category or type (alternative naming to `itemCategory`).
         itemQuantity:
-          type: integer
+          oneOf:
+            - type: integer
+            - type: string
+          description: Line-item quantity (integer or string).
         itemPrice:
           type: string
+        itemUnitPrice:
+          type: string
+          description: Unit price (alternative naming to `itemPrice`).
         itemCategory:
           type: string
 
@@ -396,6 +433,49 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RiskItem"
+
+    RiskFlightLeg:
+      type: object
+      properties:
+        flightNumber:
+          type: string
+        departureAirportCode:
+          type: string
+        departureDate:
+          type: string
+        arrivalAirportCode:
+          type: string
+        carrierCode:
+          type: string
+
+    RiskFlightPassenger:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+
+    RiskFlightBooking:
+      type: object
+      properties:
+        agentCode:
+          type: string
+        agentName:
+          type: string
+        reservationCode:
+          type: string
+        legData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightLeg"
+        passengerData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightPassenger"
 
     SIData:
       type: object
@@ -499,46 +579,33 @@ components:
         Most fields are optional — which fields are required depends on the operation. See each
         endpoint's `required:` list for operation-specific rules.
 
-        **Note:** `required:` lists are best-effort and derived from current integration examples —
+        **Note:** The request payload format is identical for domestic and international transactions.
+        `required:` lists are best-effort and derived from current integration examples —
         validate against your integration spec or contact your PayGlocal implementation lead.
       properties:
         merchantTxnId:
           type: string
-          description: Merchant's unique transaction identifier. Required for `/initiate` and SI sale.
-          example: order_1712345678
-        merchantUniqueId:
-          type: string
-          description: Merchant's secondary unique reference.
-        refundType:
-          type: string
-          description: Full or partial refund indicator (used on refund calls).
-          enum:
-            - F
-            - P
-          example: F
-        refundAction:
-          type: string
-          description: Refund lifecycle action.
-        captureType:
-          type: string
-          description: Full or partial capture indicator (used on capture calls).
-          enum:
-            - F
-            - P
-          example: F
-        captureTxn:
-          type: boolean
-          description: If true on `/initiate`, the transaction is auto-captured post-auth.
+          description: Merchant's unique transaction identifier. Required for `/initiate` and SI sale. No length constraint.
+          example: "23AEE8CB6B62EE2AF07"
         paymentData:
           $ref: "#/components/schemas/Payment"
         riskData:
           $ref: "#/components/schemas/Risk"
-        standingInstruction:
-          $ref: "#/components/schemas/StandingInstruction"
         merchantCallbackURL:
           type: string
           format: uri
           description: URL PayGlocal redirects to after payment completion.
+
+    TransactionRequestInitiateOptions:
+      type: object
+      description: Optional fields supported on `POST /gl/v1/payments/initiate/paycollect`, in addition to `TransactionRequest`.
+      properties:
+        merchantUniqueId:
+          type: string
+          description: Merchant's secondary unique reference.
+        captureTxn:
+          type: boolean
+          description: If true on `/initiate`, the transaction is auto-captured post-auth.
         merchantCustomPayload:
           type: object
           additionalProperties:
@@ -553,7 +620,36 @@ components:
 
     ApiResponse:
       type: object
-      additionalProperties: true
+      description: Standard PayGlocal response envelope (`GlocalApiResponse`).
+      properties:
+        gid:
+          type: string
+          description: PayGlocal global transaction ID.
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: High-level status of this API response.
+          example: SUCCESS
+        message:
+          type: string
+          description: Human-readable message.
+        timestamp:
+          type: string
+          description: Response timestamp (DD/MM/YYYY HH:MM:SS).
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          description: Empty on success; populated on failure.
+          example: ""
+        data:
+          type: object
+          description: Operation-specific payload. Shape varies by endpoint.
+          additionalProperties: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Field-level validation errors (populated on 4xx).
 
     ErrorDetail:
       type: object
@@ -1419,72 +1515,52 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # ======================== Payment APIs ========================
-
-  /gl/v1/payments/initiate:
-    servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
-      - url: https://api.payglocal.in
-        description: Production
-    post:
-      operationId: initiatePayDirectPayment
-      summary: Initiate PayDirect Transaction
-      description: Starts a card-on-file payment flow (PayDirect).
-      tags:
-        - Payment
-      security: []
-      responses:
-        "200":
-          description: Transaction initiated successfully.
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /gl/v1/payments/initiate/paycollect:
-    servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
-      - url: https://api.payglocal.in
-        description: Production
-    post:
-      operationId: initiatePayCollect
-      summary: Initiate PayCollect Transaction
-      description: Starts a hosted payment-page flow (PayCollect).
-      tags:
-        - Payment
-      security: []
-      responses:
-        "200":
-          description: Transaction initiated; redirect the customer to the hosted page.
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+  # PayDirect (POST /gl/v1/payments/initiate) is defined in openapi-paydirect.yaml
+  # PayCollect (POST /gl/v1/payments/initiate/paycollect) is defined in openapi-paycollect.yaml
 
   /gl/v1/payments/{id}/status:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     get:
       operationId: getTransactionStatus
       summary: Get Transaction Status
-      description: Returns the current lifecycle status of a transaction.
+      description: |
+        Returns the current lifecycle status of a transaction. Polls safely — PayGlocal
+        will also post async updates to your `merchantCallbackURL` on terminal transitions.
       tags:
         - Payment
-      security: []
+      security:
+        - JwsTokenAuth: []
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
+          description: PayGlocal `gid` or merchant transaction ID.
           example: gl_9c2645ed09edb22e
       responses:
         "200":
           description: Status retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  merchantTxnId: order_1712345678
+                  status: SENT_FOR_CAPTURE
+                  statusDescription: Sent for Capture
+                  amount: "100.00"
+                  currency: INR
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -1492,27 +1568,61 @@ paths:
 
   /gl/v1/payments/{gid}/refund:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     post:
       operationId: refundTransaction
       summary: Refund Transaction
-      description: Initiates a full or partial refund against a captured transaction.
+      description: |
+        Initiates a full or partial refund against a captured transaction.
+        - `refundType=F` for a full refund (omit `totalAmount`).
+        - `refundType=P` for a partial refund (`totalAmount` required).
       tags:
         - Payment
-      security: []
+      security:
+        - JwsTokenAuth: []
       parameters:
         - name: gid
           in: path
           required: true
           schema:
             type: string
+          description: PayGlocal `gid` of the original transaction.
           example: gl_9c2645ed09edb22e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - refundType
+              example:
+                refundType: P
+                paymentData:
+                  totalAmount: "25.00"
+                  txnCurrency: INR
       responses:
         "200":
           description: Refund accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_refund_abcdef123
+                status: SENT_FOR_REFUND
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_refund_abcdef123
+                  originalGid: gl_9c2645ed09edb22e
+                  status: SENT_FOR_REFUND
+                  refundAmount: "25.00"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1522,27 +1632,57 @@ paths:
 
   /gl/v1/payments/{gid}/capture:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     post:
       operationId: captureTransaction
       summary: Capture Authorized Transaction
-      description: Captures an authorized-only transaction.
+      description: |
+        Captures an authorized-only transaction (i.e., one initiated with `captureTxn=false`).
+        - `captureType=F` for full capture (omit `totalAmount`).
+        - `captureType=P` for partial capture (`totalAmount` required).
       tags:
         - Payment
-      security: []
+      security:
+        - JwsTokenAuth: []
       parameters:
         - name: gid
           in: path
           required: true
           schema:
             type: string
+          description: PayGlocal `gid` of the authorized transaction.
           example: gl_9c2645ed09edb22e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - captureType
+              example:
+                captureType: F
       responses:
         "200":
           description: Capture accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: SENT_FOR_CAPTURE
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  status: SENT_FOR_CAPTURE
+                  capturedAmount: "100.00"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1552,27 +1692,50 @@ paths:
 
   /gl/v1/payments/{gid}/auth-reversal:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     post:
       operationId: reverseAuthorization
       summary: Reverse Authorized Transaction
-      description: Voids an authorization-only transaction before capture.
+      description: |
+        Voids an authorization-only transaction before it's captured. Full reversal only —
+        no partial. Not valid against captured transactions (use Refund instead).
       tags:
         - Payment
-      security: []
+      security:
+        - JwsTokenAuth: []
       parameters:
         - name: gid
           in: path
           required: true
           schema:
             type: string
+          description: PayGlocal `gid` of the authorized transaction.
           example: gl_9c2645ed09edb22e
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+            example: {}
       responses:
         "200":
           description: Authorization reversed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_9c2645ed09edb22e
+                status: REVERSED
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_9c2645ed09edb22e
+                  status: REVERSED
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1584,20 +1747,58 @@ paths:
 
   /gl/v1/payments/si/sale:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     post:
       operationId: siSubsequentSale
       summary: SI Subsequent Payment
-      description: Triggers a subsequent debit against an active mandate.
+      description: |
+        Triggers a subsequent debit against an active standing-instruction mandate.
+        Use `FIXED` for pre-agreed recurring amounts, `VARIABLE` for variable amounts
+        (subject to the mandate's `maxAmount` cap).
       tags:
         - Standing Instructions
-      security: []
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/TransactionRequest"
+                - type: object
+                  required:
+                    - merchantTxnId
+                    - standingInstruction
+                    - paymentData
+              example:
+                merchantTxnId: si_sub_1712345678
+                standingInstruction:
+                  mandateId: mandate_abc123
+                  data:
+                    type: FIXED
+                paymentData:
+                  totalAmount: "499.00"
+                  txnCurrency: INR
       responses:
         "200":
           description: Subsequent SI debit accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_sub_abcdef
+                status: INPROGRESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  gid: gl_si_sub_abcdef
+                  mandateId: mandate_abc123
+                  status: INPROGRESS
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1605,20 +1806,51 @@ paths:
 
   /gl/v1/payments/si/status:
     servers:
-      - url: https://api.uat.payglocal.in
-        description: UAT (Sandbox) — default
       - url: https://api.payglocal.in
         description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
     post:
       operationId: getSiStatus
       summary: SI Status
-      description: Returns current status for a standing-instruction mandate.
+      description: Returns current status and schedule for a standing-instruction mandate.
       tags:
         - Standing Instructions
-      security: []
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mandateId
+              properties:
+                mandateId:
+                  type: string
+                  description: PayGlocal-issued mandate identifier.
+                  example: mandate_abc123
+            example:
+              mandateId: mandate_abc123
       responses:
         "200":
           description: Mandate status retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_status_001
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  mandateId: mandate_abc123
+                  mandateStatus: ACTIVE
+                  nextDebitDate: "2026-05-01"
+                  completedPayments: 3
+                  totalPayments: 12
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1626,13 +1858,49 @@ paths:
     put:
       operationId: revokeSiMandate
       summary: SI Cancellation
-      description: Cancels, pauses, or activates a standing-instruction mandate.
+      description: |
+        Cancels (revokes) an active standing-instruction mandate. Future scheduled debits
+        will not be attempted.
       tags:
         - Standing Instructions
-      security: []
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mandateId
+                - action
+              properties:
+                mandateId:
+                  type: string
+                  example: mandate_abc123
+                action:
+                  type: string
+                  enum:
+                    - REVOKE
+                  example: REVOKE
+            example:
+              mandateId: mandate_abc123
+              action: REVOKE
       responses:
         "200":
           description: Mandate revoked.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                gid: gl_si_revoke_001
+                status: SUCCESS
+                timestamp: "10/01/2026 15:00:00"
+                reasonCode: ""
+                data:
+                  mandateId: mandate_abc123
+                  mandateStatus: REVOKED
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

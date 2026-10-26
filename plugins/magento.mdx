@@ -1,46 +1,87 @@
 ---
 title: "Magento"
-description: "Install the PayGlocal module on your Magento (Adobe Commerce) store."
-icon: "magento"
+description: "Accept cross-border payments on your Magento store using PayGlocal."
+icon: "store"
 ---
 
-## Prerequisites
+## What is Magento?
 
-- A Magento 2.x / Adobe Commerce store with admin access.
-- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
-- The PayGlocal module archive — contact your PayGlocal account manager to obtain the latest build.
+Magento is an open-source eCommerce platform built for B2B and B2C businesses. The platform allows building strong and powerful storefronts, which can be customised as per the business requirements. In 2018, this open-source eCommerce platform was acquired by Adobe and is now known as Adobe Commerce.
 
-## Install
+## Magento with PayGlocal
+
+PayGlocal integration with Magento allows merchants to accept cross-border payments securely through internet banking and debit/credit cards. The Magento extension makes it possible for merchants to easily integrate the PayGlocal Payment Gateway with their stores.
+
+<Note>
+  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
+</Note>
+
+## Plugin Download
+
+Download the extension based on your Magento and PHP version. If you are not able to see the download link for your version, kindly reach out to your account manager.
+
+| Magento Version | PHP Version | Download |
+|---|---|---|
+| 1.9 | 5.6 | [Download](mailto:support@payglocal.in?subject=Magento%20Plugin%201.9%20PHP5.6) |
+| 2.x | 7.2 – 7.4 | [Download](mailto:support@payglocal.in?subject=Magento%20Plugin%202.x%20PHP7.2-7.4) |
+| 2.0.0 | 5.6 | [Download](mailto:support@payglocal.in?subject=Magento%20Plugin%202.0.0%20PHP5.6) |
+
+## Plugin Installation
 
 <Steps>
-  <Step title="Download the module">
-    Obtain the latest `payglocal-magento.zip` from your PayGlocal account manager.
+  <Step title="Copy extension files">
+    Unzip the extension file and copy all the folders to the Magento root directory.
   </Step>
-  <Step title="Extract into app/code">
-    Unzip into `app/code/PayGlocal/Payment/` on your Magento server.
+  <Step title="Log in to Magento admin and clear cache">
+    Log in to your Magento admin panel and go to **System → Cache Management**. Select all the cache and refresh.
   </Step>
-  <Step title="Enable the module">
-    Run:
-
-    ```bash
-    php bin/magento module:enable PayGlocal_Payment
-    php bin/magento setup:upgrade
-    php bin/magento setup:di:compile
-    php bin/magento cache:flush
-    ```
-  </Step>
-  <Step title="Configure">
-    In the Magento admin, go to **Stores → Configuration → Sales → Payment Methods → PayGlocal**. Enter your API Key and RSA keys.
-  </Step>
-  <Step title="Enable">
-    Set **Enabled** to **Yes** and save the configuration.
+  <Step title="Open Configuration">
+    Go to **System → Configuration** to configure the extension.
   </Step>
 </Steps>
 
-## Test
+## Configuration
 
-Place a test order with the [test cards](/reference/test-cards) to verify checkout.
+<Steps>
+  <Step title="Navigate to PayGlocal settings">
+    Log in to your Magento admin panel and go to **System → Configuration → Sales → Payment Methods → PayGlocal**.
+  </Step>
+  <Step title="Configure the extension fields">
+    Fill in the fields as described in the table below.
+  </Step>
+</Steps>
+
+### Field Reference
+
+| Field | Description |
+|---|---|
+| **Enabled** | Select **Yes** to enable the PayGlocal extension. |
+| **Title** | Enter a custom title for the payment method shown to customers on the frontend. |
+| **Sandbox Mode** | Enable or disable sandbox mode as per your requirements. |
+| **Merchant ID** | Enter your Merchant ID from the PayGlocal dashboard — visible in the top bar when logged in. |
+| **Public Key** | Enter the PayGlocal public key from the merchant account dashboard. |
+| **Private Key** | Enter the PayGlocal private key from the merchant account dashboard. |
+| **Public PEM** | Upload the public PEM file downloaded from the PayGlocal merchant account dashboard. |
+| **Private PEM** | Upload the private PEM file downloaded from the PayGlocal merchant account dashboard. |
+| **Payment from Applicable Countries** | Select whether to allow customers from all countries or only selected countries. |
+| **Payment from Specific Countries** | Select the specific countries allowed to use the PayGlocal payment gateway. |
+| **Sort Order** | Enter the sort order for PayGlocal in case of multiple payment methods in your store. |
+| **Minimum Order Amount** | Enter the minimum order amount required to use the PayGlocal payment gateway. |
 
 <Note>
-  Detailed screenshot walkthrough is published on the merchant help centre.
+  For details on fetching your Merchant ID, keys, and PEM files, refer to the [Key Management](/getting-started/dashboard-and-key-management) section.
 </Note>
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/magento-payment-methods.png" alt="Magento PayGlocal payment method configuration screen" />
+</div>
+
+<Steps>
+  <Step title="Save the configuration">
+    Click **Save Config** at the top-right corner of the page.
+  </Step>
+</Steps>
+
+<Check>
+  **Setup Successful** — Once you have followed all the steps above, your Magento store is ready to accept online payments through PayGlocal.
+</Check>

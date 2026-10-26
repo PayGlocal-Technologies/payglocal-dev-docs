@@ -1,0 +1,51 @@
+---
+title: "Get Transaction Status"
+description: "Poll payment status after GPI — recommended after every transaction (PayDirect and PayCollect)."
+openapi: "GET /gl/v1/payments/{id}/status"
+---
+
+## When to Use
+
+Call status **after every payment initiation**, once the customer completes (or abandons) the flow. PayGlocal also sends lifecycle updates to your `merchantCallbackURL`, but **status polling is the recommended way to confirm the final outcome** and reconcile orders if a callback is delayed, retried, or missed.
+
+Use this endpoint for all GPI transactions — **PayDirect and PayCollect**, cards, UPI, net banking, Apple Pay, and global alternative payments.
+
+---
+
+## API
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **Path** | `/gl/v1/payments/{id}/status` |
+| **Production** | `https://api.payglocal.in/gl/v1/payments/{gid}/status` |
+| **Sandbox** | `https://api.uat.payglocal.in/gl/v1/payments/{gid}/status` |
+
+Pass PayGlocal `gid` or your `merchantTxnId` as `{id}`. Alternatively, call the pre-signed **`data.statusUrl`** from the [GPI initiate](/api-reference/payments-v2/paydirect/gpi) response.
+
+---
+
+## Headers
+
+| Header | Mandatory | Description |
+|--------|-----------|-------------|
+| `x-gl-token-external` | Yes | RSA-signed **JWS** (see [Key Management](/key-management/overview)) |
+| `x-gl-merchantid` | Yes | Your PayGlocal merchant ID (MID) |
+| `x-gl-kid` | Yes | Key ID used to sign the JWS |
+
+---
+
+## Notes
+
+- Top-level `status` is the transaction state (e.g. `SENT_FOR_CAPTURE`, `AUTHORIZED`, `INPROGRESS`). The nested `data.status` often mirrors it for successful payments.
+- The `data` object **varies by `payment-method`** — use the **Responses** examples below (card, UPI, net banking, global alt pay, authorized card).
+- For auth-only flows (`captureTxn: false`), expect `AUTHORIZED` until you call [capture](/api-reference/payment/standalone-capture).
+
+---
+
+## Error Scenarios
+
+| Scenario | HTTP code |
+|----------|-----------|
+| Unknown or invalid `gid` / `merchantTxnId` | `404` |
+| Missing or invalid JWS | `401` |

@@ -181,11 +181,34 @@ If the auto-fetch fails, PayGlocal will flag the onboarding with status `RFI` an
 
 ---
 
+## Dynamic document pendencies
+
+Every onboarding API response includes `documentsToBeUploaded` in the checklist status. This array tells you exactly which documents are still required for the current merchant state. Poll [Get Onboarding Status](/api-reference/get-status) after each step to get the updated list.
+
+| Trigger | `documentsToBeUploaded` key | `merchantDocType` for upload |
+|---------|----------------------------|------------------------------|
+| Operating address ≠ registered address | `OPERATING_ADDRESS_PROOF` | `OPERATING_ADDRESS_PROOF` |
+| Sole Proprietor | `SOLE_PROP_DOC_1_UPLOAD`, `SOLE_PROP_DOC_2_UPLOAD` | Any value from `solePropDocs` in the response: `UDYAM`, `UTILITY_BILL`, `ITR`, `SHOP_ESTABLISHMENT_CERTIFICATE`, `IEC`, `GST_SUPPORTING_CERTIFICATE` |
+| PVT LTD / Partnership — beneficial owner Aadhaar | `{PAN}_{NAME}_AADHAR` | Dynamic per BO (e.g. `ABCDE1234F_JOHN_DOE_AADHAR`) |
+| Auth signatory is not a beneficial owner | `REPRESENTATIVE_DOC` | `REPRESENTATIVE_DOC` |
+| Partnership Firm | `PARTNERSHIP_DEED`, `PARTNERSHIP_REGISTRATION_CERTIFICATE` | `PARTNERSHIP_DEED`, `PARTNERSHIP_REGISTRATION_CERTIFICATE` |
+| Partnership — unregistered firm | — | Set `noPartnershipRegistrationCheck: true` in [Update Business Details](/api-reference/update-business-details) to skip `PARTNERSHIP_REGISTRATION_CERTIFICATE` |
+| LLP (Firm) | `LLP_AGREEMENT` | `LLP_AGREEMENT` |
+| Individual + website contains linkedin/instagram + Services business | `FREELANCER_DOC_UPLOAD` | `ITR`, `SERVICE_LEVEL_AGREEMENT`, or `BANK_STATEMENT` |
+| Regulated line of business | `LOB_DOCUMENT` | `LOB_DOCUMENT` |
+| Penny drop verification fails (Production) | `CANCELLED_CHEQUE` | `CANCELLED_CHEQUE` |
+
+<Note>
+  In UAT, use bank account `1234567890` and IFSC `SBIN0000000` for successful penny drop. Any other combination triggers a `CANCELLED_CHEQUE` pendency. See [Sandbox Testing](/guides/testing#partner-onboarding-bank-verification).
+</Note>
+
+---
+
 <CardGroup cols={2}>
   <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
     End-to-end sequence of all 10 onboarding endpoints.
   </Card>
-  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
-    Embed the DigiLocker / T&C / VKYC flow for your merchants.
+  <Card title="Events & Webhooks" icon="bell" href="/guides/partner-onboarding-events">
+    Track merchant progress via postMessage and webhooks.
   </Card>
 </CardGroup>

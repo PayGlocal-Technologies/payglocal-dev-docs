@@ -1,0 +1,28 @@
+If you hold a network token or alternative card ID instead of the raw PAN, send a `tokenData`
+block in place of `cardData`:
+
+```json
+"tokenData": {
+  "altId": "true",
+  "number": "4039073788299302",
+  "expiryMonth": "07",
+  "expiryYear": "2023",
+  "cryptogram": "ASNJBSHA988943NJS",
+  "requestorID": "BBFH8838NK",
+  "hashOfFirstSix": "fnweiu9432iu43299234",
+  "firstSix": "403907",
+  "lastFour": "2023",
+  "cardBrand": "visa"
+}
+```
+
+| Field | Description |
+|---|---|
+| `altId` | Set to `"true"` to indicate this is an alternative ID / network token |
+| `number` | Token PAN |
+| `cryptogram` | TAVV / CAVV cryptogram |
+| `requestorID` | Token requestor ID issued by the network |
+| `hashOfFirstSix` | Hash of the first 6 digits of the original PAN |
+| `firstSix` | BIN of the original card |
+| `lastFour` | Last 4 digits of the original card |
+| `cardBrand` | Card network: `visa`, `mastercard`, `rupay`, etc. |

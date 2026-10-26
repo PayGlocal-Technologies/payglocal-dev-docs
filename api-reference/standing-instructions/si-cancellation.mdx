@@ -6,7 +6,7 @@ openapi: "PUT /gl/v1/payments/si/status"
 
 ## When to Use
 
-Revoke an active standing-instruction mandate. Future scheduled debits will not be attempted. Once revoked, the mandate cannot be reactivated — a new mandate must be created via `/initiate`.
+Revoke an active standing-instruction mandate. Future scheduled or on-demand debits will not be attempted. Once revoked, the mandate cannot be reactivated — register again via [PayDirect](/api-reference/payments-v2/paydirect/si-on-demand) or [PayCollect](/api-reference/payments-v2/paycollect/si-on-demand) initiate. See **Standing Instruction Sale** in the API Reference sidebar.
 
 ## Common Failure Responses
 

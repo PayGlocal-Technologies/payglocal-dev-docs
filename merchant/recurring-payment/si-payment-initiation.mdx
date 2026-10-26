@@ -1,0 +1,115 @@
+---
+title: "SI Payment Initiation"
+sidebarTitle: "SI Payment Initiation"
+description: "Create a recurring mandate alongside the first payment — Fixed (Auto Debit) or Variable (On-Demand)."
+---
+
+The mandate is created alongside the customer's first payment. Add the `standingInstruction.data` block to your payment request. The **Mandate ID** returned in the response is your key for every future operation.
+
+## Two Recurring Models
+
+<CardGroup cols={2}>
+  <Card title="Fixed — Auto Debit" icon="robot" color="#10B981">
+    Same amount debited automatically on a set schedule. No API call needed per cycle — PayGlocal handles it.
+
+    **Use for:** Subscriptions, EMIs, memberships, insurance premiums.
+  </Card>
+  <Card title="Variable — On-Demand" icon="hand-pointer" color="#F59E0B">
+    You trigger each charge manually via the SI On-Demand API. Amount can vary up to a defined ceiling.
+
+    **Use for:** Utility bills, usage-based billing, wallet top-ups.
+  </Card>
+</CardGroup>
+
+## Payloads
+
+<CardGroup cols={2}>
+  <Card title="Fixed SI — Auto Debit" icon="lock" color="#10B981">
+    ```
+    POST /gl/v1/payments/initiate/paycollect
+    ```
+
+    ```json
+    {
+      "merchantTxnId": "1756728757520948273",
+      "paymentData": {
+        "totalAmount": "499.00",
+        "txnCurrency": "INR"
+      },
+      "standingInstruction": {
+        "data": {
+          "amount": "499.00",
+          "numberOfPayments": "12",
+          "frequency": "MONTHLY",
+          "type": "FIXED",
+          "startDate": "20251001"
+        }
+      },
+      "merchantCallbackURL": "https://api.uat.payglocal.in/gl/v1/payments/merchantCallback"
+    }
+    ```
+  </Card>
+  <Card title="Variable SI — On-Demand" icon="chart-bar" color="#F59E0B">
+    ```
+    POST /gl/v1/payments/initiate/paycollect
+    ```
+
+    ```json
+    {
+      "merchantTxnId": "23AEE8CB6B62EE2AF07",
+      "paymentData": {
+        "totalAmount": "89",
+        "txnCurrency": "USD"
+      },
+      "standingInstruction": {
+        "data": {
+          "maxAmount": "500",
+          "numberOfPayments": "12",
+          "frequency": "ONDEMAND",
+          "type": "VARIABLE",
+          "startDate": "20260601"
+        }
+      },
+      "merchantCallbackURL": "https://yoursite.com/callback"
+    }
+    ```
+  </Card>
+</CardGroup>
+
+## Standing Instruction Object Fields
+
+### Fixed SI (`type: "FIXED"`)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `amount` | string | Yes | Fixed amount to be debited on each cycle (e.g., `"499.00"`) |
+| `numberOfPayments` | string | Yes | Total number of payment cycles to run (e.g., `"12"` for 12 months) |
+| `frequency` | string | Yes | Billing cadence — `DAILY`, `WEEKLY`, `MONTHLY`, `QUARTERLY`, `YEARLY` |
+| `type` | string | Yes | Must be `"FIXED"` for auto-debit mandates |
+| `startDate` | string | Yes | Date the recurring schedule begins, in `YYYYMMDD` format (e.g., `"20251001"`) |
+
+### Variable SI (`type: "VARIABLE"`)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `maxAmount` | string | Yes | Maximum amount that can be charged per on-demand deduction (e.g., `"500"`) |
+| `numberOfPayments` | string | Yes | Total number of on-demand deductions allowed under this mandate |
+| `frequency` | string | Yes | Must be `"ONDEMAND"` for variable/on-demand mandates |
+| `type` | string | Yes | Must be `"VARIABLE"` for on-demand mandates |
+| `startDate` | string | Yes | Date the mandate becomes active, in `YYYYMMDD` format (e.g., `"20260601"`) |
+
+**Response — store the Mandate ID:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "CREATED",
+  "data": {
+    "redirectUrl": "https://...",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+<Warning>
+  **Store the `mandateId` securely.** Every future operation — charging, pausing, activating, status checks — requires it. It cannot be retrieved again.
+</Warning>

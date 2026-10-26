@@ -7,14 +7,18 @@
     "light": "#4A90E8",
     "dark": "#1A6FE8"
   },
-  "favicon": "/logo/favicon.svg",
+  "favicon": "/logo/favicon.png",
   "logo": {
     "light": "/logo/light.png",
     "dark": "/logo/dark.png"
   },
   "font": {
-    "headings": { "family": "Outfit" },
-    "body": { "family": "Outfit" }
+    "headings": {
+      "family": "Outfit"
+    },
+    "body": {
+      "family": "Outfit"
+    }
   },
   "background": {
     "decoration": "grid"
@@ -22,80 +26,103 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Getting Started",
+        "tab": "Guides",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Introduction",
             "pages": [
-              "introduction",
-              "guides/integration-chooser",
-              "requirements",
-              "getting-started/gcc-dashboard",
-              "getting-started/payglocal-identifiers"
+              "introduction"
             ]
           },
           {
-            "group": "Security Setup",
+            "group": "Onboarding",
             "pages": [
-              "key-management/overview",
-              "key-management/private-key",
-              "key-management/public-certificate",
-              "key-management/request-construction",
-              "authentication"
-            ]
-          },
-          {
-            "group": "Partner: Merchant Onboarding",
-            "pages": [
-              "guides/api-flow-overview",
+              "onboarding/overview",
               "guides/merchant-requirements",
-              "guides/iframe-integration",
-              "guides/webhooks"
+              "guides/api-flow-overview",
+              "authentication",
+              "guides/partner-onboarding-events",
+              "guides/iframe-integration"
             ]
           },
           {
-            "group": "Merchant: Accept Payments",
+            "group": "Dashboard",
             "pages": [
-              "integration/payment-flow",
-              "payment-services/gpi-service",
-              "payment-services/get-status-service",
-              "payment-services/refund-service",
-              "payment-services/standalone-services",
-              "payment-services/standing-instructions"
+              "getting-started/payglocal-dashboards",
+              "getting-started/dashboard-and-key-management"
             ]
           },
           {
-            "group": "Merchant: Payment Links (No-Code)",
+            "group": "Integration",
             "pages": [
-              "no-code/payment-links-overview",
-              "no-code/payment-link-generation",
-              "no-code/payment-link-management"
+              "integration/overview",
+              {
+                "group": "No-Code Integration",
+                "icon": "sparkles",
+                "pages": [
+                  "no-code/overview",
+                  "no-code/payment-link",
+                  "no-code/invoice-link",
+                  "no-code/payment-button"
+                ]
+              },
+              {
+                "group": "API Integration",
+                "icon": "code",
+                "pages": [
+                  "integration/api-overview",
+                  {
+                    "group": "Integration Modes",
+                    "icon": "shuffle",
+                    "pages": [
+                      "merchant/paycollect/overview",
+                      "merchant/paydirect/overview"
+                    ]
+                  },
+                  {
+                    "group": "Payment Types",
+                    "icon": "layer-group",
+                    "pages": [
+                      "merchant/regular-payment",
+                      "api-reference/payment/upi",
+                      "merchant/recurring-payment",
+                      "merchant/auth-capture-guide",
+                      "merchant/paycollect/codedrop"
+                    ]
+                  }
+                ]
+              }
             ]
           },
           {
-            "group": "Merchant: E-commerce Plugins",
+            "group": "Integration Resources",
+            "pages": [
+              "merchant/payment-flow",
+              "merchant/webhooks",
+              "merchant/payment-response-handling",
+              "merchant/sdks"
+            ]
+          },
+          {
+            "group": "Merchant store plugins",
             "pages": [
               "plugins/overview",
               "plugins/shopify",
               "plugins/woocommerce",
               "plugins/magento",
               "plugins/opencart",
-              "plugins/wix"
+              "plugins/wix",
+              "plugins/bagisto"
             ]
           },
           {
-            "group": "Reference",
+            "group": "MCA Integration",
             "pages": [
-              "api-fields/transaction-payment-fields",
-              "api-fields/risk-data-fields",
-              "api-fields/response-fields",
-              "reference/response-codes-and-errors",
-              "reference/response-structure",
-              "reference/business-categories",
-              "reference/state-codes",
-              "reference/rate-limits",
-              "reference/test-cards",
-              "reference/faq"
+              "mca/overview",
+              "mca/account-fetch",
+              "mca/webhooks",
+              "mca/document-upload",
+              "mca/troubleshooting"
             ]
           }
         ]
@@ -114,63 +141,351 @@
               "api-reference/update-auth-signatory",
               "api-reference/upload-documents",
               "api-reference/configure-products",
-              "api-reference/verify-merchant",
+              "api-reference/get-verification-redirect",
               "api-reference/get-status",
               "api-reference/get-business-categories"
             ]
           },
           {
-            "group": "Merchant APIs: Payments",
+            "group": "Payment APIs",
+            "icon": "credit-card",
+            "expanded": true,
             "pages": [
               "api-reference/payment/overview",
-              "api-reference/payment/gpi-paycollect",
-              "api-reference/payment/gpi-initiate",
-              "api-reference/payment/get-status",
-              "api-reference/payment/refund"
+              {
+                "group": "Seamless Flow (PayDirect)",
+                "icon": "code",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/paydirect/overview",
+                  "api-reference/payments-v2/paydirect/gpi",
+                  "api-reference/payments-v2/paydirect/si-on-demand",
+                  "api-reference/payments-v2/paydirect/si-auto-debit",
+                  "api-reference/payments-v2/paydirect/auth-capture-authorise"
+                ]
+              },
+              {
+                "group": "Checkout Flow (PayCollect)",
+                "icon": "window",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/paycollect/overview",
+                  "api-reference/payments-v2/paycollect/gpi",
+                  "api-reference/payments-v2/paycollect/si-on-demand",
+                  "api-reference/payments-v2/paycollect/si-auto-debit",
+                  "api-reference/payments-v2/paycollect/auth-capture-authorise"
+                ]
+              },
+              {
+                "group": "Standing Instruction Sale",
+                "icon": "repeat",
+                "expanded": true,
+                "pages": [
+                  "api-reference/standing-instructions/si-subsequent-payment",
+                  "api-reference/standing-instructions/si-status",
+                  "api-reference/standing-instructions/si-cancellation"
+                ]
+              },
+              {
+                "group": "Capture & reversal",
+                "icon": "shield-check",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payment/standalone-capture",
+                  "api-reference/payment/standalone-reversal"
+                ]
+              },
+              {
+                "group": "Status",
+                "icon": "signal",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payments-v2/common/get-transaction-status"
+                ]
+              },
+              {
+                "group": "Refund",
+                "icon": "undo",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payment/refund"
+                ]
+              },
+              {
+                "group": "CodeDrop",
+                "icon": "square-code",
+                "expanded": true,
+                "pages": [
+                  "api-reference/codedrop"
+                ]
+              },
+              {
+                "group": "Callback Handling",
+                "icon": "webhook",
+                "expanded": true,
+                "pages": [
+                  "api-reference/callback-handling"
+                ]
+              },
+              {
+                "group": "Payload Templates",
+                "icon": "clipboard-list",
+                "expanded": true,
+                "pages": [
+                  "api-reference/payload-templates"
+                ]
+              }
             ]
           },
           {
-            "group": "Merchant APIs: Auth & Capture",
+            "group": "Partner APIs: MCA",
             "pages": [
-              "api-reference/payment/standalone-capture",
-              "api-reference/payment/standalone-reversal"
-            ]
-          },
-          {
-            "group": "Merchant APIs: Standing Instructions",
-            "pages": [
-              "api-reference/standing-instructions/si-subsequent-payment",
-              "api-reference/standing-instructions/si-cancellation",
-              "api-reference/standing-instructions/si-status"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Changelog",
-        "groups": [
-          {
-            "group": "Changelog",
-            "pages": [
-              "changelog/index"
+              "api-reference/mca/overview",
+              "api-reference/mca/account-fetch",
+              "api-reference/mca/document-upload",
+              "api-reference/mca/mca-ingestion"
             ]
           }
         ]
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/onboarding/merchant",
+      "destination": "/onboarding/overview",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/payment/gpi-initiate",
+      "destination": "/api-reference/payments-v2/paydirect/gpi",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/payment/gpi-paycollect",
+      "destination": "/api-reference/payments-v2/paycollect/gpi",
+      "permanent": false
+    },
+    {
+      "source": "/api-reference/payment/get-status",
+      "destination": "/api-reference/payments-v2/common/get-transaction-status",
+      "permanent": false
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/introduction",
+      "permanent": false
+    },
+    {
+      "source": "/no-code/payment-links-overview",
+      "destination": "/no-code/payment-link",
+      "permanent": false
+    },
+    {
+      "source": "/no-code/payment-button-overview",
+      "destination": "/no-code/payment-button",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/no-code-products",
+      "destination": "/no-code/overview",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/no-code/overview",
+      "destination": "/no-code/overview",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/no-code/payment-link",
+      "destination": "/payment-products/no-code-products#payment-link",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/no-code/payment-invoice-link",
+      "destination": "/payment-products/no-code-products#payment-invoice-link",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/no-code/payment-button",
+      "destination": "/payment-products/no-code-products#payment-button",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/api-based/integration-type",
+      "destination": "/payment-products/api-based-products",
+      "permanent": false
+    },
+    {
+      "source": "/payment-products/api-based/integration-details",
+      "destination": "/payment-products/payment-methods-by-payglocal#payment-types-api-map",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/rp-initiation",
+      "destination": "/merchant/regular-payment#payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/rp-transactions",
+      "destination": "/merchant/regular-payment#transaction-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-initiation",
+      "destination": "/merchant/recurring-payment#si-payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-transactions",
+      "destination": "/merchant/recurring-payment#si-transaction-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-mandate-status",
+      "destination": "/merchant/recurring-payment#si-status-check",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-mandate-pause",
+      "destination": "/merchant/recurring-payment#si-pause-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-mandate-activate",
+      "destination": "/merchant/recurring-payment#si-activate-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/si-mandate-cancel",
+      "destination": "/merchant/recurring-payment#si-cancel-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/regular-payment/payment-initiation",
+      "destination": "/merchant/regular-payment#payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/regular-payment/transaction-management",
+      "destination": "/merchant/regular-payment#transaction-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-payment-initiation",
+      "destination": "/merchant/recurring-payment#si-payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-transaction-management",
+      "destination": "/merchant/recurring-payment#si-transaction-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-mandate-management",
+      "destination": "/merchant/recurring-payment#si-mandate-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-status-check",
+      "destination": "/merchant/recurring-payment#si-status-check",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-pause-mandate",
+      "destination": "/merchant/recurring-payment#si-pause-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-activate-mandate",
+      "destination": "/merchant/recurring-payment#si-activate-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/recurring-payment/si-cancel-mandate",
+      "destination": "/merchant/recurring-payment#si-cancel-mandate",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/auth-capture/auth-payment-initiation",
+      "destination": "/merchant/auth-capture-guide#auth-payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/auth-capture/authorization-management",
+      "destination": "/merchant/auth-capture-guide#authorization-management",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/auth-capture/auth-full-capture",
+      "destination": "/merchant/auth-capture-guide#auth-full-capture",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/auth-capture/auth-partial-capture",
+      "destination": "/merchant/auth-capture-guide#auth-partial-capture",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/auth-capture/auth-reversal",
+      "destination": "/merchant/auth-capture-guide#auth-reversal",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/ac-initiation",
+      "destination": "/merchant/auth-capture-guide#auth-payment-initiation",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/ac-full-capture",
+      "destination": "/merchant/auth-capture-guide#full-capture",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/ac-partial-capture",
+      "destination": "/merchant/auth-capture-guide#partial-capture",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/ac-reversal",
+      "destination": "/merchant/auth-capture-guide#auth-reversal",
+      "permanent": false
+    },
+    {
+      "source": "/merchant/payload-templates",
+      "destination": "/api-reference/payload-templates",
+      "permanent": false
+    }
+  ],
   "api": {
-    "openapi": "openapi.yaml",
+    "openapi": [
+      "openapi.yaml",
+      "openapi-paydirect.yaml",
+      "openapi-v2-paycollect-gpi.yaml",
+      "openapi-v2-paycollect-si-on-demand.yaml",
+      "openapi-v2-paycollect-si-auto-debit.yaml",
+      "openapi-v2-paycollect-auth.yaml",
+      "openapi-v2-paydirect-gpi.yaml",
+      "openapi-v2-paydirect-si-on-demand.yaml",
+      "openapi-v2-paydirect-si-auto-debit.yaml",
+      "openapi-v2-paydirect-auth.yaml"
+    ],
     "playground": {
       "mode": "simple"
     },
     "examples": {
-      "languages": ["bash", "python", "java", "node"]
+      "languages": [
+        "bash",
+        "python",
+        "java",
+        "node"
+      ]
     }
   },
   "appearance": {
     "default": "system"
   },
+  "css": "custom.css",
   "navbar": {
     "links": [
       {
@@ -181,7 +496,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://merchant.payglocal.in"
+      "href": "https://dashboard.payglocal.in/app/login"
     }
   },
   "footer": {

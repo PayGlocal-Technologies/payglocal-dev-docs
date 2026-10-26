@@ -10,13 +10,13 @@ Built on [Mintlify](https://mintlify.com) (Sequoia theme). MDX for narrative, Op
 
 ```bash
 npm i -g mint         # one-time
-mintlify dev          # http://localhost:3000
+mint dev              # http://localhost:3000
 ```
 
-Node 20+. MDX edits hot-reload; **restart after editing `openapi.yaml`** (the spec is cached at startup).
+Node 20 or 22 (LTS). Node 25+ is not supported by the Mintlify CLI. MDX edits hot-reload; **restart after editing `openapi.yaml`** (the spec is cached at startup).
 
 ```bash
-mintlify broken-links # run before opening a PR
+mint broken-links     # run before opening a PR
 ```
 
 ---
@@ -71,7 +71,7 @@ Different audiences, different schemes. They never cross-reference directly.
 
 | Audience | Scheme | Headers | Base URL |
 |----------|--------|---------|----------|
-| **Partner** (Onboarding) | API Key + HMAC-SHA256 | `x-api-key`, `x-gl-digest` | `api.onboard.payglocal.in` |
+| **Partner** (Onboarding) | API Key + HMAC-SHA256 | `x-gl-auth`, `x-gl-digest` | `api.onboard.payglocal.in` |
 | **Merchant** (Payment / SI) | RSA-signed JWS | `x-gl-token-external` | `api.payglocal.in` |
 
 Each path in `openapi.yaml` has its own `servers:` block that overrides the top-level list.

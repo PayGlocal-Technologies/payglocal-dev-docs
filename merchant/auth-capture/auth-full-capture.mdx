@@ -1,0 +1,27 @@
+---
+title: "Auth Full Capture"
+sidebarTitle: "Auth Full Capture"
+description: "Collect the full authorized amount in a single call."
+---
+
+Capture the complete authorized amount. The authorization is closed and funds are transferred to your settlement account.
+
+```
+POST /gl/v1/payments/{gid}/capture
+```
+
+```json
+{
+  "merchantTxnId": "CAPTURE-2026-0001"
+}
+```
+
+**Response:**
+```json
+{
+  "gid": "gl-auth-3a2f9b1c-...",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Capture initiated successfully",
+  "data": { "capturedAmount": "120.00" }
+}
+```

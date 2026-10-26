@@ -1,0 +1,189 @@
+---
+title: "Partner Onboarding Events"
+description: "How PayGlocal notifies your platform when a merchant progresses through the onboarding journey — iFrame postMessage events and server-side webhooks."
+icon: "bell"
+---
+
+PayGlocal provides two channels for partners to track merchant onboarding progress:
+
+| Channel | Delivery | Best for |
+|---------|----------|----------|
+| **UI Events (postMessage)** | Browser → parent page | Real-time UX updates while the iFrame is open |
+| **Webhooks** | Server → your endpoint | Reliable async notifications for backend workflows |
+
+<Warning>
+  Always confirm the final onboarding state with a server-side [Get Onboarding Status](/api-reference/get-status) call. Neither UI events nor webhooks alone should be treated as the source of truth for go-live decisions.
+</Warning>
+
+---
+
+## UI Events (iFrame postMessage)
+
+When you embed the PayGlocal verification iFrame, the verification page communicates with your parent page using the browser's `postMessage` API.
+
+### Listening for completion
+
+```javascript
+window.addEventListener("message", (event) => {
+  const allowedOrigins = [
+    "https://uat.dashboard.payglocal.in",
+    "https://dashboard.payglocal.in"
+  ];
+  if (!allowedOrigins.includes(event.origin)) return;
+
+  console.log("Message received:", event.data);
+
+  if (event.data === "PARTNER_MERCHANT_VERIFICATION_COMPLETE") {
+    console.log("Onboarding verification completed!");
+    // Trigger server-side GET /status to confirm final state
+  }
+});
+```
+
+| Event value | Meaning |
+|-------------|---------|
+| `PARTNER_MERCHANT_VERIFICATION_COMPLETE` | Merchant has finished the full verification flow (T&C, DigiLocker, VKYC) |
+
+During intermediate steps, the iFrame may also emit structured events:
+
+```javascript
+{
+  eventName: "PARTNER_MERCHANT_VERIFICATION_REDIRECT",
+  eventData: {
+    uri: "https://...",
+    stepName: "DIGILOCKER",
+    subStepId: "CONSENT_PROCEED"
+  }
+}
+```
+
+### Best practices
+
+- **Validate `event.origin`** — only accept messages from `https://uat.dashboard.payglocal.in` (UAT) or `https://dashboard.payglocal.in` (Production). The iFrame loads the PayGlocal dashboard partner onboarding experience, not a separate verify subdomain.
+- **Follow with GET /status** — the postMessage signals UI completion; confirm `vkyc`, `digiLocker`, and `onboardingStatus` server-side before updating your merchant record.
+- See [iFrame Integration](/guides/iframe-integration) for the full embed workflow.
+
+---
+
+## Webhook Events
+
+PayGlocal sends server-side webhook notifications to URLs configured in your PayGlocal Partner Dashboard. Webhooks fire for **partner-assisted** merchant onboardings only.
+
+Configure which events you receive via `POST /gcc/v2/partner/{resellerMid}/webhook`. List available event types with `GET /gcc/v2/partner/webhook`.
+
+### Supported events
+
+| Event | When fired | Description |
+|-------|-----------|-------------|
+| `MERCHANT_DIGILOCKER_CKYC_COMPLETED` | DigiLocker or CKYC verification completes | Identity verification step finished |
+| `MERCHANT_TERMS_AND_CONDITIONS_ACKNOWLEDGED` | Merchant accepts T&C | Terms and conditions acknowledged |
+| `MERCHANT_VKYC_COMPLETED` | VKYC session completes | Video KYC finished |
+| `MERCHANT_STATUS_ACCEPTED` | Merchant is activated | Onboarding approved and merchant goes live |
+| `MERCHANT_PENDENCY_STATUS_UPDATED` | Pendency status changes | Document or compliance pendency updated |
+
+<Note>
+  System-created pendencies with status `UNDER_REVIEW` are **not** sent to partners. Only partner-visible pendency updates trigger this webhook.
+</Note>
+
+---
+
+## Webhook Payload Structure
+
+All onboarding webhook payloads are flat key-value maps (`Map<String, String>`).
+
+### Common fields (all events)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `onboarding_id` | string | PayGlocal onboarding ID |
+| `onboarding_status` | string | Current `NewOnboardingStatus` value |
+| `event_timestamp` | string | Unix epoch milliseconds when the event was generated |
+| `status` | string | Event type name (matches the event enum) |
+
+### Event-specific fields
+
+**`MERCHANT_STATUS_ACCEPTED`**
+
+| Field | Description |
+|-------|-------------|
+| `merchant_id` | Activated merchant ID (UCIC) |
+| `event_timestamp` | Go-live timestamp (overwritten with go-live time) |
+
+**`MERCHANT_TERMS_AND_CONDITIONS_ACKNOWLEDGED`**
+
+| Field | Description |
+|-------|-------------|
+| `terms_and_conditions_acknowledged` | `"true"` |
+
+**`MERCHANT_VKYC_COMPLETED`**
+
+| Field | Description |
+|-------|-------------|
+| `vkyc_completed` | `"true"` |
+
+**`MERCHANT_DIGILOCKER_CKYC_COMPLETED`**
+
+| Field | Description |
+|-------|-------------|
+| `digilocker_ckyc_completed` | `"true"` |
+
+**`MERCHANT_PENDENCY_STATUS_UPDATED`**
+
+| Field | Description |
+|-------|-------------|
+| `pendency_info_category` | Pendency category |
+| `pendency_info_sub_category` | Pendency sub-category |
+| `pendency_info_reason` | Reason for the pendency |
+| `pendency_info_status` | Current pendency status |
+| `pendency_info_creation_time` | When the pendency was created |
+| `pendency_info_cards_approval_blocking` | `"true"` / `"false"` — blocks card approval |
+| `pendency_info_mca_approval_blocking` | `"true"` / `"false"` — blocks MCA approval |
+
+### Example payload — VKYC completed
+
+```json
+{
+  "onboarding_id": "pg_onboard_abc123",
+  "onboarding_status": "UNDER_REVIEW",
+  "event_timestamp": "1717238400000",
+  "status": "MERCHANT_VKYC_COMPLETED",
+  "vkyc_completed": "true"
+}
+```
+
+### Example payload — Merchant accepted
+
+```json
+{
+  "onboarding_id": "pg_onboard_abc123",
+  "onboarding_status": "ACCEPTED",
+  "event_timestamp": "1717324800000",
+  "status": "MERCHANT_STATUS_ACCEPTED",
+  "merchant_id": "merchant_xyz789"
+}
+```
+
+---
+
+## Recommended Integration Pattern
+
+```
+1. Partner completes onboard API steps (business details → products)
+2. Partner calls GET Verification Redirect → embeds iFrame
+3. Parent page listens for PARTNER_MERCHANT_VERIFICATION_COMPLETE postMessage
+4. Partner backend receives webhook events asynchronously
+5. Partner backend calls GET /status to confirm final state
+6. Partner updates merchant record in their system
+```
+
+<CardGroup cols={2}>
+  <Card title="iFrame Integration" icon="browser" href="/guides/iframe-integration">
+    Embed the verification flow and handle postMessage events.
+  </Card>
+  <Card title="Get Onboarding Status" icon="circle-check" href="/api-reference/get-status">
+    Confirm final merchant state server-side.
+  </Card>
+  <Card title="API Flow Overview" icon="diagram-project" href="/guides/api-flow-overview">
+    End-to-end onboarding sequence.
+  </Card>
+</CardGroup>

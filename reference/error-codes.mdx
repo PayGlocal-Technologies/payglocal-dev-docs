@@ -8,7 +8,7 @@ description: "HTTP status codes returned by the PayGlocal Merchant Onboarding AP
 | HTTP Code | Status Text | Description |
 |-----------|-------------|-------------|
 | `400` | Bad Request | The request body or parameters failed validation. Check the `errorDetails` array in the response for field-level details. |
-| `401` | Unauthorized | Authentication failed. The `x-api-key` or `x-gl-digest` header is missing, invalid, or the digest does not match the request. |
+| `401` | Unauthorized | Authentication failed. The `x-gl-auth` or `x-gl-digest` header is missing, invalid, or the digest does not match the request. |
 | `403` | Forbidden | The specified `onboardingId` exists but does not belong to the authenticated partner. |
 | `404` | Not Found | The specified `onboardingId` does not exist in the PayGlocal system. |
 | `500` | Internal Server Error | An unexpected error occurred on the PayGlocal servers. Retry with exponential backoff. If the issue persists, contact support with the `gid` from the response. |
@@ -23,7 +23,7 @@ description: "HTTP status codes returned by the PayGlocal Merchant Onboarding AP
 |----------|-----------|
 | `onboardingId` does not exist in the system | `404 Not Found` |
 | `onboardingId` does not belong to the authenticated partner | `403 Forbidden` |
-| Invalid or missing `x-api-key` header | `401 Unauthorized` |
+| Invalid or missing `x-gl-auth` header | `401 Unauthorized` |
 | Invalid or missing `x-gl-digest` header | `401 Unauthorized` |
 
 ### Create Onboarding (`POST /onboard`)
@@ -87,11 +87,14 @@ description: "HTTP status codes returned by the PayGlocal Merchant Onboarding AP
 | Missing required fields | `400 Bad Request` |
 | Invalid field format | `400 Bad Request` |
 
-### Verify Merchant (`PUT /verify`)
+### Get Verification Redirect (`PUT /verification/{onboardingId}/redirect`)
 
 | Scenario | HTTP Code |
 |----------|-----------|
-| Called before all onboarding information is captured | `400 Bad Request` |
+| Pre-verification checklist steps incomplete | `400 Bad Request` |
+| Verification already completed | `400 Bad Request` |
+| Invalid or missing authentication headers | `401 Unauthorized` |
+| `onboardingId` does not exist | `404 Not Found` |
 
 ---
 
@@ -123,7 +126,7 @@ Always inspect the `errorDetails` array for field-level context on `400 Bad Requ
 
 If you receive a `401 Unauthorized`, check the following:
 
-1. The `x-api-key` header matches the API Key from your dashboard exactly.
+1. The `x-gl-auth` header matches the API Key from your dashboard exactly.
 2. The digest is computed using the **API Secret**, not the API Key.
 3. For POST/PUT: the digest was computed over the **exact raw request body** byte-for-byte.
 4. For GET: the digest was computed over the **full request URL** including the protocol and path.

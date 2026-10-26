@@ -1,0 +1,242 @@
+---
+title: "Auth & Capture"
+description: "Two-step payment flow: authorize funds first, capture when ready to fulfill."
+---
+
+## What is Auth & Capture?
+
+**Auth & Capture** is a two-step payment flow where the payment is first **authorized** (funds are held/reserved) and later **captured** (money is actually charged).
+
+This payment flow is useful for businesses where the final confirmation, product shipment, or service fulfillment happens **after** the customer places the order.
+
+<CardGroup cols={2}>
+  <Card title="Step 1: Authorization" icon="shield-check" color="#10B981">
+    **Verify & Hold**
+    
+    - Verify the payment method
+    - Check sufficient funds
+    - Temporarily block the amount
+    - **Do NOT deduct money yet**
+  </Card>
+  <Card title="Step 2: Capture" icon="circle-check" color="#1A6FE8">
+    **Confirm & Charge**
+    
+    - Merchant confirms transaction
+    - Actual deduction happens
+    - Money gets settled to merchant
+    - After shipment/fulfillment
+  </Card>
+</CardGroup>
+
+---
+
+## How It Works
+
+Instead of charging the customer immediately:
+
+1. **First:** Merchant authorizes the payment
+2. **Then:** Bank temporarily blocks the amount on the customer's card/account
+3. **Next:** Once product/service is confirmed, merchant captures the payment
+4. **Finally:** Funds are transferred successfully
+
+<Note>
+  At the authorization stage, the customer sees the amount as "held" or "pending". The merchant has assurance that funds are available, but no actual settlement happens yet.
+</Note>
+
+---
+
+## Why Businesses Use Auth & Capture
+
+This flow is ideal when:
+
+- Delivery confirmation is required
+- Inventory may change
+- Final amount may vary
+- Services are fulfilled later
+- Merchant wants fraud protection
+- Merchant wants payment assurance before fulfillment
+
+---
+
+## Real-World Examples
+
+<Card title="Airlines" icon="plane" color="#1A6FE8">
+  **When a customer books a flight:**
+  
+  1. Payment is authorized first
+  2. Airline confirms seat allocation
+  3. Payment is captured after ticket confirmation
+  
+  **Useful because:**
+  - Fare availability may change
+  - Seat confirmation may fail
+  - Final booking validation needed
+</Card>
+
+---
+
+## Key Benefits
+
+### Payment Assurance
+Merchant knows customer has sufficient funds before fulfillment.
+
+### Better Customer Experience
+Customer is charged **only when** order/service is confirmed.
+
+### Reduced Refunds
+Since money is not immediately captured, failed orders may simply release authorization instead of processing refunds.
+
+### Flexible Fulfillment
+Merchant can:
+- Capture full amount
+- Capture partial amount
+- Reverse authorization
+- Perform multiple captures (if supported)
+
+---
+
+## Auth & Capture Lifecycle
+
+### Step 1 — Payment Authorization
+
+Customer initiates payment.
+
+**Merchant sends:**
+- Amount
+- Card/payment details
+- Authorization request
+
+**Bank:**
+- Validates payment method
+- Checks available balance
+- Places hold on funds
+
+**Result:** Payment status becomes `AUTHORIZED`
+
+---
+
+### Step 2 — Hold Period
+
+Funds remain reserved for a limited duration.
+
+**Typical authorization validity:**
+- 5 to 7 days
+- Sometimes up to 30 days depending on card network
+
+**During this period, merchant can:**
+- Capture payment (full or partial)
+- Reverse authorization
+- Wait for fulfillment confirmation
+
+<Warning>
+  If authorization expires before capture, the hold is automatically released and the transaction becomes invalid.
+</Warning>
+
+---
+
+### Step 3 — Capture
+
+Merchant captures the payment after confirmation.
+
+**Examples of when to capture:**
+- Product shipped
+- Hotel checkout completed
+- Flight ticket confirmed
+- Service delivered
+
+**Result:** Payment status becomes `CAPTURED`
+
+Actual settlement starts here — funds are transferred to merchant's account.
+
+---
+
+### Step 4 — Reversal (Optional)
+
+If order/service is cancelled, merchant can reverse authorization.
+
+**What happens:**
+- Held amount gets released back to customer
+- No actual charge occurs
+- Payment status becomes `REVERSED` or `CANCELLED`
+
+**When to use reversal:**
+- Order cancelled by customer
+- Stock unavailable
+- Booking failed
+- Fraud detected
+
+<Note>
+  Auth reversal avoids unnecessary refunds since the money was never actually charged.
+</Note>
+
+---
+
+## Partial Capture
+
+Merchant may capture **only part** of the authorized amount.
+
+**Example:**
+- Authorized amount: ₹10,000
+- Captured amount: ₹7,000
+- Remaining ₹3,000 gets released automatically or reversed manually
+
+**Useful for:**
+- Partial shipment (some items out of stock)
+- Variable billing (final amount differs)
+- Inventory shortage
+- Split fulfillment
+
+<CardGroup cols={2}>
+  <Card title="Full Capture" icon="circle-check" color="#10B981">
+    Capture the complete authorized amount when order is fully fulfilled.
+  </Card>
+  <Card title="Partial Capture" icon="scissors" color="#F59E0B">
+    Capture only what you need — remainder is released automatically.
+  </Card>
+</CardGroup>
+
+---
+
+## Auth Reversal Explained
+
+**Auth reversal** releases held funds **without charging** the customer.
+
+### When to Use Reversal
+
+| Scenario | Action |
+|---|---|
+| Order cancelled before fulfillment | Reverse authorization |
+| Stock unavailable | Reverse authorization |
+| Booking failed | Reverse authorization |
+| Fraud detected | Reverse authorization |
+| Payment already captured | Use refund (not reversal) |
+
+<Warning>
+  Auth reversal only works on `AUTHORIZED` transactions. Once captured, you must use the standard refund flow.
+</Warning>
+
+---
+
+## Summary: Authorization vs Capture vs Reversal
+
+| Action | What It Does | When To Use | Status After |
+|---|---|---|---|
+| **Authorization** | Holds funds on customer's card | At order placement | `AUTHORIZED` |
+| **Full Capture** | Charges the full authorized amount | After complete fulfillment | `CAPTURED` |
+| **Partial Capture** | Charges only part of authorized amount | Partial shipment/fulfillment | `CAPTURED` |
+| **Reversal** | Releases hold without charging | Order cancelled before capture | `REVERSED` |
+
+---
+
+## Next Steps
+
+Now that you understand how Auth & Capture works, learn how to implement it:
+
+<CardGroup cols={2}>
+  <Card title="Auth Payment Initiation" icon="shield-check" href="/merchant/auth-capture/auth-payment-initiation">
+    Start an authorization to hold funds on the customer's card.
+  </Card>
+  <Card title="Authorization Management" icon="shield-halved" href="/merchant/auth-capture/authorization-management">
+    Capture funds or release the hold after authorization.
+  </Card>
+</CardGroup>

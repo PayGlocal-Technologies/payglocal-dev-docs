@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 560" role="img" aria-labelledby="upiFlowTitle upiFlowDesc">
+  <title id="upiFlowTitle">How money and messages move in a PayGlocal UPI payment</title>
+  <desc id="upiFlowDesc">Seven steps: merchant starts the payment, customer pays on PayGlocal hosted page via UPI, banks and NPCI move the debit, PayGlocal confirms, merchant is notified, then settlement and order confirmation.</desc>
+  <defs>
+    <linearGradient id="hdr" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A6FE8"/>
+      <stop offset="100%" style="stop-color:#1458c4"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="1040" height="560" fill="#f6f9fc"/>
+  <text x="520" y="36" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="20" font-weight="700" fill="#0f172a">Who touches your customer’s payment — in plain order</text>
+  <text x="520" y="58" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" fill="#64748b">Cash does not “live” on a website: it moves between banks. PayGlocal runs the secure checkout in the middle.</text>
+  <rect x="40" y="82" width="180" height="36" rx="8" fill="url(#hdr)"/>
+  <text x="130" y="105" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#fff">You (shop + server)</text>
+  <rect x="240" y="82" width="200" height="36" rx="8" fill="url(#hdr)"/>
+  <text x="340" y="105" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#fff">PayGlocal</text>
+  <rect x="460" y="82" width="200" height="36" rx="8" fill="url(#hdr)"/>
+  <text x="560" y="105" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#fff">Your customer</text>
+  <rect x="680" y="82" width="160" height="36" rx="8" fill="url(#hdr)"/>
+  <text x="760" y="105" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="600" fill="#fff">UPI / NPCI</text>
+  <rect x="860" y="82" width="140" height="36" rx="8" fill="url(#hdr)"/>
+  <text x="930" y="105" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#fff">Banks</text>
+  <line x1="80" y1="200" x2="980" y2="200" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+  <g filter="url(#sh)">
+    <circle cx="115" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="115" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">1</text>
+    <rect x="40" y="232" width="150" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="115" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">You tell PayGlocal</text>
+    <text x="115" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">“Start a ? payment,</text>
+    <text x="115" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">here’s my callback.”</text>
+    <circle cx="290" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="290" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">2</text>
+    <rect x="215" y="232" width="150" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="290" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">Customer lands on</text>
+    <text x="290" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">PayGlocal’s hosted</text>
+    <text x="290" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">checkout (not your card form).</text>
+    <circle cx="475" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="475" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">3</text>
+    <rect x="400" y="232" width="150" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="475" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">Customer approves</text>
+    <text x="475" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">in PhonePe / GPay /</text>
+    <text x="475" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">Paytm (QR or app).</text>
+    <circle cx="660" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="660" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">4</text>
+    <rect x="585" y="232" width="150" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="660" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">Customer’s bank</text>
+    <text x="660" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">checks balance and rules,</text>
+    <text x="660" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">debits if allowed.</text>
+    <circle cx="825" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="825" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">5</text>
+    <rect x="750" y="232" width="150" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="825" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">“Paid” travels back</text>
+    <text x="825" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">through UPI to</text>
+    <text x="825" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">PayGlocal’s systems.</text>
+    <circle cx="940" cy="200" r="22" fill="#1A6FE8" stroke="#fff" stroke-width="3"/>
+    <text x="940" y="206" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="13" font-weight="700" fill="#fff">6</text>
+    <rect x="875" y="232" width="125" height="72" rx="8" fill="#fff" stroke="#e2e8f0"/>
+    <text x="937" y="252" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="11" font-weight="600" fill="#0f172a">PayGlocal pings</text>
+    <text x="937" y="270" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">your server; you</text>
+    <text x="937" y="284" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#475569">can poll status APIs.</text>
+  </g>
+  <path d="M 137 200 L 268 200" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 312 200 L 453 200" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 497 200 L 638 200" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 682 200 L 803 200" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 847 200 L 918 200" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="115" y1="340" x2="825" y2="340" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 4"/>
+  <circle cx="475" cy="340" r="22" fill="#16a34a" stroke="#fff" stroke-width="3"/>
+  <text x="475" y="346" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="14" font-weight="700" fill="#fff">7</text>
+  <rect x="320" y="372" width="310" height="56" rx="8" fill="#ecfdf5" stroke="#86efac"/>
+  <text x="475" y="392" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#14532d">Later: money settles to your bank per contract • you ship / email receipt</text>
+  <text x="475" y="412" text-anchor="middle" font-family="system-ui,Segoe UI,sans-serif" font-size="10" fill="#166534">Step 7 is usually batched (not the same second as step 6).</text>
+  <rect x="40" y="460" width="960" height="80" rx="10" fill="#fff" stroke="#e2e8f0"/>
+  <text x="60" y="488" font-family="system-ui,Segoe UI,sans-serif" font-size="12" font-weight="700" fill="#0f172a">Remember in one sentence</text>
+  <text x="60" y="508" font-family="system-ui,Segoe UI,sans-serif" font-size="11" fill="#475569">Your website starts the story; PayGlocal hosts the payment screen; the customer’s bank actually moves rupees on the UPI network;</text>
+  <text x="60" y="524" font-family="system-ui,Segoe UI,sans-serif" font-size="11" fill="#475569">PayGlocal tells you the result; settlement to your business bank and the thank-you page you show are the final chapters.</text>
+</svg>

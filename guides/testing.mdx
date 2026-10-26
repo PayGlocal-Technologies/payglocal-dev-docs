@@ -106,12 +106,25 @@ Use these card numbers to simulate different payment outcomes in Sandbox:
 
 ---
 
+## Partner Onboarding Bank Verification
+
+Use these values when testing [Update Bank Details](/api-reference/update-bank-details) in UAT:
+
+| Field | UAT success value | Any other value |
+|-------|-------------------|-----------------|
+| Bank Account Number | `1234567890` | Triggers `CANCELLED_CHEQUE` pendency in `documentsToBeUploaded` |
+| IFSC Code | `SBIN0000000` | Triggers `CANCELLED_CHEQUE` pendency in `documentsToBeUploaded` |
+
+When penny drop fails (in Production or by using non-test values in UAT), PayGlocal adds `CANCELLED_CHEQUE` to the pending documents list. Upload a cancelled cheque via [Upload Documents](/api-reference/upload-documents) with `merchantDocType: CANCELLED_CHEQUE`.
+
+---
+
 ## Sandbox Limitations
 
 - Auto Debit webhook delivery may be delayed in Sandbox.
 - Some alternative payment methods (iDeal, Sofort, etc.) may not be available in Sandbox.
 - VKYC and DigiLocker in the iFrame use test flows — no real identity verification occurs.
-- Penny drop bank account verification uses test IFSC codes — contact your PayGlocal representative for valid test account details.
+- Penny drop bank account verification in UAT uses fixed test values — account `1234567890`, IFSC `SBIN0000000`. See [Partner Onboarding Bank Verification](#partner-onboarding-bank-verification).
 
 ---
 
@@ -128,4 +141,4 @@ Before requesting Production access:
 - [ ] Keys stored securely server-side (not in client-side code)
 - [ ] Submitted sandbox testing evidence to PayGlocal for go-live approval
 
-See [Requirements & Compliance](/requirements) for the full go-live process.
+See [Merchant Requirements](/guides/merchant-requirements) and [Sandbox Testing](/guides/testing) for the full go-live process.

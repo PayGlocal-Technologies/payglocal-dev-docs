@@ -1,0 +1,37 @@
+---
+title: "Auth Partial Capture"
+sidebarTitle: "Auth Partial Capture"
+description: "Capture only the amount you need — the remainder is automatically released."
+---
+
+Capture only the amount you actually need. The remaining authorization is automatically released back to the customer.
+
+```
+POST /gl/v1/payments/{gid}/capture
+```
+
+```json
+{
+  "merchantTxnId": "PARTIAL-CAPTURE-001",
+  "paymentData": { "totalAmount": "75.00" }
+}
+```
+
+**Response:**
+```json
+{
+  "gid": "gl-auth-3a2f9b1c-...",
+  "status": "SENT_FOR_CAPTURE",
+  "message": "Partial capture initiated",
+  "data": {
+    "capturedAmount": "75.00",
+    "releasedAmount": "45.00"
+  }
+}
+```
+
+**Typical scenarios:** Partial shipment, item out of stock, adjusted final order value, tip adjustment.
+
+<Note>
+  Only one capture is allowed per authorization. If you need split fulfillment, capture for the full amount and process a partial refund after.
+</Note>

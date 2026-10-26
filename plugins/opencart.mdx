@@ -1,39 +1,100 @@
 ---
 title: "OpenCart"
-description: "Install the PayGlocal extension on your OpenCart store."
+description: "Accept payments on your OpenCart store using PayGlocal — download, install, and configure in minutes."
 icon: "cart-shopping"
 ---
 
-## Prerequisites
+## What is OpenCart?
 
-- An OpenCart store with admin access.
-- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
-- The PayGlocal extension archive — contact your PayGlocal account manager to obtain the latest build.
+OpenCart is an open-source and free eCommerce platform, which is easy to set up and is used by thousands of merchants around the world. The eCommerce platform features plenty of free themes and extensions that add more functionalities and features to the store.
 
-## Install
+## OpenCart with PayGlocal
+
+Integrating PayGlocal with OpenCart enables online merchants to accept online payments through internet banking and debit/credit cards from customers. The extension makes it easier for merchants to accept payments through the PayGlocal payment gateway.
+
+<Note>
+  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
+</Note>
+
+## Plugin Download
+
+Download the extension based on your OpenCart and PHP version. If you are not able to see the download link for your version, kindly reach out to your account manager.
+
+| OpenCart Version | PHP Version | Download |
+|---|---|---|
+| 1.5 – 5.6 | Any | [Download](mailto:support@payglocal.in?subject=OpenCart%20Plugin%201.5) |
+| 2.3 | Any | [Download](mailto:support@payglocal.in?subject=OpenCart%20Plugin%202.3) |
+| 3.0 | Any | [Download](mailto:support@payglocal.in?subject=OpenCart%20Plugin%203.0) |
+
+## Plugin Installation
 
 <Steps>
-  <Step title="Download the extension">
-    Obtain the latest `payglocal-opencart.ocmod.zip` from your PayGlocal account manager.
+  <Step title="Open Extension Installer">
+    Log in to your OpenCart admin panel and go to **Extensions → Extension Installer**.
   </Step>
-  <Step title="Upload">
-    In the OpenCart admin, go to **Extensions → Installer** and upload the archive.
+  <Step title="Upload the extension">
+    Upload the extension file that was downloaded.
   </Step>
-  <Step title="Refresh modifications">
-    Go to **Extensions → Modifications** and click **Refresh**.
+  <Step title="Continue after upload">
+    Click the **Continue** button once the upload is completed.
   </Step>
-  <Step title="Install payment method">
-    Go to **Extensions → Extensions → Payments**, locate **PayGlocal**, and click **Install**.
-  </Step>
-  <Step title="Configure">
-    Click **Edit** on the PayGlocal payment method. Enter your API Key and RSA keys, set status to **Enabled**, and save.
+  <Step title="Install the PayGlocal extension">
+    Navigate to **Extensions → Extensions**, select **Payments** from the drop-down, and install the PayGlocal Payment Gateway extension.
   </Step>
 </Steps>
 
-## Test
+## Configuration
 
-Place a test order with the [test cards](/reference/test-cards) to verify the integration.
+<Steps>
+  <Step title="Navigate to PayGlocal settings">
+    Log in to your OpenCart admin panel and navigate to **Extensions → Extensions**. Select **Payments** from the drop-down. Click the **Edit** option against the PayGlocal Payment Gateway to configure it.
+  </Step>
+</Steps>
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/opencart-payments-list.png" alt="OpenCart Extensions Payments list with PayGlocal highlighted" />
+</div>
+
+<Steps>
+  <Step title="Configure the extension fields">
+    Configure the extension as described in the table below.
+  </Step>
+</Steps>
+
+### Field Reference
+
+| Field | Description |
+|---|---|
+| **Total** | Enter the minimum order total required for customers to use the PayGlocal payment method. |
+| **Title** | Enter a custom title for the payment method shown to customers on the frontend. |
+| **Sandbox Mode** | Enable or disable sandbox mode as per your requirements. |
+| **Merchant ID** | Enter your Merchant ID from the PayGlocal dashboard — visible in the top bar when logged in. |
+| **Public Key** | Enter the PayGlocal public key from the merchant account dashboard. |
+| **Private Key** | Enter the PayGlocal private key from the merchant account dashboard. |
+| **Public PEM** | Upload the public PEM file downloaded from the PayGlocal merchant account dashboard. |
+| **Private PEM** | Upload the private PEM file downloaded from the PayGlocal merchant account dashboard. |
+| **Gateway URL** | Enter: `https://api.uat.payglocal.in/gl/v1/payments/initiate/paycollect` |
+| **Refund URL** | Enter: `https://api.uat.payglocal.in/gl/v1/payments/{gid}/refund` |
+| **Refund Required** | Select **Yes** to allow refund functionality for payments made through PayGlocal. |
+| **Order Status** | Set the default status of orders paid using PayGlocal. |
+| **Geo Zone** | Select the applicable geographical zone for allowing the payment method. |
+| **Status** | Enable or disable the PayGlocal payment method from here. |
+| **Sort Order** | In case of multiple payment methods, enter the sort order of the PayGlocal payment gateway. |
 
 <Note>
-  Detailed screenshot walkthrough is published on the merchant help centre.
+  For details on fetching your Merchant ID, keys, and PEM files, refer to the [Key Management](/getting-started/dashboard-and-key-management) section.
 </Note>
+
+<div className="payg-screenshot-tile payg-screenshot-tile--zoom payg-screenshot-tile--hq">
+  <img src="/images/plugins/opencart-config-form.png" alt="OpenCart PayGlocal payment gateway configuration form" />
+</div>
+
+<Steps>
+  <Step title="Save the configuration">
+    Click the **Save** button at the top-right corner of the page.
+  </Step>
+</Steps>
+
+<Check>
+  **Setup Successful** — Once you have followed all the steps above, the PayGlocal payment gateway is successfully set up with your OpenCart store.
+</Check>

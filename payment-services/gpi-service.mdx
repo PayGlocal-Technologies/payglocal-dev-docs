@@ -43,170 +43,33 @@ You send minimal transaction data (amount, currency, merchant identifiers). PayG
 
 ### PayDirect Flow — For PCI DSS Certified Entities
 
-You collect full card details from the customer on your page and send them directly in the GPI request. You must be PCI DSS compliant to use this flow.
+<Snippet file="paydirect/when-to-use.mdx" />
 
 **Endpoint:** `POST /gl/v1/payments/initiate`
 
-**Minimum required payload:**
-```json
-{
-  "merchantTxnId": "23AEE8CB6B62EE2AF07",
-  "paymentData": {
-    "totalAmount": "89",
-    "txnCurrency": "INR",
-    "cardData": {
-      "number": "5132552222223470",
-      "expiryMonth": "12",
-      "expiryYear": "2030",
-      "securityCode": "123"
-    }
-  },
-  "merchantCallbackURL": "https://www.yoursite.com/callback"
-}
-```
+## Minimum Required Payload
+
+<Snippet file="paydirect/minimum-payload.mdx" />
 
 ## Full Request Payload
 
-The GPI service accepts a rich set of optional data blocks for risk assessment, standing instructions, and industry-specific data. Below is the complete payload structure:
-
-```json
-{
-  "merchantTxnId": "23AEE8CB6B62EE2AF07",
-  "merchantUniqueId": "IFNN939494NJFJ",
-  "paymentData": {
-    "totalAmount": "10.00",
-    "txnCurrency": "INR",
-    "cardData": {
-      "number": "4111111111111111",
-      "expiryMonth": "07",
-      "expiryYear": "2023",
-      "type": "visa",
-      "securityCode": "322"
-    },
-    "billingData": {
-      "firstName": "John",
-      "lastName": "Denver",
-      "addressStreet1": "Rowley street 1",
-      "addressStreet2": "Punctuality lane",
-      "addressCity": "Bangalore",
-      "addressState": "Karnataka",
-      "addressPostalCode": "560094",
-      "addressCountry": "IN",
-      "emailId": "johndenver@myemail.com",
-      "callingCode": "+91",
-      "phoneNumber": "9008018469"
-    }
-  },
-  "standingInstruction": {
-    "data": {
-      "amount": "98.00",
-      "maxAmount": "1250.00",
-      "numberOfPayments": "4",
-      "frequency": "MONTHLY",
-      "type": "FIXED",
-      "startDate": "20220510"
-    }
-  },
-  "riskData": {
-    "orderData": [
-      {
-        "productDescription": "Apple AirPods Pro",
-        "productSKU": "MNO00390",
-        "productType": "Electronics",
-        "itemUnitPrice": "12000.00",
-        "itemQuantity": "1"
-      }
-    ],
-    "customerData": {
-      "merchantAssignedCustomerId": "11230092",
-      "customerAccountType": "1",
-      "customerSuccessOrderCount": "32",
-      "customerAccountCreationDate": "20180904",
-      "ipAddress": "192.90.40.98",
-      "httpAccept": "text/html,application/xhtml+xml,...",
-      "httpUserAgent": "Mozilla/5.0 ..."
-    },
-    "shippingData": {
-      "firstName": "John",
-      "lastName": "Denver",
-      "addressStreet1": "Rowley street 1",
-      "addressCity": "Bangalore",
-      "addressCountry": "IN",
-      "emailId": "johndenver@myemail.com",
-      "callingCode": "+91",
-      "phoneNumber": "9008018469"
-    }
-  },
-  "merchantCallbackURL": "https://www.yoursite.com/callback"
-}
-```
+<Snippet file="paydirect/full-payload.mdx" />
 
 ## GPI Response
 
-```json
-{
-  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
-  "status": "CREATED",
-  "message": "Transaction Created Successfully",
-  "timestamp": "2021-04-12T07:47:18Z",
-  "reasonCode": "",
-  "data": {
-    "redirectUrl": "https://api.prod.payglocal.in/gl/v1/payments/redirect?x-gl-token=...",
-    "statusUrl": "https://api.prod.payglocal.in/gl/v1/payments/status?x-gl-token=..."
-  },
-  "errors": null
-}
-```
-
-For SI requests, the response also includes:
-```json
-{
-  "data": {
-    "redirectUrl": "...",
-    "statusUrl": "...",
-    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
-  }
-}
-```
+<Snippet file="paydirect/response.mdx" />
 
 ## Risk Data Requirements
 
-<Warning>
-  For **international card** transactions, `riskData` is **required**. If risk data is missing for a foreign-issued card, PayGlocal may reject the transaction.
-</Warning>
-
-For **RuPay cards**, `ipAddress`, `httpAccept`, and `httpUserAgent` are mandatory.
+<Snippet file="paydirect/risk-data.mdx" />
 
 ## Network Token / AltID Support
 
-To use network tokens or alternative IDs instead of raw card data, send a `tokenData` block instead of `cardData`:
-
-```json
-"tokenData": {
-  "altId": "true",
-  "number": "4039073788299302",
-  "expiryMonth": "07",
-  "expiryYear": "2023",
-  "cryptogram": "ASNJBSHA988943NJS",
-  "requestorID": "BBFH8838NK",
-  "hashOfFirstSix": "fnweiu9432iu43299234",
-  "firstSix": "403907",
-  "lastFour": "2023",
-  "cardBrand": "visa"
-}
-```
+<Snippet file="paydirect/network-tokens.mdx" />
 
 ## Industry-Specific Data
 
-For certain industries, additional data blocks are supported (and may be required for fraud protection benefits):
-
-| Industry | Data Block | Details |
-|----------|-----------|---------|
-| Airlines / OTA | `flightData[]` | Flight booking, leg, and passenger data |
-| Hospitality | `lodgingData` | Check-in/out, room, and guest data |
-| Ground Transport | `trainData[]`, `busData[]`, `cabData[]` | Journey and passenger data |
-
-See [Risk Data Fields](/api-fields/risk-data-fields) for the complete field reference.
+<Snippet file="paydirect/industry-data.mdx" />
 
 ## Next Steps
 

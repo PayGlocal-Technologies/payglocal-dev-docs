@@ -1,39 +1,73 @@
 ---
 title: "Shopify"
-description: "Install the PayGlocal app on your Shopify store."
+description: "Accept payments on your Shopify store using PayGlocal — Seamless or Redirection."
 icon: "shopify"
 ---
 
-<Info>
-  Shopify merchants install PayGlocal directly from the Shopify App Store — no ZIP download or file upload required.
-</Info>
+## What is Shopify?
+
+[Shopify](https://www.shopify.com) is an e-commerce platform used by millions of merchants around the world to build and run their online stores.
+
+## Shopify with PayGlocal
+
+Integrating PayGlocal with Shopify enables online merchants to accept payments through internet banking and debit/credit cards from customers on the Shopify platform. The plugin makes it easier for merchants to accept payments through the PayGlocal payment gateway.
+
+<Note>
+  Before following the steps below, ensure you have a **PayGlocal merchant account**. [Contact us](mailto:support@payglocal.in) to create one.
+</Note>
+
+## Available Plugins
+
+PayGlocal offers two Shopify plugins depending on how you want customers to complete their payment.
+
+<div className="not-prose overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+  <table className="w-full text-sm">
+    <thead className="bg-slate-50 dark:bg-slate-800">
+      <tr>
+        <th className="px-5 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">Flow</th>
+        <th className="px-5 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">Description</th>
+        <th className="px-5 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">Install</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+      <tr>
+        <td className="px-5 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">Seamless</td>
+        <td className="px-5 py-4 text-slate-600 dark:text-slate-300">Card details collected on your Shopify storefront. Customer never leaves your store.</td>
+        <td className="px-5 py-4 whitespace-nowrap">
+          <a href="https://apps.shopify.com/payglocal-seamless-payment" target="_blank" rel="noreferrer noopener"
+            className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
+            Install Seamless Flow
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td className="px-5 py-4 font-medium text-slate-900 dark:text-white whitespace-nowrap">Redirection</td>
+        <td className="px-5 py-4 text-slate-600 dark:text-slate-300">Customer is redirected to PayGlocal's hosted payment page, then returned to your store after payment.</td>
+        <td className="px-5 py-4 whitespace-nowrap">
+          <a href="https://apps.shopify.com/payglocal" target="_blank" rel="noreferrer noopener"
+            className="inline-block rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
+            Install Redirection Flow
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 ## Prerequisites
 
-- An active Shopify store.
-- PayGlocal merchant credentials (available from your [GCC dashboard](/getting-started/gcc-dashboard)).
+- An active Shopify store with permission to install payment apps
 
-## Install
+## Installation Steps
 
 <Steps>
-  <Step title="Find PayGlocal in the Shopify App Store">
-    Search for **PayGlocal** in the Shopify App Store.
+  <Step title="Click the install link">
+    Use the links in the table above to open the app on the Shopify App Store. Click **Install**.
   </Step>
-  <Step title="Add the app">
-    Click **Add app** and authorize PayGlocal to access your store.
+  <Step title="Activate the plugin">
+    Once installed, activate the PayGlocal plugin from within your Shopify admin.
   </Step>
-  <Step title="Enter credentials">
-    In the PayGlocal app settings, enter your API Key and upload your RSA keys.
-  </Step>
-  <Step title="Enable at checkout">
-    Go to **Settings → Payments** in your Shopify admin and enable PayGlocal as a payment provider.
+  <Step title="Done">
+    PayGlocal will now appear as a payment gateway on your Shopify checkout page.
   </Step>
 </Steps>
-
-## Test
-
-Use the [test cards](/reference/test-cards) to run end-to-end transactions in sandbox before going live.
-
-<Note>
-  Detailed screenshot walkthrough and field-level configuration is published on the [merchant help centre](https://payglocal.in). This page covers the developer-relevant summary only.
-</Note>

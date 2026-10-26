@@ -1,0 +1,42 @@
+---
+title: "Auth Payment Initiation"
+sidebarTitle: "Auth Payment Initiation"
+description: "Hold funds on the customer's card — collect them later when you're ready to fulfill."
+---
+
+Auth & Capture splits a payment into two stages. Send the authorization first — funds are **held, not collected** — until you explicitly capture them.
+
+**Common use cases:** Ride-hailing, hotels, marketplace escrow, pre-orders, fuel stations.
+
+```
+POST /gl/v1/payments/initiate
+```
+
+```json
+{
+  "merchantTxnId": "AUTH-2026-0001",
+  "paymentData": {
+    "totalAmount": "120.00",
+    "txnCurrency": "INR"
+  },
+  "captureTxn": false,
+  "merchantCallbackURL": "https://yoursite.com/callback"
+}
+```
+
+<Note>
+  `"captureTxn": false` is what tells PayGlocal to stop at authorization and not capture the payment. The card is not charged at this stage — only the funds are held. Set this to `true` (or omit it) when you want immediate capture.
+</Note>
+
+**Response:**
+```json
+{
+  "gid": "gl-auth-3a2f9b1c-8d44-4f72-b91a-1c5a7e3d2f99",
+  "status": "AUTHORIZED",
+  "message": "Payment authorized. Capture required to collect funds."
+}
+```
+
+<Warning>
+  **Save the `gid` immediately.** Every subsequent operation — full capture, partial capture, auth reversal — requires this GID. Authorization holds typically expire in 5–7 days depending on the card network and bank.
+</Warning>

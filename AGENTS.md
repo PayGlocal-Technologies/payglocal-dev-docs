@@ -158,7 +158,7 @@ The docs cover two completely separate auth mechanisms. Keep them separate in th
 
 | Area | Scheme | Headers | OpenAPI security scheme |
 |------|--------|---------|------------------------|
-| Merchant Onboarding | API Key + HMAC-SHA256 | `x-api-key`, `x-gl-digest` | `ApiKeyAuth` + `DigestAuth` |
+| Merchant Onboarding | API Key + HMAC-SHA256 | `x-gl-auth`, `x-gl-digest` | `ApiKeyAuth` + `DigestAuth` |
 | Payment / SI | RSA-signed JWS | `x-gl-token-external` | `JwsTokenAuth` |
 
 `authentication.mdx` covers the Onboarding scheme. `key-management/overview.mdx` covers the Payment scheme. Payment pages also use a per-path `servers:` block in `openapi.yaml` because the base URL differs from Onboarding.

@@ -1,0 +1,32 @@
+The fields below are always required. All other blocks are optional unless noted
+(e.g. `riskData` becomes mandatory for international cards).
+
+```json
+{
+  "merchantTxnId": "23AEE8CB6B62EE2AF07",
+  "merchantUniqueId": "IFNN939494NJFJ",
+  "paymentData": {
+    "totalAmount": "89",
+    "txnCurrency": "INR",
+    "cardData": {
+      "number": "5132552222223470",
+      "expiryMonth": "12",
+      "expiryYear": "2030",
+      "securityCode": "123"
+    }
+  },
+  "merchantCallbackURL": "https://www.yoursite.com/callback"
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `merchantTxnId` | string | Yes | Your unique transaction reference; no length constraint |
+| `merchantUniqueId` | string | Yes | Stable merchant-side ID; used for idempotency and reconciliation |
+| `paymentData.totalAmount` | string | Yes | Decimal string, e.g. `"89"` or `"89.00"` |
+| `paymentData.txnCurrency` | string | Yes | ISO 4217 currency code, e.g. `"INR"` |
+| `paymentData.cardData.number` | string | Yes | Raw PAN (PCI scope) |
+| `paymentData.cardData.expiryMonth` | string | Yes | Two-digit month, e.g. `"12"` |
+| `paymentData.cardData.expiryYear` | string | Yes | Four-digit year, e.g. `"2030"` |
+| `paymentData.cardData.securityCode` | string | Yes | CVV/CVC |
+| `merchantCallbackURL` | string | Yes | PayGlocal POSTs the customer here after payment |

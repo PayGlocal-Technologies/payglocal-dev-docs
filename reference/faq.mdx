@@ -19,7 +19,7 @@ description: "Answers to the most common questions from developers integrating w
   </Accordion>
 
   <Accordion title="What is the difference between the API Key and API Secret?">
-    - **API Key (`x-api-key`)** — A static identifier. Safe to store in environment variables. Not secret.
+    - **API Key (`x-gl-auth`)** — A static identifier. Safe to store in environment variables. Not secret.
     - **API Secret** — The signing key used to compute the HMAC-SHA256 digest. Treat like a password. Never expose in client-side code, logs, or version control.
 
     Both are downloaded from the PayGlocal partner dashboard under **Settings → API Keys**.

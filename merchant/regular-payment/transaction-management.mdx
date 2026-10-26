@@ -1,0 +1,83 @@
+---
+title: "Transaction Management"
+sidebarTitle: "Transaction Management"
+description: "Check payment status and process refunds for regular one-time payments."
+---
+
+## Status Check
+
+Query real-time status of any payment using its `gid`. Only call this when the original response returns `CREATED` — all other statuses are final.
+
+```
+GET /gl/v1/payments/{gid}/status
+```
+
+| Status | Type | What it means | Your action |
+|---|---|---|---|
+| `CREATED` | Non-final | Created, customer not yet redirected | Load PayGlocal redirect |
+| `INPROGRESS` | Non-final | Customer on payment page | Wait |
+| `SENT_FOR_CAPTURE` | **Final** | Captured — funds will settle | Ship / fulfill |
+| `AUTHORIZED` | Non-final | Authorized by issuer | Plan to ship |
+| `ABANDONED` | Final | Customer closed window | Retry |
+| `ISSUER_DECLINE` | Final | Card declined | Ask for another method |
+| `CUSTOMER_CANCELLED` | Final | Customer cancelled | Ask to retry |
+| `GENERAL_DECLINE` | Final | Risk decline | Verify and retry |
+| `REQUEST_ERROR` | Final | Field-level error | Fix and resend |
+
+---
+
+## Refunds
+
+Refunds can only be initiated for transactions in `SENT_FOR_CAPTURE` status. Use the original `gid`.
+
+```
+POST /gl/v1/payments/{gid}/refund
+```
+
+<CardGroup cols={2}>
+  <Card title="Partial Refund" color="#F59E0B">
+    Refund a specific amount — partial cancellations, price adjustments, or part returns.
+
+    ```json
+    {
+      "merchantTxnId": "REFUND-TXN-1",
+      "merchantUniqueId": "12345678",
+      "refundType": "P",
+      "paymentData": { "totalAmount": "25.00" }
+    }
+    ```
+
+    - Multiple partial refunds allowed until full amount is refunded
+    - Each refund requires a unique `merchantTxnId`
+    - Processed in **5–7 business days**
+  </Card>
+  <Card title="Full Refund" color="#EF4444">
+    Refund the entire transaction — complete cancellations or returns.
+
+    ```json
+    {
+      "merchantTxnId": "REFUND-TXN",
+      "merchantUniqueId": "12345678",
+      "refundType": "F"
+    }
+    ```
+
+    - No `paymentData.totalAmount` required
+    - Only one full refund per transaction
+    - Processed in **5–7 business days**
+  </Card>
+</CardGroup>
+
+**Response:**
+```json
+{
+  "gid": "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status": "SENT_FOR_REFUND",
+  "message": "Refund Initiated Successfully",
+  "data": {
+    "Amount": "25.00",
+    "Currency": "INR",
+    "merchantTxnId": "REFUND-TXN-1"
+  }
+}
+```

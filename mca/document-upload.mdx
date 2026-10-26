@@ -1,0 +1,162 @@
+---
+title: "Uploading Transaction Documents"
+description: "How to attach a supporting invoice to an MCA transaction using the presigned upload flow."
+icon: "file-arrow-up"
+---
+
+## Overview
+
+When funds arrive in a merchant's virtual account, PayGlocal requires a supporting document, typically an invoice, before the transaction can be settled. You provide it through a **single-call presigned URL flow**:
+
+1. **Host** the PDF yourself and generate a presigned URL for it from your own storage (for example an S3 bucket you control).
+2. **Call** PayGlocal's upload endpoint with that `presignedUrl` in the request body. PayGlocal downloads the file from it and stores it for the transaction.
+
+There is no separate "get a URL, then PUT the file" step. The presigned URL is yours, and PayGlocal is the one downloading from it.
+
+---
+
+## When to Trigger This
+
+Call the upload endpoint as soon as you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`. Take the `gid` from the webhook payload and pass it in the path.
+
+```
+MCA_FUND_RECEIVED webhook received (status DOCUMENT_PENDING)
+         │
+         ▼
+  Extract gid from payload
+         │
+         ▼
+  Host the PDF at a presigned URL you control
+         │
+         ▼
+  POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned
+  with presignedUrl in the request body
+         │
+         ▼
+  PayGlocal downloads and stores the file (HTTP 200)
+         │
+         ▼
+  PayGlocal reviews the document
+```
+
+The transaction must be in `DOCUMENT_PENDING`. If it is not, the call returns `400`.
+
+---
+
+## Request the Upload
+
+Send your API key in the `x-gl-auth` header. No `x-gl-digest` is needed for this endpoint.
+
+```
+POST https://gcc.prod.payglocal.in/gcc/v1/ffms/external/transaction/<gid>/upload-presigned
+x-gl-auth: <your API key>
+```
+
+The sandbox host is `https://gcc.uat.payglocal.in`.
+
+| Field | What to send |
+|-------|-------------|
+| `gid` | In the path. The transaction ID from the webhook. |
+| `amount` | The transaction amount from the webhook |
+| `currency` | The transaction currency from the webhook |
+| `merchantId` | The merchant ID from the webhook |
+| `invoiceType` | Send `INVOICE` |
+| `paymentType` | Send `FULL` |
+| `fileName` | The file name. **Must end in `.pdf`.** |
+| `presignedUrl` | A URL PayGlocal can download the PDF from. Must be reachable when you call. |
+
+Optional fields:
+
+| Field | Notes |
+|-------|-------|
+| `invoiceNumber` | 1 to 100 characters. Recommended, it makes the transaction traceable. |
+| `customerFullName` | 3 to 150 characters. |
+| `shippingDetails` | 1 to 120 characters. |
+| `purposeCode` | Must be one of the purpose codes configured for the merchant, otherwise the call returns `400`. If you send several comma-separated codes, only the first is used. |
+| `fxRate` | Accepted but not used at this step. PayGlocal applies the FX rate at settlement. |
+
+**Example request body:**
+
+```json
+{
+  "amount": "1000.00",
+  "currency": "USD",
+  "invoiceType": "INVOICE",
+  "paymentType": "FULL",
+  "merchantId": "<merchant_id>",
+  "invoiceNumber": "INV-2026-00321",
+  "customerFullName": "John Doe",
+  "purposeCode": "P0102",
+  "fileName": "invoice_INV-2026-00321.pdf",
+  "presignedUrl": "https://your-bucket.s3.amazonaws.com/invoice.pdf?X-Amz-Signature=..."
+}
+```
+
+---
+
+## What a 200 Response Means
+
+A `200 OK` means PayGlocal **downloaded and stored the file**. It does **not** mean the document is approved. After the `200`:
+
+- The file is checked for size (**10 MB maximum**) and type (PDF).
+- PayGlocal's compliance team reviews the document against the transaction.
+
+<Warning>
+  If the file fails the size or type check after the `200`, you receive **no webhook**. The transaction simply stays in `DOCUMENT_PENDING`. If a transaction has not moved to `SENT_FOR_SETTLEMENT` after you uploaded, upload a corrected file, or contact support with the `gid`.
+</Warning>
+
+<Warning>
+  The `presignedUrl` is fetched immediately during the request and is not stored or reused. Make sure it stays valid for at least a few minutes.
+</Warning>
+
+---
+
+## File Requirements
+
+- **PDF only.** The file name must end in `.pdf`.
+- **10 MB maximum.**
+- Put the invoice number in the file name so the document is traceable (for example `invoice_INV-2026-00321.pdf`).
+
+---
+
+## If PayGlocal Needs a Different Document
+
+If the compliance team needs more information, you receive a **`CHANGE_REQUESTED`** alert webhook with a `reason`. The transaction goes back to `DOCUMENT_PENDING`. Upload a corrected document with the same endpoint and the same `gid`. See [MCA Webhook Events](/mca/webhooks).
+
+---
+
+## Retrying and Re-uploading
+
+- If the call fails with `Failed to download file from presigned URL`, nothing was saved. Fix the URL and call again.
+- While a transaction is still `DOCUMENT_PENDING`, you can upload again with a new file.
+- Do not send two uploads for the same `gid` at the same time. The second one returns `409`.
+
+---
+
+## After the Upload
+
+Once the document is accepted, PayGlocal will:
+
+1. Send you a `TXN_SENT_FOR_SETTLEMENT` webhook when the transaction is submitted for settlement.
+2. Send you a `TXN_SETTLED` webhook when the funds are settled to the merchant's account.
+3. Send you a `FIRC_RECEIVED` webhook when the FIRC is ready.
+
+You do not need to call any further API, just listen for the webhooks.
+
+---
+
+## Errors
+
+| What you see | What it means |
+|--------------|---------------|
+| `400` with `Invalid file extension. Only .pdf files are allowed.` | `fileName` does not end in `.pdf` |
+| `400` with `Neither file nor presigned URL provided` | `presignedUrl` is missing |
+| `400` with `Transaction not found` | The `gid` is wrong |
+| `400` with `Transaction is not open for new document upload` | The transaction is not in `DOCUMENT_PENDING` |
+| `400` with `Invalid purpose code for merchant` | `purposeCode` is not configured for this merchant |
+| `400` with `Failed to download file from presigned URL` | PayGlocal could not download the file. Check the URL and its expiry. |
+| `401` | `x-gl-auth` is missing or wrong |
+| `403` | The transaction does not belong to your partner account |
+| `409` | Another upload for the same `gid` is already in progress |
+
+For the full API spec and interactive playground, see [Upload Document via Presigned URL](/api-reference/mca/document-upload).

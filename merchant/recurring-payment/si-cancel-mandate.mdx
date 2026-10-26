@@ -1,0 +1,25 @@
+---
+title: "SI Cancel Mandate"
+sidebarTitle: "SI Cancel Mandate"
+description: "Permanently revoke a standing instruction mandate."
+---
+
+Permanently revoke a mandate. This cannot be undone — no further charges can be made.
+
+```
+PUT /gl/v1/payments/si/status
+```
+
+```json
+{
+  "merchantTxnId": "REVOKE-TXN-001",
+  "standingInstruction": {
+    "action": "REVOKE",
+    "mandateId": "md_94f0bb40-2664-4851-ab83-b86c618d3e15"
+  }
+}
+```
+
+<Warning>
+  Use **Pause** for temporary interruptions. Use **Cancel** only when the recurring relationship is permanently ending.
+</Warning>

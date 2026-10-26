@@ -1,0 +1,48 @@
+---
+title: "MCA Demo Funding Ingestion"
+openapi: "POST /gcc/v1/ffms/transaction/demo-funding/{transactingMid}/mca-ingestion"
+---
+
+## When to Use
+
+Use this endpoint in the **sandbox** to simulate an inbound funding event for a `transactingMid`, so you can test your webhook handling and document upload end to end without sending real money.
+
+<Warning>
+  This endpoint works only in non-production environments. In production it returns `400` (`Mocking transaction is not allowed in this environment`).
+</Warning>
+
+## Authentication
+
+Send your API key in the `x-gl-auth` header. No `x-gl-digest` is needed for this endpoint.
+
+```
+x-gl-auth: <your API key>
+```
+
+The sandbox host is `https://gcc.uat.payglocal.in`.
+
+## Request Rules
+
+| Field | Rule |
+|-------|------|
+| `amount` | Required. |
+| `currency` | Required. EUR, AUD and GBP are simulated through one banking partner and all other currencies through another. |
+| `senderName` | Required. |
+| `senderCountry` | Required for every currency **except** EUR, AUD and GBP. |
+| `debtorAccountNumber`, `debtorFinancialInstitutionCode`, `debtorIban`, `paymentScheme` | Optional. Sandbox defaults are used when omitted. |
+
+## What Happens Next
+
+The `200` response means the simulated funding was **created**, not that it has landed. The funding arrives asynchronously from the sandbox, usually shortly after. When it does, you receive the normal `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`, and you continue with [Upload Document via Presigned URL](/api-reference/mca/document-upload).
+
+Use the response `transactionId` only as a reference for the simulation. The `gid` you use for uploads comes from the webhook.
+
+## Error Scenarios
+
+| Scenario | HTTP Code |
+|----------|-----------|
+| Required field missing (`amount`, `currency`, `senderName`, or `senderCountry` where required) | `400` |
+| Called in production | `400` |
+| `x-gl-auth` missing or invalid | `401` |
+| `transactingMid` does not belong to your partner account | `403` |
+| Internal server error | `500` |

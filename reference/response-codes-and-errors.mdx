@@ -8,7 +8,7 @@ description: "Complete reference for PayGlocal reason codes, HTTP error codes, a
 | HTTP Code | Status | Description |
 |-----------|--------|-------------|
 | `400` | Bad Request | Request body or parameters failed validation. Check `errorDetails` array for field-level details. |
-| `401` | Unauthorized | Authentication failed. The `x-api-key` or `x-gl-digest` header is missing, invalid, or the digest does not match. |
+| `401` | Unauthorized | Authentication failed. The `x-gl-auth` or `x-gl-digest` header is missing, invalid, or the digest does not match. |
 | `403` | Forbidden | The `onboardingId` exists but does not belong to the authenticated partner. |
 | `404` | Not Found | The `onboardingId` does not exist. |
 | `500` | Internal Server Error | Unexpected server error. Retry with exponential backoff. Contact support with the `gid` if it persists. |
@@ -23,7 +23,7 @@ description: "Complete reference for PayGlocal reason codes, HTTP error codes, a
 |----------|------|
 | `onboardingId` does not exist | `404` |
 | `onboardingId` belongs to another partner | `403` |
-| Invalid or missing `x-api-key` | `401` |
+| Invalid or missing `x-gl-auth` | `401` |
 | Invalid or missing `x-gl-digest` | `401` |
 
 ### Create Onboarding
@@ -155,7 +155,7 @@ Always inspect `errorDetails` for field-level context on `400` errors.
 
 If you receive a `401 Unauthorized`:
 
-1. The `x-api-key` header must match your API Key exactly.
+1. The `x-gl-auth` header must match your API Key exactly.
 2. The digest must be computed using the **API Secret**, not the API Key.
 3. For POST/PUT: digest over the **exact raw request body** byte-for-byte.
 4. For GET: digest over the **full request URL** including protocol and path.

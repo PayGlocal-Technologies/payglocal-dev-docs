@@ -12,6 +12,10 @@ Use PayCollect if you are **not PCI DSS certified**. You send minimal transactio
   PayCollect does **not** support setting up Standing Instructions for cards.
 </Warning>
 
+## UPI (India)
+
+Hosted PayCollect is the standard entry point for **UPI** in India: your server calls this endpoint with amount and callback URL, then sends the customer to `redirectUrl`. For the customer journey and funds flow see [UPI](/api-reference/payment/upi). For **UPI Intent** request/response details (including optional `billingData` / `riskData` and the post-success `statusData` payload), see [UPI Intent](/api-reference/payment/upi-intent).
+
 ## For Alternative Payment Methods
 
 PayGlocal supports global alternative payment methods (iDeal, Sofort, Trustly, giropay, EPS, wallets, BNPL) for merchants exporting outside India. These require `riskData.shippingData.addressCountry` and `emailId`:

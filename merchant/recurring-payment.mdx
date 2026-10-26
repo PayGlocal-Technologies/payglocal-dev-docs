@@ -1,0 +1,272 @@
+---
+title: "Recurring Payment (SI)"
+description: "Standing Instructions — mandate creation, recurring deductions, and full mandate lifecycle management."
+---
+
+## What is a Recurring Payment?
+
+**Recurring payment** is a payment model where customers authorize merchants to charge them automatically for future payments **without requiring authentication every time**.
+
+Instead of asking the customer to manually complete payment during every billing cycle, the customer **approves a mandate once**, and future charges happen automatically based on the configured recurring setup.
+
+<CardGroup cols={2}>
+  <Card title="One-Time Setup" icon="user-check" color="#10B981">
+    Customer authorizes recurring charges just once during the first payment.
+  </Card>
+  <Card title="Automatic Billing" icon="clock-rotate-left" color="#1A6FE8">
+    Future payments happen automatically without customer intervention.
+  </Card>
+</CardGroup>
+
+### Common Use Cases
+
+Recurring payments are commonly used for:
+
+- **OTT platforms** (Netflix, Prime Video)
+- **EMI payments** (loan installments)
+- **Utility bills** (electricity, water, gas)
+- **SaaS products** (cloud software subscriptions)
+- **Membership plans** (gym, clubs)
+- **Insurance premiums** (monthly/quarterly)
+- **Auto-recharge systems** (prepaid mobile, wallets)
+
+---
+
+## How Recurring Payments Work
+
+<Steps>
+  <Step title="Customer Creates Mandate">
+    Customer performs the **first payment** and approves recurring authorization.
+    
+    **This creates:**
+    - A recurring mandate
+    - A stored authorization
+    - A unique **Mandate ID**
+  </Step>
+  
+  <Step title="Merchant Stores Mandate Information">
+    Merchant securely stores:
+    - **Mandate ID**
+    - Customer reference
+    - Payment method details
+    - Frequency configuration
+    
+    This Mandate ID is used for **all future recurring operations**.
+  </Step>
+  
+  <Step title="Future Charges Happen">
+    Based on the SI type:
+    - **Fixed SI:** PayGlocal automatically debits customer
+    - **Variable SI:** Merchant manually triggers charges when required
+  </Step>
+</Steps>
+
+---
+
+## SI Models Supported by PayGlocal
+
+PayGlocal supports **two recurring payment models:**
+
+<CardGroup cols={2}>
+  <Card title="Fixed SI — Auto Debit" icon="robot" color="#10B981">
+    **Fixed recurring payment** with predefined amount and schedule.
+    
+    **Examples:**
+    - ₹999 every month
+    - ₹499 every week
+    - ₹1,200 every quarter
+    
+    **Characteristics:**
+    - Amount remains **fixed**
+    - Frequency remains **fixed**
+    - PayGlocal **automatically deducts** payment based on schedule
+    
+    **Best for:**
+    - OTT subscriptions
+    - Gym memberships
+    - SaaS subscriptions
+    - Fixed EMI plans
+  </Card>
+  
+  <Card title="Variable SI — On-Demand" icon="hand-pointer" color="#F59E0B">
+    **Variable recurring payment** where amount may change for every deduction.
+    
+    **Examples:**
+    - Electricity bills
+    - Water bills
+    - Usage-based billing
+    - Metered SaaS pricing
+    
+    **Characteristics:**
+    - Merchant sets a **maximum allowed limit** during setup
+    - Deduction does **NOT happen automatically**
+    - Merchant must **trigger payment** whenever required
+    
+    **Best for:**
+    - Utility billing
+    - Consumption-based pricing
+    - Dynamic invoices
+    - Top-ups
+  </Card>
+</CardGroup>
+
+---
+
+## Fixed SI — Auto Debit
+
+### How It Works
+
+During mandate creation:
+
+1. Merchant defines **fixed recurring amount**
+2. Merchant defines **billing frequency**
+3. Customer authorizes recurring deductions
+
+**Example:** Customer approves:
+- ₹999
+- Every month
+- Automatically deducted
+
+**Once approved:** PayGlocal automatically charges customer based on configured schedule.
+
+### Auto Debit Frequencies
+
+Supported recurring schedules may include:
+
+| Frequency | Example |
+|---|---|
+| `DAILY` | Charged every day |
+| `WEEKLY` | Charged every week |
+| `MONTHLY` | Charged every month |
+| `QUARTERLY` | Charged every 3 months |
+| `YEARLY` | Charged every year |
+
+### Fixed SI Flow
+
+```
+Customer Creates Mandate
+        ↓
+Merchant Receives Mandate ID
+        ↓
+PayGlocal Schedules Recurring Charges
+        ↓
+Automatic Debit Happens
+        ↓
+Merchant Receives Payment Status Webhook
+```
+
+<Note>
+  **Merchant does not need to trigger deductions manually** — PayGlocal handles everything automatically based on the configured frequency.
+</Note>
+
+---
+
+## Variable SI — On-Demand Deduction
+
+### How It Works
+
+During mandate creation:
+
+1. Merchant defines **maximum allowed amount**
+2. Customer approves charging permission up to that limit
+
+<Warning>
+  **Important:** Payment is **NOT auto-debited** on schedule. Merchant must **manually initiate** every deduction request by the help of On Demand API.
+</Warning>
+
+### When to Use On-Demand Deduction
+
+For charging customer cards in Variable SI, merchant triggers deduction request manually. This is useful when:
+
+- Final amount **changes**
+- **Usage-based** billing exists
+- Invoice amount **varies**
+
+**Example Use Cases:**
+- Electricity bill generated monthly
+- Cloud usage billing
+- Water bill deduction
+- Wallet recharge
+- Subscription add-ons
+- Consumption-based SaaS pricing
+
+### Variable SI Flow
+
+```
+Customer Creates Variable Mandate
+        ↓
+Merchant Receives Mandate ID
+        ↓
+Merchant Generates Invoice
+        ↓
+Merchant Triggers On-Demand Charge
+        ↓
+Payment Gets Processed
+        ↓
+Merchant Receives Payment Status
+```
+
+<Note>
+  **Amount must always remain within approved mandate limit.** If you need to charge more than the maximum limit, you must create a new mandate.
+</Note>
+
+---
+
+## Mandate Management
+
+Once a mandate is created, merchants can **manage its lifecycle**.
+
+### Mandate Operations
+
+Merchants can:
+
+- **Pause** recurring deductions temporarily
+- **Resume** paused mandates
+- **Cancel** mandates permanently
+- **Check** mandate status
+- **View** deduction history
+
+This gives merchants **complete control** over recurring billing operations.
+
+<CardGroup cols={3}>
+  <Card title="Pause Mandate" icon="circle-pause" color="#F59E0B">
+    Temporarily suspend recurring charges without cancelling the mandate.
+  </Card>
+  <Card title="Activate Mandate" icon="play" color="#10B981">
+    Resume a paused mandate and restart recurring billing.
+  </Card>
+  <Card title="Cancel Mandate" icon="ban" color="#EF4444">
+    Permanently revoke a mandate — cannot be undone.
+  </Card>
+</CardGroup>
+
+---
+
+## Fixed vs Variable — Quick Comparison
+
+| Feature | Fixed SI (Auto Debit) | Variable SI (On-Demand) |
+|---|---|---|
+| **Amount** | Fixed amount every cycle | Variable amount (within max limit) |
+| **Frequency** | Predefined schedule | Merchant-triggered |
+| **Automation** | Fully automatic | Manual trigger required |
+| **Deduction** | PayGlocal handles automatically | Merchant initiates each charge |
+| **Best For** | Subscriptions, EMIs, memberships | Utility bills, usage-based billing |
+| **Example** | ₹999 every month for Netflix | Electricity bill — varies each month |
+
+---
+
+## Next Steps
+
+Now that you understand how Recurring Payments work, learn how to implement them:
+
+<CardGroup cols={2}>
+  <Card title="SI Payment Initiation" icon="paper-plane" href="/merchant/recurring-payment/si-payment-initiation">
+    Create a recurring mandate during the first payment.
+  </Card>
+  <Card title="SI Transaction Management" icon="hand-pointer" href="/merchant/recurring-payment/si-transaction-management">
+    Trigger on-demand deductions for Variable SI mandates.
+  </Card>
+  <Card title="SI Mandate Management" icon="list-check" href="/merchant/recurring-payment/si-mandate-management">
+    Pause, activate, or cancel mandates after creation.
+  </Card>
+</CardGroup>

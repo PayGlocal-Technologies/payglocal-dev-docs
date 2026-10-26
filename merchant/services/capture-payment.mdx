@@ -1,0 +1,78 @@
+---
+title: "Capture Payment"
+description: "Capture authorized payments — full or partial — to trigger settlement."
+icon: "circle-down"
+---
+
+## Capture Payment
+
+Capture a previously authorized payment to trigger settlement. Use after an [Auth Payment](/merchant/auth-capture#auth-payment) when you're ready to charge the customer.
+
+<Note>
+  You must capture within the authorization window allowed by the card network — **typically 7 days** depending on issuer and network.
+</Note>
+
+---
+
+## Endpoint
+
+```
+POST /gl/v1/payments/{gid}/capture
+```
+
+`{gid}` = the GID returned in the original Auth Payment response.
+
+---
+
+## Full Capture
+
+Capture the entire authorized amount.
+
+```json
+{
+  "merchantTxnId": "CAP-23AEE8CB6B62EE2AF07",
+  "captureType":   "F"
+}
+```
+
+- Captures the complete authorized amount
+- No need to specify `paymentData.totalAmount`
+- Transaction completes immediately
+- Only one full capture per authorization
+
+---
+
+## Partial Capture
+
+Capture a specific amount from the authorized funds. Useful when fulfilling part of an order or adjusting after authorization.
+
+```json
+{
+  "merchantTxnId": "CAP-23AEE8CB6B62EE2AF07-1",
+  "captureType":   "P",
+  "paymentData":   { "totalAmount": "60.00" }
+}
+```
+
+- Capture any amount up to the remaining authorized amount
+- Multiple partial captures allowed until full amount is captured
+- Each capture requires a unique `merchantTxnId`
+- Remaining authorization released after partial capture
+
+---
+
+## Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `merchantTxnId` | String | Yes | Unique reference for this capture |
+| `captureType` | String | Yes | `F` = Full · `P` = Partial |
+| `paymentData.totalAmount` | String | Conditional | Required for `P` |
+
+---
+
+## Webhook
+
+A webhook notification is sent upon capture completion.
+
+See the full Auth & Capture flow in [Auth & Capture](/merchant/auth-capture).

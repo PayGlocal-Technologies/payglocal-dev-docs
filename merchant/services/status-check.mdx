@@ -1,0 +1,101 @@
+---
+title: "Status Check"
+description: "Query the real-time status of any GPI, Refund, or SI transaction using the GID or your merchantUniqueId."
+icon: "magnifying-glass"
+---
+
+## Status Check
+
+Query the current status of any transaction created via PayCollect, PayDirect, Refund, or Standing Instruction services. Use the PayGlocal GID or your own `merchantUniqueId` as the identifier.
+
+<Warning>
+  Call Status Check **only when the original API response returns `CREATED`**. Error statuses returned in the original response are final — no Status Check call is needed.
+</Warning>
+
+---
+
+## Endpoint
+
+```
+GET /gl/v1/payments/{id}/status
+```
+
+`{id}` can be either:
+- The **GID** returned in the original response (e.g. `gl-13bbd3c4-9817-4786-96c6-12fa6191f118`)
+- Your **`merchantUniqueId`** sent in the original request
+
+---
+
+## Sample Response
+
+```json
+{
+  "gid":       "gl-13bbd3c4-9817-4786-96c6-12fa6191f118",
+  "status":    "CREATED",
+  "message":   "Get Status Successful",
+  "timestamp": "2026-04-12T07:47:18Z",
+  "data": {
+    "siStatus":                "SUCCESS",
+    "detailedMessage":         "Transaction Processed Successfully",
+    "transactionCreationTime": "25/08/2026 14:24:12",
+    "gid":                     "gl_0f82812f-356f-414e-9857-2d3473d53a3c",
+    "Amount":                  "10",
+    "Currency":                "INR",
+    "merchantTxnId":           "23AEE8CB6B62EE2AF07",
+    "status":                  "SENT_FOR_CAPTURE",
+    "maskedMandateId":         "md_94fxxxxxx3e15",
+    "siId":                    "si_cd2f0a1c-4dec-44d5-b0f3-297aee590d32"
+  }
+}
+```
+
+---
+
+## GPI Transaction Statuses
+
+| Status | Type | Description | Action |
+|--------|------|-------------|--------|
+| `CREATED` | Non-final | Created, customer not yet redirected | Load PayGlocal redirect |
+| `INPROGRESS` | Non-final | Customer on PayGlocal payment page | Wait for completion |
+| `ABANDONED` | Final | Customer closed window or timed out | Send payment link |
+| `AUTHORIZED` | Non-final | Authorized by issuer | Plan to ship |
+| `SENT_FOR_CAPTURE` | Final | Captured — funds will settle | Ship goods; refund if needed |
+| `ISSUER_DECLINE` | Final | Issuer declined | Ask for another payment method |
+| `CUSTOMER_CANCELLED` | Final | Customer cancelled on PayGlocal page | Ask customer to retry |
+| `AUTHENTICATION_TIMEOUT` | Final | 3DS timed out | Ask customer to retry |
+| `GENERAL_DECLINE` | Final | Declined due to risk | Verify identity; retry |
+| `REQUEST_ERROR` | Final | Field-level error in request | Fix and retry |
+| `SYSTEM_ERROR` | Final | PayGlocal system issue | Retry later |
+| `CONFIG_ERROR` | Final | MID configuration issue | Contact support |
+
+---
+
+## Refund Statuses
+
+| Status | Description |
+|--------|-------------|
+| `SENT_FOR_REFUND` | Refund initiated to processor |
+| `REQUEST_ERROR` | Field-level issue — fix and retry |
+| `SYSTEM_ERROR` | System issue — retry later |
+
+---
+
+## Standing Instruction Statuses
+
+| Status | Description |
+|--------|-------------|
+| `SENT_FOR_CAPTURE` | SI payment captured |
+| `REQUEST_ERROR` | Fix request fields and retry |
+| `SYSTEM_ERROR` | System issue — retry |
+| `CONFIG_ERROR` | MID configuration issue |
+
+---
+
+## Key Points
+
+- Real-time transaction status updates
+- Returns payment method and amount details
+- Includes authorization codes and timestamps
+- Shows complete transaction lifecycle
+- Essential for reconciliation and reporting
+- **Idempotent** — safe to call multiple times

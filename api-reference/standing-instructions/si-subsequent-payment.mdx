@@ -6,7 +6,11 @@ openapi: "POST /gl/v1/payments/si/sale"
 
 ## When to Use
 
-Trigger a subsequent debit against an active standing-instruction mandate. The mandate is created during the initial `/initiate` call; this endpoint debits against it.
+**ONDEMAND** mandates require this API for every subsequent debit. Register with `frequency: ONDEMAND` on initiate — you then call SI sale whenever you want to charge (including weekly or monthly billing in your product; PayGlocal does not schedule ONDEMAND mandates).
+
+**AUTO DEBIT** uses `frequency` values such as `MONTHLY` or `WEEKLY` on registration so PayGlocal runs the schedule — **no SI sale API**.
+
+Use the **`mandateId`** from the original initiate response (it is not returned on later transactions). Applies to PayDirect and PayCollect on-demand mandates. See **Standing Instruction Sale** in the API Reference sidebar.
 
 ## FIXED vs VARIABLE
 

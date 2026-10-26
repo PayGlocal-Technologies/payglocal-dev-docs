@@ -12,7 +12,7 @@ Uploads a single compliance document for the merchant. Call this endpoint **once
 </Warning>
 
 <Note>
-  For Partnerships, LLPs, and Companies, PayGlocal auto-fetches MOA, AOA, COI, and similar corporate documents from government sources where feasible. You only need to upload those manually if the auto-fetch is unsuccessful (the onboarding will enter status `RFI` in that case). See [Merchant Requirements](/guides/merchant-requirements) for what's expected per entity type.
+  Check `documentsToBeUploaded` in the [Get Onboarding Status](/api-reference/get-status) response to see which documents are pending. After each upload, poll GET /status to confirm the list has updated. See the full [Dynamic document pendencies](/guides/merchant-requirements#dynamic-document-pendencies) matrix for trigger conditions and `merchantDocType` mappings.
 </Note>
 
 ## Error Scenarios

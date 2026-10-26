@@ -1,0 +1,955 @@
+openapi: "3.0.3"
+info:
+  title: PayGlocal PayDirect API
+  description: |
+    PayDirect payment initiation for PCI DSS certified merchants. Merchants collect
+    card details on their own page and send them directly in the request. PayGlocal
+    handles 3DS authentication, routing, and risk assessment.
+  version: "2.0"
+  contact:
+    name: PayGlocal Support
+    email: merchant.support@payglocal.in
+    url: https://payglocal.in
+
+servers:
+  - url: https://api.payglocal.in
+    description: Production
+  - url: https://api.uat.payglocal.in
+    description: Sandbox
+
+security:
+  - JwsTokenAuth: []
+
+components:
+  securitySchemes:
+    JwsTokenAuth:
+      type: apiKey
+      in: header
+      name: x-gl-token-external
+      description: |
+        RSA-signed JWS (JSON Web Signature) token carrying the request payload.
+        - Header: `{ "alg": "RS256", "kid": "<merchant-key-id>", "iss": "<merchant-id>", "x-gl-enc": "false", "is-digested": "true" }`
+        - Payload: the exact JSON body sent in the request (or its SHA-256 digest when `is-digested=true`).
+        - Signed with the merchant's RSA private key; PayGlocal verifies with the matching public key.
+
+  schemas:
+
+    # ── Card & Payment ────────────────────────────────────────────────────────
+
+    Card:
+      type: object
+      description: Raw card data. **Mandatory** on PayDirect initiate unless you send `tokenData` instead (one of the two, not both).
+      required:
+        - number
+        - expiryMonth
+        - expiryYear
+        - securityCode
+      properties:
+        number:
+          type: string
+          description: Primary Account Number (PAN). Digits only, support 12-16 digit PAN.
+          example: "4111111111111111"
+        expiryMonth:
+          type: string
+          description: Two/Four-digit expiry month.
+          example: "12"
+        expiryYear:
+          type: string
+          description: Four-digit expiry year.
+          example: "2030"
+        securityCode:
+          type: string
+          description: CVV / CVC.
+          example: "123"
+
+    TokenData:
+      type: object
+      description: Network token or AltID. **Mandatory** on PayDirect initiate unless you send `cardData` instead (one of the two, not both).
+      required:
+        - altId
+        - number
+        - expiryMonth
+        - expiryYear
+        - cryptogram
+        - requestorID
+        - firstSix
+        - lastFour
+      properties:
+        altId:
+          type: boolean
+          description: Set to `false` for a standard network token flow.
+          example: false
+        number:
+          type: string
+          description: Token PAN.
+          example: "8197580515978705"
+        expiryMonth:
+          type: string
+          description: Two-digit expiry month.
+          example: "06"
+        expiryYear:
+          type: string
+          description: Four-digit expiry year.
+          example: "2024"
+        cryptogram:
+          type: string
+          description: TAVV / CAVV cryptogram.
+          example: "AIkBAYRWkgAgIgYiFEMiAAAAAAA="
+        requestorID:
+          type: string
+          description: Token requestor ID issued by the network.
+          example: "40000000079"
+        hashOfFirstSix:
+          type: string
+          description: Hash of the first 6 digits of the original PAN.
+        firstSix:
+          type: string
+          description: BIN of the original card.
+          example: "411111"
+        lastFour:
+          type: string
+          description: Last 4 digits of the original card.
+          example: "2023"
+        cardBrand:
+          type: string
+          description: Card network of the original card.
+          example: visa
+
+    Billing:
+      type: object
+      description: Billing address and contact details of the payer.
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        emailId:
+          type: string
+          format: email
+          example: john.doe@example.com
+        callingCode:
+          type: string
+          example: "+91"
+        phoneNumber:
+          type: string
+          example: "9999999999"
+        addressStreet1:
+          type: string
+          example: 221B Baker Street
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+          example: Bengaluru
+        addressState:
+          type: string
+          example: Karnataka
+        addressStateCode:
+          type: string
+          example: KA
+        addressPostalCode:
+          type: string
+          example: "560001"
+        addressCountry:
+          type: string
+          description: ISO 3166-1 alpha-3 country code.
+          example: IND
+
+    PaymentPayDirectInitiateCommon:
+      type: object
+      properties:
+        totalAmount:
+          type: string
+          description: Transaction amount as a decimal string. Supports up to 4 decimal places.
+          example: "100.00"
+        txnCurrency:
+          type: string
+          description: ISO 4217 currency code. Must be uppercase (e.g. `INR`, `USD`, `EUR`).
+          example: INR
+        billingData:
+          allOf:
+            - $ref: "#/components/schemas/Billing"
+          description: |
+            Cardholder billing address. Required for digital product / service transactions
+            and flight bookings. Preferred for all other transaction types.
+
+    PaymentPayDirectInitiateCard:
+      allOf:
+        - $ref: "#/components/schemas/PaymentPayDirectInitiateCommon"
+        - type: object
+          description: PayDirect initiate with raw card PAN (`cardData`).
+          required:
+            - totalAmount
+            - txnCurrency
+            - cardData
+          properties:
+            cardData:
+              $ref: "#/components/schemas/Card"
+
+    PaymentPayDirectInitiateToken:
+      allOf:
+        - $ref: "#/components/schemas/PaymentPayDirectInitiateCommon"
+        - type: object
+          description: PayDirect initiate with network token / AltID (`tokenData`).
+          required:
+            - totalAmount
+            - txnCurrency
+            - tokenData
+          properties:
+            tokenData:
+              $ref: "#/components/schemas/TokenData"
+
+    PaymentPayDirectInitiate:
+      description: |
+        Payment instrument and amount for PayDirect initiate. **Either option 1 (`cardData`) or option 2 (`tokenData`)** — not both.
+      oneOf:
+        - title: Card data
+          $ref: "#/components/schemas/PaymentPayDirectInitiateCard"
+        - title: Token data
+          $ref: "#/components/schemas/PaymentPayDirectInitiateToken"
+
+    # ── Risk Data ─────────────────────────────────────────────────────────────
+
+    Customer:
+      type: object
+      description: Payer identity and device context for risk evaluation.
+      properties:
+        merchantAssignedCustomerId:
+          type: string
+          example: cust_12345
+        customerAccountType:
+          type: string
+          description: Merchant-defined account type code for risk scoring.
+        customerSuccessOrderCount:
+          type: string
+          description: Historical successful order count (stringified integer).
+        customerAccountCreationDate:
+          type: string
+          description: Account creation date in YYYYMMDD format.
+          example: "20180904"
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        callingCode:
+          type: string
+        mobileNumber:
+          type: string
+        ipAddress:
+          type: string
+          description: Customer IP address. Required for RuPay cards.
+          example: "192.90.40.98"
+        httpAccept:
+          type: string
+          description: Browser Accept header. Required for RuPay cards.
+          example: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        httpUserAgent:
+          type: string
+          description: Browser User-Agent header. Required for RuPay cards.
+          example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+
+    Shipping:
+      type: object
+      description: Delivery address for physical-goods orders.
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emailId:
+          type: string
+          format: email
+        callingCode:
+          type: string
+        phoneNumber:
+          type: string
+        addressStreet1:
+          type: string
+        addressStreet2:
+          type: string
+        addressCity:
+          type: string
+        addressState:
+          type: string
+        addressPostalCode:
+          type: string
+        addressCountry:
+          type: string
+          description: ISO 3166-1 alpha-3 country code.
+          example: IND
+
+    RiskItem:
+      type: object
+      description: Single line-item in the order for risk analytics.
+      properties:
+        productDescription:
+          type: string
+          example: Apple AirPods Pro
+        productSKU:
+          type: string
+          example: MNO00390
+        productType:
+          type: string
+          example: Electronics
+        itemUnitPrice:
+          type: string
+          example: "12000.00"
+        itemQuantity:
+          oneOf:
+            - type: integer
+            - type: string
+          example: "1"
+
+    RiskFlightLeg:
+      type: object
+      properties:
+        flightNumber:
+          type: string
+          example: AI202
+        departureAirportCode:
+          type: string
+          example: AUH
+        departureDate:
+          type: string
+          description: Departure date in YYYYMMDD format.
+          example: "20230905"
+        arrivalAirportCode:
+          type: string
+          example: BLR
+        carrierCode:
+          type: string
+          example: AI
+
+    RiskFlightPassenger:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Sam
+        lastName:
+          type: string
+          example: Thomas
+        email:
+          type: string
+          format: email
+          example: sam.thomas@example.com
+
+    RiskFlightBooking:
+      type: object
+      properties:
+        agentCode:
+          type: string
+        agentName:
+          type: string
+        reservationCode:
+          type: string
+          example: NQM2SR
+        legData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightLeg"
+        passengerData:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskFlightPassenger"
+
+    RiskPayDirectInitiate:
+      type: object
+      description: |
+        Fraud-assessment payload processed by PayGlocal's risk engine. Sending complete risk
+        data helps prevent fraudulent transactions and improves approval rates.
+        **Required for international card transactions.** For RuPay cards,
+        `customerData.ipAddress`, `customerData.httpAccept`, and `customerData.httpUserAgent`
+        are also required.
+      properties:
+        customerData:
+          $ref: "#/components/schemas/Customer"
+          description: Payer identity and device context. Preferred for all transactions.
+        shippingData:
+          allOf:
+            - $ref: "#/components/schemas/Shipping"
+          description: Delivery address. Required for e-commerce (physical goods) transactions.
+        orderData:
+          type: array
+          description: Line items in the order. Preferred for all transactions.
+          items:
+            $ref: "#/components/schemas/RiskItem"
+        flightData:
+          type: array
+          description: Flight booking details. Required for airline / travel transactions.
+          items:
+            $ref: "#/components/schemas/RiskFlightBooking"
+
+    # ── Standing instruction (register on initiate) ───────────────────────────
+
+    SIDataPayDirect:
+      type: object
+      description: Mandate fields inside `standingInstruction.data`.
+      required:
+        - numberOfPayments
+        - frequency
+        - type
+        - mode
+      properties:
+        maxAmount:
+          type: string
+          description: Maximum debit amount for recurring transactions. Numeric string. Only when `type` is `VARIABLE`.
+          example: "15000"
+        amount:
+          type: string
+          description: Fixed mandate debit amount. Numeric string. Mandatory when `type` is `FIXED`.
+          example: "15000"
+        numberOfPayments:
+          type: string
+          description: Total recurring debits allowed. Positive integer or `"N"` for unlimited / infinite recurring debits.
+          example: "N"
+        frequency:
+          type: string
+          description: |
+            Frequency of mandate execution. `ONDEMAND`: merchant triggers each payment.
+            `WEEKLY`, `BIWEEKLY`, `MONTHLY`, `QUARTERLY`, `HALFYEARLY`, `YEARLY`: system auto-initiates; first payment on `startDate`, subsequent payments at the configured gap.
+          enum:
+            - ONDEMAND
+            - WEEKLY
+            - BIWEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALFYEARLY
+            - YEARLY
+        type:
+          type: string
+          description: |
+            `VARIABLE`: debit amount may vary per transaction, up to `maxAmount`.
+            `FIXED`: exact `amount` debited each time. Required for auto debit.
+          enum:
+            - FIXED
+            - VARIABLE
+        mode:
+          type: string
+          description: |
+            `REGISTER`: mandate registration only.
+            `PAYREGISTER`: registration and first payment combined.
+          enum:
+            - REGISTER
+            - PAYREGISTER
+          example: REGISTER
+        startDate:
+          type: string
+          description: Mandate validity start date (`yyyyMMdd`, e.g. `20260513`). Must be after the current date. Required for auto debit (`frequency` not `ONDEMAND`).
+          example: "20260903"
+        endDate:
+          type: string
+          description: Mandate validity end date (`yyyyMMdd`, e.g. `20280911`). Optional.
+          example: "20280911"
+
+    SIDataPayDirectOnDemand:
+      type: object
+      description: |
+        Mandate fields for standing instruction registration when **on-demand SI** is enabled on your PayGlocal MID.
+        `frequency` is not limited to `ONDEMAND` — set the schedule you need.
+        Do **not** send `startDate` or `endDate` — those apply only to [auto debit](/api-reference/payments-v2/paydirect/si-auto-debit).
+      required:
+        - maxAmount
+        - amount
+        - numberOfPayments
+        - frequency
+        - type
+      properties:
+        maxAmount:
+          type: string
+          description: Maximum debit amount for recurring transactions. Numeric string. Used when `type` is `VARIABLE` (debit ≤ `maxAmount` per transaction).
+          example: "15000"
+        amount:
+          type: string
+          description: Fixed mandate debit amount. Numeric string. Used when `type` is `FIXED` (exact amount each debit).
+          example: "15000"
+        numberOfPayments:
+          type: string
+          description: Total recurring debits allowed. Any positive integer from `1` to `N`, or `"N"` for unlimited / infinite recurring debits.
+          example: "N"
+        frequency:
+          type: string
+          description: |
+            Mandate schedule label (`ONDEMAND`, `WEEKLY`, `MONTHLY`, etc.). When **on-demand SI** is enabled on your MID, PayGlocal does **not** auto-debit on this schedule — you trigger each subsequent payment manually via the [SI sale API](/api-reference/standing-instructions/si-subsequent-payment), regardless of `frequency`.
+          enum:
+            - ONDEMAND
+            - WEEKLY
+            - BIWEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALFYEARLY
+            - YEARLY
+        type:
+          type: string
+          description: "`VARIABLE` (≤ `maxAmount`) or `FIXED` (exact `amount` each debit)."
+          enum:
+            - FIXED
+            - VARIABLE
+
+    SIDataPayDirectAutoDebit:
+      type: object
+      description: Mandate fields for auto debit (`standingInstruction.data`).
+      required:
+        - amount
+        - numberOfPayments
+        - frequency
+        - type
+        - startDate
+      properties:
+        amount:
+          type: string
+          example: "15000"
+        numberOfPayments:
+          type: string
+          description: Total recurring debits allowed. Any positive integer from `1` to `N`, or `"N"` for unlimited / infinite recurring debits.
+          example: "N"
+        frequency:
+          type: string
+          enum:
+            - WEEKLY
+            - BIWEEKLY
+            - MONTHLY
+            - QUARTERLY
+            - HALFYEARLY
+            - YEARLY
+        type:
+          type: string
+          enum:
+            - FIXED
+        startDate:
+          type: string
+          description: First debit date (`yyyyMMdd`). Must be after the current date.
+          example: "20260903"
+        endDate:
+          type: string
+          description: Optional (`yyyyMMdd`).
+
+    StandingInstructionPayDirectOnDemand:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/SIDataPayDirectOnDemand"
+
+    StandingInstructionPayDirectAutoDebit:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/SIDataPayDirectAutoDebit"
+
+    PayDirectInitiateFields:
+      type: object
+      properties:
+        merchantTxnId:
+          type: string
+          description: Merchant's unique transaction identifier. Alphanumeric only.
+          minLength: 4
+          maxLength: 50
+          example: "23AEE8CB6B62EE2AF07"
+        merchantUniqueId:
+          type: string
+          description: Optional stable merchant-side ID for idempotency and reconciliation. Alphanumeric only.
+          minLength: 15
+          maxLength: 40
+          example: "IFNN939494NJFJ"
+        riskData:
+          allOf:
+            - $ref: "#/components/schemas/RiskPayDirectInitiate"
+          description: Recommended for fraud checks and processor compliance.
+        merchantCallbackURL:
+          type: string
+          format: uri
+          description: Customers are redirected here post payment completion.
+          example: "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback"
+
+    TransactionRequestPayDirectGPI:
+      allOf:
+        - $ref: "#/components/schemas/PayDirectInitiateFields"
+        - type: object
+          description: GPI one-step sale (no mandate, no auth-only flag).
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayDirectInitiate"
+
+    TransactionRequestPayDirectSIOnDemand:
+      allOf:
+        - $ref: "#/components/schemas/PayDirectInitiateFields"
+        - type: object
+          description: |
+            Standing instruction registration when on-demand SI is enabled on the MID.
+            **International cards only** (`paymentData.cardData`).
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - standingInstruction
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayDirectInitiateCard"
+              description: |
+                **International cards only.** Send **`cardData` only** — `tokenData` is not supported for standing instruction registration.
+            standingInstruction:
+              $ref: "#/components/schemas/StandingInstructionPayDirectOnDemand"
+
+    TransactionRequestPayDirectSIAutoDebit:
+      allOf:
+        - $ref: "#/components/schemas/PayDirectInitiateFields"
+        - type: object
+          description: |
+            Scheduled auto debit standing instruction registration.
+            **International cards only** (`paymentData.cardData`).
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - standingInstruction
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayDirectInitiateCard"
+              description: |
+                **International cards only.** Send **`cardData` only** — `tokenData` is not supported for standing instruction registration.
+            standingInstruction:
+              $ref: "#/components/schemas/StandingInstructionPayDirectAutoDebit"
+
+    TransactionRequestPayDirectAuth:
+      allOf:
+        - $ref: "#/components/schemas/PayDirectInitiateFields"
+        - type: object
+          description: |
+            Auth-only initiate (`captureTxn` must be `false`). **Cards and international Apple Pay only** — UPI and net banking are not supported for auth.
+          required:
+            - merchantTxnId
+            - paymentData
+            - merchantCallbackURL
+            - captureTxn
+          properties:
+            paymentData:
+              $ref: "#/components/schemas/PaymentPayDirectInitiate"
+            captureTxn:
+              type: boolean
+              description: Must be `false` for authorise-only.
+              enum:
+                - false
+
+    # Legacy alias — GPI body only (used by older api-reference pages).
+    TransactionRequestPayDirectInitiate:
+      $ref: "#/components/schemas/TransactionRequestPayDirectGPI"
+
+    # ── Response ──────────────────────────────────────────────────────────────
+
+    InitiateResponseData:
+      type: object
+      description: |
+        `data` on a successful PayDirect initiate (`200`). **GPI and auth-only** responses use this shape (no `mandateId`).
+        No response fields are marked required — typical GPI payloads include `redirectUrl`, `statusUrl`, and `merchantTxnId`.
+      properties:
+        redirectUrl:
+          type: string
+          format: uri
+          description: Redirect the customer's browser here via **HTTP GET** to complete 3DS / step-up.
+          example: "https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example"
+        statusUrl:
+          type: string
+          format: uri
+          description: Pre-authenticated URL to poll status after the customer completes payment.
+          example: "https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example"
+        merchantTxnId:
+          type: string
+          description: Echo of `merchantTxnId` from the initiate request body.
+          example: "23AEE8CB6B62EE2AF07"
+
+    InitiateResponseDataSI:
+      allOf:
+        - $ref: "#/components/schemas/InitiateResponseData"
+        - type: object
+          description: |
+            Standing instruction registration may also return **`mandateId`** in `data` — store it for SI sale, status, and cancel.
+          properties:
+            mandateId:
+              type: string
+              description: |
+                PayGlocal mandate identifier when `standingInstruction` was sent. Not returned on later transactions.
+              example: md_925996a0-9da6-42df-b968-8a14729885fd
+
+    ApiResponsePayDirectInitiate:
+      type: object
+      description: |
+        Response envelope for PayDirect initiate (`200`). **GPI and auth-only** — `data` does not include `mandateId`.
+        No fields in this envelope are marked required.
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID. Use for status, capture, and refund APIs.
+          example: gl_o-a057c4d6b6c620741apzp0ZX2
+        status:
+          type: string
+          description: High-level status. Typically `INPROGRESS` immediately after initiate.
+          example: INPROGRESS
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Transaction Created Successfully
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+          example: "02/06/2026 21:47:33"
+        reasonCode:
+          type: string
+          description: Success code on initiate (e.g. `200`). See `4xx` responses for error codes.
+          example: "200"
+        data:
+          $ref: "#/components/schemas/InitiateResponseData"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
+          additionalProperties:
+            type: string
+
+    ApiResponsePayDirectInitiateSI:
+      type: object
+      description: |
+        Response envelope for PayDirect standing instruction initiate (`200`). `data` may include `mandateId`.
+        No fields in this envelope are marked required.
+      properties:
+        gid:
+          type: string
+          description: PayGlocal transaction ID. Use for status, capture, and refund APIs.
+          example: gl_o-a057c4d6b6c620741apzp0ZX2
+        status:
+          type: string
+          description: High-level status. Typically `INPROGRESS` immediately after initiate.
+          example: INPROGRESS
+        message:
+          type: string
+          description: Human-readable status message.
+          example: Transaction Created Successfully
+        timestamp:
+          type: string
+          description: Response timestamp (`DD/MM/YYYY HH:MM:SS`).
+          example: "02/06/2026 21:47:33"
+        reasonCode:
+          type: string
+          description: Success code on initiate (e.g. `200`). See `4xx` responses for error codes.
+          example: "200"
+        data:
+          $ref: "#/components/schemas/InitiateResponseDataSI"
+        errors:
+          type: object
+          nullable: true
+          description: "`null` on success."
+          additionalProperties:
+            type: string
+
+    ApiResponse:
+      type: object
+      description: Standard PayGlocal response envelope.
+      properties:
+        gid:
+          type: string
+          description: PayGlocal global transaction ID.
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: "High-level status of this API response. See [GPI Transaction Statuses](/payment-services/get-status-service#gpi-transaction-statuses)."
+          example: INPROGRESS
+        message:
+          type: string
+          description: "Successful transaction"
+        timestamp:
+          type: string
+          description: Response timestamp (DD/MM/YYYY HH:MM:SS).
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          description: "`GL-200-001` on success, other codes indicate errors or decline reasons."
+          example: "GL-200-001"
+        data:
+          type: object
+          description: Operation-specific payload.
+          additionalProperties: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Field-level validation errors (populated on 4xx).
+
+    BadRequestErrorResponse:
+      type: object
+      properties:
+        gid:
+          type: string
+          example: gl_9c2645ed09edb22e
+        status:
+          description: "High-level status of this API response. See [GPI Transaction Statuses](/payment-services/get-status-service#gpi-transaction-statuses)."
+          type: string
+          example: REQUEST_ERROR
+        message:
+          type: string
+          example: Authentication failed, please contact support.
+        timestamp:
+          type: string
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          example: "GL-400-001"
+        data:
+          type: object
+          nullable: true
+        errors:
+          type: object
+          example:
+            detailedMessage: Authentication failed, please contact support.
+            displayMessage: Something went wrong. We'll take you back to checkout so that you can try again.
+        errorDetails:
+          type: object
+          nullable: true
+
+    ForbiddenErrorResponse:
+      type: object
+      properties:
+        gid:
+          type: string
+          example: gl_9c2645ed09edb22e
+        status:
+          type: string
+          description: "High-level status of this API response. See [GPI Transaction Statuses](/payment-services/get-status-service#gpi-transaction-statuses)."
+          example: BLACKLIST_MATCH
+        message:
+          type: string
+          example: You are not allowed to onboard on this platform. Please contact support.
+        timestamp:
+          type: string
+          example: "10/01/2026 15:00:00"
+        reasonCode:
+          type: string
+          example: "GL-403-001"
+        data:
+          type: object
+          nullable: true
+        errors:
+          type: object
+          example:
+            detailedMessage: You are not allowed to onboard on this platform, please contact support.
+            displayMessage: Something went wrong. We'll take you back to checkout so that you can try again.
+        errorDetails:
+          type: object
+          nullable: true
+
+  responses:
+    BadRequest:
+      description: |
+        Returned when the JWS token is absent, malformed, or the request body fails field-level validation.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BadRequestErrorResponse"
+    Forbidden:
+      description: |
+        Merchant is blacklisted and not permitted to transact on this platform.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ForbiddenErrorResponse"
+
+paths:
+  /gl/v1/payments/initiate:
+    servers: &paydirect_initiate_servers
+      - url: https://api.payglocal.in
+        description: Production
+      - url: https://api.uat.payglocal.in
+        description: Sandbox
+    post:
+      operationId: initiatePayDirectPayment
+      x-hidden: true
+      summary: Initiate PayDirect Transaction (GPI)
+      description: |
+        **Endpoint:** `POST /gl/v1/payments/initiate` — same URL for GPI, on-demand SI, auto-debit, and authorize; only the request body differs.
+
+        GPI one-step sale. For SI or auth-only bodies, see the flow-specific docs under Payments V2.
+      tags:
+        - Payment
+      security:
+        - JwsTokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequestPayDirectGPI"
+            examples:
+              gpi_sale:
+                summary: GPI sale
+                value:
+                  merchantTxnId: "23AEE8CB6B62EE2AF07"
+                  merchantUniqueId: "IFNN939494NJFJ"
+                  paymentData:
+                    totalAmount: "10.00"
+                    txnCurrency: INR
+                    cardData:
+                      number: "4111111111111111"
+                      expiryMonth: "05"
+                      expiryYear: "2026"
+                      securityCode: "111"
+                    billingData:
+                      firstName: John
+                      lastName: Doe
+                      addressStreet1: 221B Baker Street
+                      addressCity: Bengaluru
+                      addressCountry: IND
+                      emailId: john.doe@example.com
+                      callingCode: "+91"
+                      phoneNumber: "9999999999"
+                  merchantCallbackURL: "https://api.prod.payglocal.in/gl/v1/payments/merchantCallback"
+      responses: &paydirect_initiate_responses_gpi
+        "200":
+          description: |
+            Returned immediately from initiate. Redirect the customer to `data.redirectUrl`, then poll `data.statusUrl` or [Get Transaction Status](/api-reference/payments-v2/common/get-transaction-status). A successful GPI card sale usually reaches `SENT_FOR_CAPTURE`. **No `mandateId`** in `data`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponsePayDirectInitiate"
+              example:
+                gid: gl_o-a057c4d6b6c620741apzp0ZX2
+                status: INPROGRESS
+                message: Transaction Created Successfully
+                timestamp: "02/06/2026 21:47:33"
+                reasonCode: "200"
+                data:
+                  redirectUrl: https://api.uat.payglocal.in/gl/payflow-ui/?x-gl-token=example
+                  statusUrl: https://api.uat.payglocal.in/gl/v1/payments/gl_o-a057c4d6b6c620741apzp0ZX2/status?x-gl-token=example
+                  merchantTxnId: "23AEE8CB6B62EE2AF07"
+                errors: null
+        "400":
+          description: |
+            Invalid request or processing error. Common `reasonCode` values on initiate:
+
+            | Reason code | Typical cause |
+            |-------------|----------------|
+            | `GL-400-001` | Invalid request fields or error processing request |
+            | `GL-201-020` | Card domicile or card type not set up in merchant config; merchant configuration mismatch |
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          description: |
+            Too many requests with the same `merchantUniqueId`. `reasonCode` is typically `GL-400-001`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponse"

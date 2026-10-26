@@ -6,29 +6,64 @@ icon: "bell"
 
 ## Overview
 
-PayGlocal sends webhook notifications to your configured endpoint at every stage of an MCA transaction. You do not need to poll for status — PayGlocal calls you.
+PayGlocal sends webhook notifications to your configured endpoint at every stage of an MCA transaction. You do not need to poll for status. PayGlocal calls you.
 
-Each notification is a **HTTP POST** with a JSON body. Your endpoint must respond with **HTTP 200** immediately. Process any business logic after acknowledging.
+Each notification is an **HTTP POST** with a JSON body (`Content-Type: application/json`). Your endpoint must respond with an HTTP `2xx` status. Respond first, then process.
 
 ---
 
 ## Setting Up Your Webhook Endpoint
 
-Your webhook endpoint is a publicly accessible POST endpoint on your backend. Share the URL with your PayGlocal account manager to have it configured against your partner account.
+Your webhook endpoint is a publicly accessible POST endpoint on your backend. Share the URL, and the authentication type you want, with your PayGlocal account manager. PayGlocal configures it against your partner account. There is no self-service API for this.
 
-**Rules for a valid webhook URL:**
-- Must be HTTPS
-- Must be publicly reachable (no localhost or private IPs)
-- Must accept HTTP POST requests
-- Must return HTTP 200 within a few seconds of receiving the request
+**Requirements for a valid webhook URL:**
+- HTTPS
+- Publicly reachable (no localhost or private IPs)
+- Accepts HTTP POST requests
+- Returns an HTTP `2xx` status promptly. Aim for a few seconds and never more than 30.
+
+PayGlocal does **not** follow redirects. A `3xx` response counts as a failure, so give us the final URL.
+
+**Events are opt-in.** You only receive the events that were enabled for your partner account. If an event you expect never arrives, ask your account manager to confirm it is enabled. Use the **subscription key** in the table below when you ask.
+
+| Event name in this guide | Subscription key to enable |
+|--------------------------|----------------------------|
+| `VIRTUAL_ACCOUNT_PROVISIONED` | `VIRTUAL_ACCOUNT_PROVISIONED` |
+| `MERCHANT_MCA_ACCEPTED` | `MERCHANT_MCA_ACCEPTED` |
+| `MERCHANT_CARDS_ACCEPTED` | `MERCHANT_CARDS_ACCEPTED` |
+| `MCA_FUND_RECEIVED` | `FFMS_FUND_RECEIVED` |
+| `TXN_SENT_FOR_SETTLEMENT` | `FFMS_TXN_SENT_FOR_SETTLEMENT` |
+| `TXN_SETTLED` | `FFMS_TXN_SETTLED` |
+| `FIRC_RECEIVED` | `FFMS_FIRC_RECEIVED` |
+| `CHANGE_REQUESTED` alert | `FFMS_COMPLIANCE_ALERT` |
+| `TXN_REFUNDED` | `FFMS_TXN_REFUNDED` |
+| `INVOICE_GENERATED` | `INVOICE_GENERATED` |
 
 ---
 
-## The Eight Events
+## Authenticating Webhooks
+
+Each request tells you how it was authenticated, based on the authentication type configured for your account:
+
+| Configured type | Headers PayGlocal sends |
+|-----------------|-------------------------|
+| API key + HMAC | `x-gl-auth` (your API key) and `x-gl-digest` |
+| JWS token | `x-gl-webhook-token` (a signed JWT) |
+| None | No authentication header |
+
+**HMAC:** `x-gl-digest` is `base64(HMAC_SHA256(secret, body))` using your API secret. For transaction events (`MCA_FUND_RECEIVED`, `TXN_SENT_FOR_SETTLEMENT`, `TXN_SETTLED`, `FIRC_RECEIVED`, `CHANGE_REQUESTED`, `TXN_REFUNDED`) the digest is computed over the exact body string you receive, so verify against the raw bytes before parsing.
+
+**JWS:** `x-gl-webhook-token` is an RS256-signed token issued by PayGlocal that carries a SHA-256 digest of the request body.
+
+We recommend using one of the authenticated types in production.
+
+---
+
+## The Events
 
 ### `VIRTUAL_ACCOUNT_PROVISIONED`
 
-Fired once a merchant's virtual accounts have been successfully provisioned across all applicable acquirers. This is your signal that the merchant is ready to start receiving funds.
+Fired once a merchant's virtual accounts have been successfully provisioned. This is your signal that the merchant is ready to receive funds.
 
 ```json
 {
@@ -42,10 +77,10 @@ Fired once a merchant's virtual accounts have been successfully provisioned acro
 }
 ```
 
-**What to do:** Mark the merchant as ready in your system. This event does not include individual account/currency details — the merchant's virtual account details are available through your fetch account details API.
+**What to do:** Mark the merchant as ready, then call [Fetch Virtual Accounts](/api-reference/mca/account-fetch) to get the account details. This event does not include individual account details.
 
 <Note>
-  This event fires only once per merchant, after virtual account provisioning is fully complete across all acquirers. It must be explicitly enabled for your partner account before you'll receive it.
+  This event fires only once per merchant, after provisioning is complete. It is sent only for merchants onboarded through your partner account, and only if it has been enabled for you. `event_timestamp` is in epoch milliseconds, sent as a string.
 </Note>
 
 ---
@@ -80,7 +115,6 @@ Fired when a merchant's onboarding application is accepted for the **Cards** pro
 }
 ```
 
-
 <Note>
   A merchant onboarding for multiple products fires one `MERCHANT_<PRODUCT>_ACCEPTED` event per product as each is approved. Track product-level acceptance independently rather than assuming one event means the merchant is fully accepted across the board.
 </Note>
@@ -94,11 +128,12 @@ Fired when funds land in the merchant's virtual account. This is your trigger to
 ```json
 {
   "gid": "glm123456789",
+  "ucicId": "<ucic_id>",
   "paymentRail": "ACH",
   "merchantId": "<merchant_id>",
   "amount": "1000.00",
   "currency": "USD",
-  "sender_name": "John D***",
+  "sender_name": "John Doe",
   "sender_address": "New York, USA",
   "sender_country": "US",
   "sender_accountno": "XXXX1234",
@@ -107,28 +142,36 @@ Fired when funds land in the merchant's virtual account. This is your trigger to
 }
 ```
 
-**What to do:** Extract the `gid` and trigger your invoice upload flow. See [Uploading Documents](/mca/document-upload).
+**What to do:** Extract the `gid` and start your invoice upload flow. See [Uploading Documents](/mca/document-upload).
+
+<Note>
+  `sender_address`, `sender_country`, `sender_accountno` and `paymentRail` can be empty or `null` when the bank did not provide them. `sender_name` may be partially masked.
+</Note>
 
 ---
 
 ### `TXN_SENT_FOR_SETTLEMENT`
 
-Fired when PayGlocal has accepted the invoice and submitted the transaction for settlement. No action required from your side.
+Fired when the transaction has been submitted for settlement. No action is required from your side.
 
 ```json
 {
   "gid": "glm123456789",
+  "ucicId": "<ucic_id>",
+  "paymentRail": "ACH",
   "merchantId": "<merchant_id>",
   "amount": "1000.00",
   "currency": "USD",
-  "sender_name": "John D***",
+  "sender_name": "John Doe",
+  "sender_address": "New York, USA",
   "sender_country": "US",
+  "sender_accountno": "XXXX1234",
   "timestamp": "2024-10-21T10:15:30Z",
   "status": "SENT_FOR_SETTLEMENT"
 }
 ```
 
-**What to do:** Update the transaction status in your system. Notify the merchant that settlement is in progress.
+**What to do:** Update the transaction status in your system and tell the merchant that settlement is in progress.
 
 ---
 
@@ -143,7 +186,7 @@ Fired when the funds have been settled to the merchant's INR bank account.
   "merchantId": "<merchant_id>",
   "transaction_amount": "1000.00",
   "transaction_currency": "USD",
-  "settled_at": "2024-10-23",
+  "settled_at": "2024-10-23T10:30:00",
   "settlement_amount": "998.00",
   "settlement_currency": "USD",
   "gstAmount": "17.96",
@@ -153,17 +196,22 @@ Fired when the funds have been settled to the merchant's INR bank account.
 }
 ```
 
-**What to do:** Mark the transaction as complete. Notify the merchant with settlement details including the FX rate applied, when that rate was booked, the GST amount, and the final settled amount.
+**What to do:** Mark the transaction as complete and share the settlement details with the merchant: the FX rate applied, when it was booked, the GST amount and the final settled amount.
+
+<Note>
+  `settled_at` and `fxRateBookedAt` are ISO-8601 date-times. `settled_at` can be `null`. Parse them as date-times, not as plain dates.
+</Note>
 
 ---
 
 ### `FIRC_RECEIVED`
 
-Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. The FIRC is the official proof of receipt for cross-border payments and is required for compliance.
+Fired when the Foreign Inward Remittance Certificate (FIRC) is ready. The FIRC is the official proof of receipt for cross-border payments and is required for compliance.
 
 ```json
 {
   "gid": "glm123456789",
+  "ucicId": "<ucic_id>",
   "merchantId": "<merchant_id>",
   "transaction_amount": "1000.00",
   "transaction_currency": "USD",
@@ -175,11 +223,60 @@ Fired when the Foreign Inward Remittance Certificate (FIRC) document is ready. T
 }
 ```
 
-**What to do:** Download the FIRC immediately from `fircUrl` and store it in your own system. The URL expires after 10 minutes.
+**What to do:** Download the FIRC immediately from `fircUrl` and store it in your own system.
 
 <Warning>
-  The `fircUrl` is valid for **10 minutes only**. Download and store the document as soon as you receive this webhook — do not save the URL and fetch later.
+  The `fircUrl` is valid for **10 minutes only**. Download and store the document as soon as you receive this webhook. Do not save the URL and fetch later.
 </Warning>
+
+<Note>
+  If a transaction has more than one FIRC document, `fircUrl` points to a single **ZIP** file (`<gid>-firc.zip`) that contains them. `fircUrl` can be `null` if no FIRC file exists yet. When a delivery is retried, the URL is regenerated, so a retry always carries a fresh 10 minutes.
+</Note>
+
+---
+
+### `CHANGE_REQUESTED` (compliance alert)
+
+Fired when PayGlocal's compliance team needs a different or corrected document. The transaction goes back to `DOCUMENT_PENDING`.
+
+```json
+{
+  "gid": "glm123456789",
+  "ucicId": "<ucic_id>",
+  "merchantId": "<merchant_id>",
+  "transaction_amount": "1000.00",
+  "transaction_currency": "USD",
+  "settlement_amount": null,
+  "settlement_currency": null,
+  "settled_at": null,
+  "reason": "<reason text>",
+  "status": "CHANGE_REQUESTED"
+}
+```
+
+**What to do:** Read `reason`, get the corrected document, and upload it again with [Upload Document via Presigned URL](/api-reference/mca/document-upload) using the same `gid`. The settlement fields are usually empty at this stage.
+
+<Note>
+  The subscription key for this event is `FFMS_COMPLIANCE_ALERT`.
+</Note>
+
+---
+
+### `TXN_REFUNDED`
+
+Fired when a transaction is refunded. This event uses camelCase field names, unlike the other transaction events.
+
+```json
+{
+  "gid": "glm123456789",
+  "merchantId": "<merchant_id>",
+  "transactionAmount": "1000.00",
+  "transactionCurrency": "USD",
+  "reason": "<reason text>"
+}
+```
+
+**What to do:** Mark the transaction as refunded in your system and inform the merchant.
 
 ---
 
@@ -206,23 +303,47 @@ Fired when PayGlocal generates the monthly GST invoice for a reseller's MCA busi
 **What to do:** Download the GST invoice immediately from `invoiceUrl` and store it in your own system, keyed by `resellerMid` and `servicePeriod`.
 
 <Warning>
-  The `invoiceUrl` is a presigned URL valid for **15 minutes only** (`X-Amz-Expires=900`). Download and store the document as soon as you receive this webhook — do not save the URL and fetch later.
+  The `invoiceUrl` is a presigned URL valid for **15 minutes only** (`X-Amz-Expires=900`). Download and store the document as soon as you receive this webhook.
 </Warning>
 
 ---
 
 ## Event Summary
 
-| Event | Status | Your Action |
-|-------|--------|-------------|
-| `VIRTUAL_ACCOUNT_PROVISIONED` | `VIRTUAL_ACCOUNT_PROVISIONED` | Mark merchant as ready |
+| Event | `status` in payload | Your Action |
+|-------|---------------------|-------------|
+| `VIRTUAL_ACCOUNT_PROVISIONED` | `VIRTUAL_ACCOUNT_PROVISIONED` | Mark merchant as ready, fetch accounts |
 | `MERCHANT_MCA_ACCEPTED` | `MERCHANT_MCA_ACCEPTED` | Mark MCA as approved for the merchant |
 | `MERCHANT_CARDS_ACCEPTED` | `MERCHANT_CARDS_ACCEPTED` | Mark Cards as approved for the merchant |
 | `MCA_FUND_RECEIVED` | `DOCUMENT_PENDING` | Upload the invoice |
 | `TXN_SENT_FOR_SETTLEMENT` | `SENT_FOR_SETTLEMENT` | Update status, notify merchant |
 | `TXN_SETTLED` | `SETTLED` | Mark complete, share settlement details |
 | `FIRC_RECEIVED` | `FIRC_RECEIVED` | Download and store the FIRC document |
-| `MERCHANT_INVOICE_RESELLER_WEBHOOK` | `INVOICE_GENERATED` | Download and store the GST invoice |
+| `CHANGE_REQUESTED` | `CHANGE_REQUESTED` | Upload a corrected document |
+| `TXN_REFUNDED` | none (no `status` field) | Mark refunded, inform merchant |
+| `INVOICE_GENERATED` | `INVOICE_GENERATED` | Download and store the GST invoice |
+
+---
+
+## Delivery, Retries and Ordering
+
+**Success and failure**
+
+Any HTTP `2xx` response counts as success. Any other response, including `3xx`, `4xx` and `5xx`, and any timeout, counts as a failure.
+
+**Retries**
+
+- **Transaction events** (`MCA_FUND_RECEIVED`, `TXN_SENT_FOR_SETTLEMENT`, `TXN_SETTLED`, `FIRC_RECEIVED`, `CHANGE_REQUESTED`, `TXN_REFUNDED`): after a failed delivery PayGlocal retries up to **3 times**, no sooner than 5, 15 and 30 minutes after the previous failure. Retries run on a schedule, so a retry can arrive later than those minimums. After the last retry PayGlocal stops. There is no manual replay from your side, so contact support with the `gid` if you missed an event.
+- **Other events** (onboarding events, `VIRTUAL_ACCOUNT_PROVISIONED`, `INVOICE_GENERATED`): do not rely on retries. Keep your endpoint available, and use the fetch APIs to reconcile if you suspect a missed event.
+- On retry, PayGlocal rebuilds the payload from the **current** transaction state. A retried event can therefore show newer data than the original.
+
+**Ordering is not guaranteed**
+
+Events come from different systems and retries can arrive late. A retried `MCA_FUND_RECEIVED` can arrive after `TXN_SENT_FOR_SETTLEMENT`. Never assume the order of arrival. Use the `status` to decide whether an event moves a transaction forward, and ignore events that would move it backwards.
+
+**Duplicates can happen**
+
+The same event can arrive more than once, for example if your endpoint was slow to answer. Payloads do not carry an event ID. Use **`gid` plus `status`** as your idempotency key, because several events share the same `gid`.
 
 ---
 
@@ -230,26 +351,31 @@ Fired when PayGlocal generates the monthly GST invoice for a reseller's MCA busi
 
 **Respond first, process second**
 
-Return HTTP 200 immediately before running any business logic. Long-running operations in the webhook handler will cause timeouts.
+Return an HTTP `2xx` immediately, before any business logic. Long-running work in the handler causes timeouts and retries.
 
 ```
 → Receive POST
+→ Verify authenticity (headers)
 → Return HTTP 200
 → Queue or async: process event
 ```
 
 **Make your handler idempotent**
 
-The same event may be retried if your endpoint did not acknowledge in time. Use the `gid` as an idempotency key — check whether you have already processed that event before acting on it.
+Check whether you have already processed a given `gid` and `status` before acting on it.
 
 **Verify the merchantId**
 
 Always confirm that the `merchantId` in the payload belongs to your partner account before acting on the event.
 
-**Store the FIRC immediately**
+**Store documents immediately**
 
-Do not cache the `fircUrl` — download the file to your own storage (S3, GCS, etc.) the moment you receive the `FIRC_RECEIVED` event.
+Do not cache `fircUrl` or `invoiceUrl`. Download the file to your own storage (S3, GCS, etc.) the moment you receive the event. They expire in 10 and 15 minutes.
 
-**Store the GST invoice immediately**
+**Be tolerant of new fields**
 
-Do not cache the `invoiceUrl` — download the file to your own storage the moment you receive the `INVOICE_GENERATED` event. It expires in 15 minutes.
+PayGlocal may add fields to payloads over time. Ignore fields you do not recognise instead of rejecting the request.
+
+**Test in the sandbox**
+
+Use [MCA Demo Funding Ingestion](/api-reference/mca/mca-ingestion) to simulate a funding event and receive `MCA_FUND_RECEIVED` on your sandbox endpoint.

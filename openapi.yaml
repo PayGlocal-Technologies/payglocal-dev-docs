@@ -1193,15 +1193,19 @@ components:
           example: USD
         invoiceType:
           type: string
-          description: Type of document being uploaded.
+          description: Type of document being uploaded. Send `INVOICE`.
+          enum:
+            - INVOICE
           example: INVOICE
         paymentType:
           type: string
-          description: Payment type classification.
-          example: CARD
+          description: Payment type of the document. Send `FULL`.
+          enum:
+            - FULL
+          example: FULL
         merchantId:
           type: string
-          description: Merchant identifier. Must match the transaction.
+          description: Merchant identifier from the webhook. PayGlocal takes the merchant from the transaction itself.
           example: "merchant_001"
         customerFullName:
           type: string
@@ -1221,23 +1225,26 @@ components:
           maxLength: 100
         purposeCode:
           type: string
-          description: Purpose code for remittance reporting.
+          description: >-
+            Purpose code for remittance reporting. Must be one of the purpose codes configured
+            for the merchant, otherwise the request fails with 400. If several comma-separated
+            codes are sent, only the first is used.
           example: P0102
         fxRate:
           type: string
-          description: Foreign exchange rate applied.
+          description: Accepted but not used by this endpoint. PayGlocal applies the FX rate at settlement.
           example: "83.12"
         fileName:
           type: string
-          description: File name including extension (extension max 10 characters).
+          description: File name. Must end in `.pdf` (case-insensitive); other file types are rejected.
           example: invoice_INV-2026-00321.pdf
         presignedUrl:
           type: string
           format: uri
           description: >-
-            A presigned URL you control, pointing to the file to attach. The backend downloads
-            the file from this URL and stores it in GCC's storage. Use this instead of a
-            multipart file upload. The URL must remain accessible when the request is made.
+            A presigned URL you control, pointing to the PDF to attach. PayGlocal downloads the
+            file from this URL during the request and stores it. The URL must be reachable when
+            the request is made. Files larger than 10 MB are rejected after the upload.
           example: "https://your-bucket.s3.amazonaws.com/invoice.pdf?X-Amz-Signature=..."
 
     McaDemoFundingIngestionRequest:
@@ -1245,7 +1252,6 @@ components:
       required:
         - currency
         - amount
-        - senderCountry
         - senderName
       properties:
         currency:
@@ -1258,12 +1264,24 @@ components:
           example: "1"
         senderCountry:
           type: string
-          description: ISO country code of the sender.
+          description: ISO country code of the sender. Required for every currency except EUR, AUD and GBP.
           example: US
         senderName:
           type: string
           description: Name of the sender.
           example: test
+        debtorAccountNumber:
+          type: string
+          description: Optional. Sandbox default is used when omitted.
+        debtorFinancialInstitutionCode:
+          type: string
+          description: Optional. Sandbox default is used when omitted.
+        debtorIban:
+          type: string
+          description: Optional.
+        paymentScheme:
+          type: string
+          description: Optional. A sandbox default is used when omitted.
 
     CommonErrorResponse:
       type: object
@@ -2706,9 +2724,9 @@ paths:
 
   /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts:
     servers:
-      - url: https://gcc.prod.payglocal.in
+      - url: https://api.onboard.payglocal.in
         description: MCA — Production
-      - url: https://gcc.uat.payglocal.in
+      - url: https://api.onboard.uat.payglocal.in
         description: MCA — Sandbox
     get:
       operationId: fetchVirtualAccounts
@@ -2720,6 +2738,7 @@ paths:
         - MCA
       security:
         - ApiKeyAuth: []
+          DigestAuth: []
       parameters:
         - name: merchantId
           in: path
@@ -2846,9 +2865,10 @@ paths:
       summary: Upload Document via Presigned URL
       description: |
         Attaches a supporting document (e.g. invoice) to an FFMS transaction using a presigned
-        URL you already control. Provide the `presignedUrl` in the request body; the backend
-        downloads the file from that URL and stores it. This is a single-call alternative to
-        uploading the file directly as multipart form data.
+        URL you already control. Provide the `presignedUrl` in the request body; PayGlocal
+        downloads the file from that URL and stores it. Only PDF files are accepted. A 200
+        response means the file was stored, not that it has been approved; size (10 MB) and
+        compliance checks run afterwards.
       tags:
         - MCA
       security:
@@ -2859,7 +2879,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Unique FFMS transaction identifier (from the MCA_FUND_RECEIVED webhook).
+          description: Unique FFMS transaction identifier (the `gid` from the MCA_FUND_RECEIVED webhook). The transaction must be in DOCUMENT_PENDING.
           example: glm123456789
       requestBody:
         required: true
@@ -2871,7 +2891,7 @@ paths:
               amount: "1000.00"
               currency: USD
               invoiceType: INVOICE
-              paymentType: CARD
+              paymentType: FULL
               merchantId: "merchant_001"
               customerFullName: John Doe
               shippingDetails: Bangalore, India
@@ -2924,10 +2944,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "409":
-          description: Document already uploaded for this transaction.
+          description: Another upload for the same transaction is already in progress.
           content:
             application/json:
               schema:
@@ -2947,8 +2965,9 @@ paths:
       operationId: mcaDemoFundingIngestion
       summary: MCA Demo Funding Ingestion
       description: |
-        Simulates an inbound funding event for MCA testing. Available in the UAT (sandbox)
-        environment only — do not use for production transactions.
+        Simulates an inbound funding event for MCA testing. Works in non-production
+        environments only; in production it returns 400. A 200 means the simulated funding was
+        created; the MCA_FUND_RECEIVED webhook follows asynchronously.
       tags:
         - MCA
       security:

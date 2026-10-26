@@ -5,11 +5,29 @@ openapi: "GET /gcc/v3/merchants/{merchantId}/ffms/virtualAccounts"
 
 ## When to Use
 
-Call this after a merchant is **fully activated** on PayGlocal to retrieve their assigned global virtual accounts. Accounts are grouped by collection label (e.g. `general`) and within each label by currency code.
+Call this after a merchant has been activated on PayGlocal, to retrieve their assigned global virtual accounts. Accounts are grouped by collection label (e.g. `general`) and within each label by currency code. The best trigger is the `VIRTUAL_ACCOUNT_PROVISIONED` webhook.
 
 <Note>
-  Returns data only for activated merchants. Calling for a merchant still in onboarding or pending review returns HTTP 401.
+  A merchant with no active virtual accounts yet (for example, still in onboarding) does **not** get an error. You receive HTTP `200` with no `data` and the message `Found 0 ACTIVE VAs provisioned to merchant`. Always check that `data` is present before reading it.
 </Note>
+
+## Authentication
+
+Send both headers on every request:
+
+```
+x-gl-auth: <your API key>
+x-gl-digest: base64(HMAC_SHA256(secret, "/gcc/v3/merchants/<merchantID>/ffms/virtualAccounts"))
+```
+
+- The digest is computed over the **request path only**, with no host and no scheme. If the request has a query string, include it: `path?query`.
+- Sign with your API secret and Base64-encode the result.
+- This is a `GET`, so there is no body to sign.
+- See [Authentication](/authentication) for the full signing specification and code samples.
+
+## Which Merchant IDs You Can Query
+
+The `merchantId` must belong to your partner account (your own merchant ID or one of the merchants onboarded under it). Any other merchant ID returns `403`.
 
 ## Response Structure
 
@@ -17,14 +35,30 @@ The `data` object is a two-level map:
 
 ```
 data
-└── <collection_label>        (e.g. "general")
-    └── <currency_code>       (e.g. "USD", "AUD", "GBP")
-        └── VirtualAccount    (account number, bank name, routing code, etc.)
+└── general                   (collection label)
+    └── <currency_code>       (USD, CAD, AUD, EUR, GBP, OTHER)
+        └── VirtualAccount    (one object per currency, not a list)
 ```
+
+- A currency key appears only if an active account exists for it. Do not assume every currency is present.
+- `OTHER` holds the merchant's global account for currencies not listed individually.
+- An extra `amazon` label appears only for merchants enabled for Amazon collections.
+
+Each `VirtualAccount` contains: `id`, `accountId`, `accountNumber`, `accountHolderName`, `bankName`, `bankAddress`, `bankCountry`, `currency`, `paymentType`, `routingCode`, `routingCodeType`, `createdAt` and `updatedAt`. Some accounts also carry `fedwireRoutingCode`. Fields that do not apply to an account are `null`.
+
+<Note>
+  The success response carries `"status": "201 CREATED"` and `"reasonCode": "GL-201-001"` even though the HTTP status is `200`. Rely on the HTTP status code, not the `status` text.
+</Note>
 
 ## Error Scenarios
 
 | Scenario | HTTP Code |
 |----------|-----------|
-| `merchantId` is not valid | `400` |
-| Merchant is not activated | `401` |
+| `x-gl-auth` missing or invalid, API key inactive, or `x-gl-digest` missing or wrong | `401` |
+| `merchantId` does not belong to your partner account | `403` |
+| Request path not recognised | `400` |
+| Unexpected server error (also seen for a `merchantId` that does not exist) | `500` |
+
+Error responses use the standard envelope with `gid`, `status`, `reasonCode` and `errors.detailedMessage`. Quote the `gid` when you contact support.
+
+A plain-text `403` that mentions "geographic constraints" is not an API error. See [Troubleshooting](/mca/troubleshooting).

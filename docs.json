@@ -121,7 +121,8 @@
               "mca/overview",
               "mca/account-fetch",
               "mca/webhooks",
-              "mca/document-upload"
+              "mca/document-upload",
+              "mca/troubleshooting"
             ]
           }
         ]

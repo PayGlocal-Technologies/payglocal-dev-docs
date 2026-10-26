@@ -5,26 +5,65 @@ openapi: "POST /gcc/v1/ffms/external/transaction/{gid}/upload-presigned"
 
 ## When to Use
 
-Call this when you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING` and you already have the supporting document (e.g. invoice) hosted at a presigned URL you control. Include that `presignedUrl` in the request body — the backend downloads the file from it and stores it for the transaction. This is a single-call alternative to uploading the file directly as multipart form data.
+Call this when you receive an `MCA_FUND_RECEIVED` webhook with status `DOCUMENT_PENDING`, or a `CHANGE_REQUESTED` alert asking for a corrected document. You provide the supporting document (for example an invoice) as a presigned URL you control. PayGlocal downloads the file from that URL during this call and stores it for the transaction.
 
-## Upload Flow
+## Authentication
+
+Send your API key in the `x-gl-auth` header. No `x-gl-digest` is needed for this endpoint.
 
 ```
-POST this endpoint with presignedUrl in the request body → document is fetched and stored
+x-gl-auth: <your API key>
 ```
+
+## Request Rules
+
+| Field | Rule |
+|-------|------|
+| `gid` (path) | The `gid` from the webhook. The transaction must currently be `DOCUMENT_PENDING`. |
+| `presignedUrl` | Required in practice. Must be reachable when you call. |
+| `fileName` | Required in practice. Must end in `.pdf` (case-insensitive). Only PDF is accepted. |
+| `invoiceType` | Send `INVOICE`. |
+| `paymentType` | Send `FULL`. |
+| `amount`, `currency` | Send the values from the webhook. They are recorded with the document; PayGlocal does not reject a mismatch at this step. |
+| `merchantId` | Send the merchant ID from the webhook. PayGlocal takes the merchant from the transaction itself. |
+| `customerFullName` | Optional. 3 to 150 characters. |
+| `invoiceNumber` | Optional. 1 to 100 characters. |
+| `shippingDetails` | Optional. 1 to 120 characters. |
+| `purposeCode` | Optional. If you send one, it must be one of the purpose codes configured for the merchant; otherwise `400`. If you send several comma-separated, only the first is used. |
+| `fxRate` | Accepted but not used by this endpoint. PayGlocal applies the FX rate at settlement. |
+
+## What a `200` Means
+
+A `200` means PayGlocal **downloaded and stored the file**. It does **not** mean the document has been approved. Checks that run afterwards:
+
+- The file must be **10 MB or smaller** and a valid PDF.
+- PayGlocal's compliance team reviews the document.
+
+If the file fails the size or type check after the `200`, the transaction stays in `DOCUMENT_PENDING` and you receive no webhook. If your transaction does not move to `SENT_FOR_SETTLEMENT` after you upload, upload a corrected file or contact support with the `gid`.
+
+If the compliance team needs a different document, you receive a `CHANGE_REQUESTED` alert with a `reason`, the transaction returns to `DOCUMENT_PENDING`, and you can upload again with this same endpoint.
+
+## Retrying and Re-uploading
+
+- If the call fails with `400 Failed to download file from presigned URL`, nothing was saved. Fix the URL (or its expiry) and call again.
+- While the transaction is still `DOCUMENT_PENDING`, calling again with a new file is accepted.
+- Do not send two uploads for the same `gid` at the same time. The second returns `409`.
 
 <Warning>
-  The `presignedUrl` you provide must be reachable at the time of the request — the backend
-  fetches it immediately during this call. It is not stored or reused afterward.
+  The `presignedUrl` is fetched immediately during the request and is not stored or reused. Make sure it stays valid for at least a few minutes.
 </Warning>
 
 ## Error Scenarios
 
 | Scenario | HTTP Code |
 |----------|-----------|
-| Missing or invalid fields | `400` |
-| Invalid or missing API key | `401` |
-| `merchantId` does not match the transaction | `403` |
-| `gid` does not exist | `404` |
-| Document already uploaded for this transaction | `409` |
+| Invalid field (length, `paymentType` value, purpose code not allowed for the merchant) | `400` |
+| `fileName` is not a `.pdf` | `400` |
+| `presignedUrl` or `fileName` missing | `400` |
+| `gid` not found (`Transaction not found`) | `400` |
+| Transaction is not open for upload (`not open for new document upload`) | `400` |
+| Could not download from `presignedUrl` | `400` |
+| `x-gl-auth` missing or invalid | `401` |
+| Transaction does not belong to your partner account | `403` |
+| Another upload for the same `gid` is already in progress | `409` |
 | Internal server error | `500` |

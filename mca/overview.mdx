@@ -34,9 +34,11 @@ As a partner, your integration involves three surfaces:
 
 | Surface | What you do |
 |---------|-------------|
-| **Account Fetch** | After merchant activation, call the API to retrieve their assigned virtual account details and surface them in your dashboard. |
-| **Webhooks** | Listen for lifecycle events — fund receipt, settlement, FIRC — to keep your system in sync without polling. |
-| **Document Upload** | When funds arrive, upload the supporting invoice so PayGlocal can process settlement. |
+| **Account Fetch** | After the `VIRTUAL_ACCOUNT_PROVISIONED` webhook, call the API to retrieve the merchant's virtual account details and show them in your dashboard. |
+| **Webhooks** | Listen for lifecycle events (fund receipt, settlement, FIRC) to keep your system in sync without polling. |
+| **Document Upload** | When funds arrive, upload the supporting invoice (PDF) so PayGlocal can process settlement. |
+
+API calls carry `x-gl-auth` (Fetch Virtual Accounts also needs `x-gl-digest`) and go to the hosts listed in the [MCA API reference](/api-reference/mca/overview#servers). See [Authentication](/authentication).
 
 ---
 
@@ -44,26 +46,34 @@ As a partner, your integration involves three surfaces:
 
 ```
 Customer sends funds to virtual account
-              │
-              ▼
-    DOCUMENT_PENDING ──── partner uploads invoice
-              │
-              ▼
+              |
+              v
+    DOCUMENT_PENDING  <---- partner uploads invoice (PDF)
+        ^         |
+        |         v
+        |    (compliance review)
+        |         |
+        +---------+---- CHANGE_REQUESTED: upload a corrected document
+                  |
+                  v
     SENT_FOR_SETTLEMENT
-              │
-              ▼
+              |
+              v
            SETTLED
-              │
-              ▼
+              |
+              v
        FIRC_RECEIVED
 ```
 
 | Status | What it means |
 |--------|---------------|
 | `DOCUMENT_PENDING` | Funds received into the virtual account; PayGlocal is waiting for the supporting invoice |
-| `SENT_FOR_SETTLEMENT` | Invoice accepted; transaction is being processed for settlement |
+| `CHANGE_REQUESTED` | Compliance needs a different or corrected document. The transaction returns to `DOCUMENT_PENDING`; upload again |
+| `SENT_FOR_SETTLEMENT` | Document accepted; the transaction has been submitted for settlement |
 | `SETTLED` | Funds settled to the merchant's INR bank account |
 | `FIRC_RECEIVED` | Foreign Inward Remittance Certificate generated and available |
+
+A transaction can also be refunded, in which case you receive a `TXN_REFUNDED` webhook. Webhooks can arrive out of order and can repeat. See [MCA Webhook Events](/mca/webhooks) for how to handle that.
 
 ---
 
@@ -77,6 +87,15 @@ Customer sends funds to virtual account
     Handle lifecycle notifications for fund receipt, settlement, and FIRC.
   </Card>
   <Card title="Upload Documents" icon="file-arrow-up" href="/mca/document-upload">
-    Generate a presigned URL and upload the supporting invoice.
+    Upload the supporting invoice using a presigned URL you host.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="wrench" href="/mca/troubleshooting">
+    What each error means and what to send support.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/mca/overview">
+    Endpoints, authentication and servers.
   </Card>
 </CardGroup>

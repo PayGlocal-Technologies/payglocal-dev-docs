@@ -6,27 +6,43 @@ icon: "bank"
 
 ## Overview
 
-Once a merchant completes onboarding and is activated by PayGlocal, one or more **global virtual accounts** are provisioned for them — one per enabled currency. These accounts are what the merchant shares with their overseas customers to receive payments.
+Once a merchant completes onboarding and is activated by PayGlocal, one or more **global virtual accounts** are provisioned for them, one per enabled currency. These accounts are what the merchant shares with their overseas customers to receive payments.
 
-As a partner, you call the Account Fetch API to retrieve these details and surface them in your own dashboard or send them to the merchant.
+As a partner, you call the Fetch Virtual Accounts API to retrieve these details and show them in your own dashboard or send them to the merchant.
 
 ---
 
 ## When to Call This
 
-- After you receive confirmation that a merchant's onboarding status is `APPROVED`
-- When a merchant requests to view or refresh their account details
-- When you need to display account details in your partner dashboard
+- When you receive the `VIRTUAL_ACCOUNT_PROVISIONED` webhook for a merchant. This is the signal that accounts are ready.
+- When a merchant asks to view or refresh their account details.
+- When you need to display account details in your partner dashboard.
 
 <Note>
-  Calling this endpoint for a merchant whose onboarding is still in progress will return HTTP 401. Only call it once you have confirmed the merchant is activated.
+  Calling this for a merchant whose accounts are not provisioned yet does **not** return an error. You get HTTP `200` with no `data` and the message `Found 0 ACTIVE VAs provisioned to merchant`. Treat a missing `data` as "not ready yet" and wait for the `VIRTUAL_ACCOUNT_PROVISIONED` webhook.
 </Note>
+
+---
+
+## How to Call It
+
+```
+GET https://api.onboard.payglocal.in/gcc/v3/merchants/<merchantId>/ffms/virtualAccounts
+x-gl-auth: <your API key>
+x-gl-digest: base64(HMAC_SHA256(secret, "/gcc/v3/merchants/<merchantId>/ffms/virtualAccounts"))
+```
+
+The digest is computed over the request path only (no host). The sandbox host is `https://api.onboard.uat.payglocal.in`. Full signing details are in [Authentication](/authentication).
+
+The `merchantId` must belong to your partner account, otherwise the call returns `403`.
 
 ---
 
 ## What You Get Back
 
-The response is organised by **collection label** (a label PayGlocal assigns during provisioning, for example `general`) and within each label by **currency code**.
+The response is organised by **collection label** (`general`, plus `amazon` for merchants enabled for Amazon collections) and within each label by **currency code**. Each currency has exactly one account object.
+
+Currencies you can see: `USD`, `CAD`, `AUD`, `EUR`, `GBP`, and `OTHER` (a global account for other currencies). A currency appears only when an active account exists for it, so do not assume all of them are present.
 
 For each account you receive:
 
@@ -35,14 +51,15 @@ For each account you receive:
 | `accountNumber` | The account number to share with their customer |
 | `accountHolderName` | The name their customer should address the transfer to |
 | `bankName` + `bankAddress` | The bank receiving the funds |
+| `bankCountry` | The country of the bank |
 | `routingCode` + `routingCodeType` | The routing number (ABA for USD, BSB for AUD, Sort Code for GBP, etc.) |
 | `currency` | The currency of this account |
+
+Other fields in the object (`id`, `accountId`, `paymentType`, `fedwireRoutingCode`, `createdAt`, `updatedAt`) are for your records and may be `null`. Do not show them to merchants.
 
 ---
 
 ## Example: Displaying USD Account Details
-
-If your merchant has a USD collection account, the account block looks like this:
 
 ```json
 {
@@ -63,21 +80,32 @@ Your merchant would share this with a US-based customer who can then initiate a 
 
 ## Routing Codes by Currency
 
-Different currencies use different routing code types. Here is what to expect:
+Different currencies use different routing code types. Read the type from `routingCodeType` rather than assuming it from the currency:
 
-| Currency | Routing Code Type | Example |
-|----------|------------------|---------|
-| USD | ABA Number | 031100209 |
-| GBP | Sort Code | 20-00-00 |
-| EUR | BIC / IBAN | CITIUS33 |
-| AUD | BSB Number | 252000 |
+| Currency | Typical routing code type |
+|----------|---------------------------|
+| USD | ABA Number |
+| GBP | Sort Code |
+| EUR | BIC / IBAN |
+| AUD | BSB Number |
 
 ---
 
 ## What to Do with This Data
 
-1. **Store it** — Cache the account details in your system so you can display them without making a live API call every time.
-2. **Display it** — Show the merchant their collection accounts per currency in a readable format.
-3. **Refresh on demand** — Allow merchants to refresh in case details change (account provisioning updates).
+1. **Store it.** Cache the account details so you do not need a live call every time you display them.
+2. **Display it.** Show the merchant their collection accounts per currency in a readable format.
+3. **Refresh on demand.** Let merchants refresh in case details change.
+
+---
+
+## If Something Goes Wrong
+
+| What you see | What it means |
+|--------------|---------------|
+| `200` with no `data` | Accounts are not provisioned yet. Wait for `VIRTUAL_ACCOUNT_PROVISIONED`. |
+| `401` | `x-gl-auth` or `x-gl-digest` is missing or wrong. Re-check the signing input. |
+| `403` | The `merchantId` is not under your partner account. |
+| Plain-text `403` about geographic constraints | Your request was blocked before reaching the API. See [Troubleshooting](/mca/troubleshooting). |
 
 For the full API spec and interactive playground, see [Fetch Virtual Accounts](/api-reference/mca/account-fetch).

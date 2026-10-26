@@ -1,0 +1,66 @@
+---
+title: "MCA Troubleshooting"
+description: "What each MCA error means, how to fix it, and what to send PayGlocal support."
+icon: "wrench"
+---
+
+## Before You Contact Support
+
+Most MCA issues are one of the following. Check these first.
+
+| Symptom | Most likely cause | What to do |
+|---------|-------------------|------------|
+| `401` with `Authentication failed` on Fetch Virtual Accounts | `x-gl-digest` is missing, or computed over the wrong input | Send both `x-gl-auth` and `x-gl-digest`, and sign the request path only (no host). |
+| `401` on Upload Document | `x-gl-auth` is missing or wrong | Send your API key in `x-gl-auth`. No digest is needed for this endpoint. |
+| Plain-text `403` mentioning "geographic constraints" | The request was blocked at the network edge before reaching the API | See [Blocked requests](#blocked-requests) below. |
+| JSON `403` | The `merchantId` or `gid` does not belong to your partner account | Check you are using the right ID for your own merchants. |
+| Fetch Virtual Accounts returns `200` but no `data` | Accounts are not provisioned yet | Wait for the `VIRTUAL_ACCOUNT_PROVISIONED` webhook. |
+| Upload returns `400` `not open for new document upload` | The transaction is not in `DOCUMENT_PENDING` | Check the latest webhook for that `gid`. |
+| Upload returns `400` `Invalid file extension` | `fileName` is not a `.pdf` | Send a PDF with a `.pdf` file name. |
+| Uploaded, but nothing happens | The file failed the 10 MB or PDF check after the `200`, or is waiting for review | Upload a corrected file. If still stuck, contact support with the `gid`. |
+| Webhook never arrives | The event is not enabled for you, or your endpoint is failing | Confirm the subscription key with your account manager, and check your endpoint returns `2xx` without redirects. |
+
+---
+
+## Blocked Requests
+
+A response like this:
+
+```
+Dear User,
+
+Your access attempt has been noted. Currently, this service is available under specific geographic constraints. ...
+```
+
+is **plain text, not JSON**, and has no `gid` or `reasonCode`. It means your request was stopped before it reached the MCA API, so it is not an authentication or signing problem.
+
+To resolve it:
+
+1. Make sure you are using the documented host for that endpoint. See [Servers](/api-reference/mca/overview#servers).
+2. Contact support and tell us the **public egress IP** and **region** of the machine or CI runner that sent the request. Calls from cloud or CI runners often leave from a different country than you expect.
+
+---
+
+## Authentication Checklist
+
+- `x-gl-auth` is your API key. Where a digest is required, `x-gl-digest` is `base64(HMAC_SHA256(secret, signingInput))`.
+- Fetch Virtual Accounts is the only endpoint that needs a digest. `signingInput` is the request path, for example `/gcc/v3/merchants/<merchantId>/ffms/virtualAccounts`. Add `?query` only if the request has a query string. Do not include the host or scheme.
+- Upload Document and Demo Funding Ingestion need only `x-gl-auth`.
+- The secret must be the one paired with the API key you send.
+
+See [Authentication](/authentication) for code samples.
+
+---
+
+## What to Send Support
+
+Include as much of this as you have. It lets us find your request without back-and-forth.
+
+- The `gid` from the response (error responses include one) or from the webhook
+- The merchant ID and the environment (sandbox or production)
+- The endpoint, HTTP method and status code you received
+- The time of the request, with time zone
+- For blocked requests: the public egress IP and region
+- For webhook issues: the event name, the `gid`, and your endpoint's response to a test POST
+
+Never send your API secret, your full API key, or customer card or bank data.

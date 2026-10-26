@@ -1,46 +1,66 @@
 ---
 title: "MCA APIs"
-description: "API reference for Merchant Collection Accounts — virtual account fetch and transaction document upload."
+description: "API reference for Merchant Collection Accounts: virtual account fetch, transaction document upload, and sandbox funding simulation."
 icon: "globe"
 ---
 
 <Note>
-  These APIs are for **Partners** managing Merchant Collection Accounts. Merchants must be fully activated before the Account Fetch API returns data.
+  These APIs are for **Partners** managing Merchant Collection Accounts. You can only query merchants and transactions that belong to your partner account.
 </Note>
 
 ## Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| [Fetch Virtual Accounts](/api-reference/mca/account-fetch) | `GET` | Retrieve all global accounts assigned to a merchant, keyed by currency |
-| [Get Upload Presigned URL](/api-reference/mca/document-upload) | `POST` | Generate a presigned URL to upload a transaction document |
+| [Fetch Virtual Accounts](/api-reference/mca/account-fetch) | `GET` | Retrieve the global virtual accounts assigned to a merchant, keyed by currency |
+| [Upload Document via Presigned URL](/api-reference/mca/document-upload) | `POST` | Attach the supporting invoice to a transaction waiting for a document |
+| [MCA Demo Funding Ingestion](/api-reference/mca/mca-ingestion) | `POST` | Sandbox only: simulate an inbound funding event |
 
 ---
 
 ## Authentication
 
-Both endpoints authenticate via the `x-api-key` header. No request signing is required — API key only.
+Every MCA request carries your API key in the `x-gl-auth` header. Which other headers you need depends on the endpoint:
+
+| Endpoint | Headers |
+|----------|---------|
+| Fetch Virtual Accounts | `x-gl-auth` and `x-gl-digest` |
+| Upload Document via Presigned URL | `x-gl-auth` only |
+| MCA Demo Funding Ingestion | `x-gl-auth` only |
+
+Fetch Virtual Accounts is the only MCA endpoint that needs a digest. It is `base64(HMAC_SHA256(secret, path))`, where `path` is the request path only, with no host (add `?query` if the request has one). For example, the Fetch Virtual Accounts digest is computed over `/gcc/v3/merchants/<merchantID>/ffms/virtualAccounts`. See [Authentication](/authentication) for the algorithm and code samples.
 
 ---
 
 ## Servers
 
-| Environment | Base URL |
-|-------------|----------|
-| Production | `https://gcc.prod.payglocal.in` |
-| Sandbox | `https://gcc.uat.payglocal.in` |
+| Endpoint | Production | Sandbox |
+|----------|------------|---------|
+| Fetch Virtual Accounts | `https://api.onboard.payglocal.in` | `https://api.onboard.uat.payglocal.in` |
+| Upload Document via Presigned URL | `https://gcc.prod.payglocal.in` | `https://gcc.uat.payglocal.in` |
+| MCA Demo Funding Ingestion | not available | `https://gcc.uat.payglocal.in` |
+
+Each endpoint page shows its own server list. See [Troubleshooting](/mca/troubleshooting) if a call is blocked or returns an unexpected status.
+
+---
+
+## Response Conventions
+
+- Success responses use a standard envelope with `gid`, `status`, `message`, `timestamp`, `reasonCode`, `data` and `errors`.
+- Success responses may carry `"status": "201 CREATED"` with HTTP `200`. Rely on the HTTP status code.
+- Quote the response `gid` whenever you contact support.
 
 ---
 
 ## Integration Guide
 
-For the conceptual walkthrough — lifecycle states, webhook events, and the full upload flow — see the [MCA Integration Guide](/mca/overview).
+For the conceptual walkthrough (lifecycle, webhook events, and the upload flow), see the [MCA Integration Guide](/mca/overview).
 
 <CardGroup cols={2}>
   <Card title="MCA Overview" icon="book" href="/mca/overview">
     What MCA is, how it works, and how to integrate.
   </Card>
   <Card title="MCA Webhooks Guide" icon="bell" href="/mca/webhooks">
-    All four lifecycle events and how to handle them.
+    Every webhook event, its payload, and how to handle it.
   </Card>
 </CardGroup>

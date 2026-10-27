@@ -8,36 +8,78 @@ icon: "wrench"
 
 Most MCA issues are one of the following. Check these first.
 
-| Symptom | Most likely cause | What to do |
-|---------|-------------------|------------|
-| `401` with `Authentication failed` on Fetch Virtual Accounts | `x-gl-digest` is missing, or computed over the wrong input | Send both `x-gl-auth` and `x-gl-digest`, and sign the request path only (no host). |
-| `401` on Upload Document | `x-gl-auth` is missing or wrong | Send your API key in `x-gl-auth`. No digest is needed for this endpoint. |
-| Plain-text `403` mentioning "geographic constraints" | The request was blocked at the network edge before reaching the API | See [Blocked requests](#blocked-requests) below. |
-| JSON `403` | The `merchantId` or `gid` does not belong to your partner account | Check you are using the right ID for your own merchants. |
-| Fetch Virtual Accounts returns `200` but no `data` | Accounts are not provisioned yet | Wait for the `VIRTUAL_ACCOUNT_PROVISIONED` webhook. |
-| Upload returns `400` `not open for new document upload` | The transaction is not in `DOCUMENT_PENDING` | Check the latest webhook for that `gid`. |
-| Upload returns `400` `Invalid file extension` | `fileName` is not a `.pdf` | Send a PDF with a `.pdf` file name. |
-| Uploaded, but nothing happens | The file failed the 10 MB or PDF check after the `200`, or is waiting for review | Upload a corrected file. If still stuck, contact support with the `gid`. |
-| Webhook never arrives | The event is not enabled for you, or your endpoint is failing | Confirm the subscription key with your account manager, and check your endpoint returns `2xx` without redirects. |
+<AccordionGroup>
+  <Accordion title="401 with Authentication failed on Fetch Virtual Accounts">
+    **Likely cause:** `x-gl-digest` is missing, or computed over the wrong input
+
+    **What to do:** Send both `x-gl-auth` and `x-gl-digest`, and sign the request path only (no host).
+  </Accordion>
+  <Accordion title="401 on Upload Document">
+    **Likely cause:** `x-gl-auth` is missing or wrong
+
+    **What to do:** Send your API key in `x-gl-auth`. No digest is needed for this endpoint.
+  </Accordion>
+  <Accordion title="Plain-text 403 mentioning 'geographic constraints'">
+    **Likely cause:** The request came from outside India
+
+    **What to do:** Send it from an India-hosted server. See [Blocked requests](#blocked-requests).
+  </Accordion>
+  <Accordion title="JSON 403">
+    **Likely cause:** The `merchantId` or `gid` does not belong to your partner account
+
+    **What to do:** Check you are using the right ID for your own merchants.
+  </Accordion>
+  <Accordion title="Fetch Virtual Accounts returns 200 but no data">
+    **Likely cause:** Accounts are not provisioned yet
+
+    **What to do:** Wait for the `VIRTUAL_ACCOUNT_PROVISIONED` webhook.
+  </Accordion>
+  <Accordion title="Upload returns 400 not open for new document upload">
+    **Likely cause:** The transaction is not in `DOCUMENT_PENDING`
+
+    **What to do:** Check the latest webhook for that `gid`.
+  </Accordion>
+  <Accordion title="Upload returns 400 Invalid file extension">
+    **Likely cause:** `fileName` is not a `.pdf`
+
+    **What to do:** Send a PDF with a `.pdf` file name.
+  </Accordion>
+  <Accordion title="Uploaded, but nothing happens">
+    **Likely cause:** The file failed the 10 MB or PDF check after the `200`, or is waiting for review
+
+    **What to do:** Upload a corrected file. If still stuck, contact support with the `gid`.
+  </Accordion>
+  <Accordion title="Webhook never arrives">
+    **Likely cause:** The event is not enabled for you, or your endpoint is failing
+
+    **What to do:** Confirm the subscription key with your account manager, and check your endpoint returns `2xx` without redirects.
+  </Accordion>
+</AccordionGroup>
 
 ---
 
 ## Blocked Requests
 
-A response like this:
+<Warning>
+  **Your request was sent from outside India.** PayGlocal accepts these calls only from within India, so a request that originates elsewhere is stopped before it reaches the API. This is not an authentication or signing problem.
+</Warning>
 
-```
-Dear User,
+You will see a short plain-text reply (not JSON, with no `gid` or `reasonCode`):
 
-Your access attempt has been noted. Currently, this service is available under specific geographic constraints. ...
-```
+> Your access attempt has been noted. Currently, this service is available under specific geographic constraints. If you believe you are receiving this message in error, please contact our support.
 
-is **plain text, not JSON**, and has no `gid` or `reasonCode`. It means your request was stopped before it reached the MCA API, so it is not an authentication or signing problem.
+The HTTP status is `403`.
 
-To resolve it:
+**What to check**
 
-1. Make sure you are using the documented host for that endpoint. See [Servers](/api-reference/mca/overview#servers).
-2. Contact support and tell us the **public egress IP** and **region** of the machine or CI runner that sent the request. Calls from cloud or CI runners often leave from a different country than you expect.
+- Where is the machine that sends the request? A server, cloud function or CI runner hosted outside India is blocked, even if your team is in India.
+- Is the call going out through a VPN, proxy or NAT gateway in another country?
+
+**How to fix it**
+
+1. Send the request from a server hosted in India, or route it through an India-based egress IP.
+2. Use the documented host for the endpoint. See [Servers](/api-reference/mca/overview#servers).
+3. If the request does come from India and is still blocked, contact support with the **public egress IP**, the **region** and the time of the request.
 
 ---
 

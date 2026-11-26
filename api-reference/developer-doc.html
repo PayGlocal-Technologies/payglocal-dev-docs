@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PayGlocal Partner Onboarding API v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFFFF; --paper-2:#F4F6FA; --ink:#121826; --ink-2:#4A5468; --ink-3:#6B7489;
+  --line:#E3E7EF; --accent:#2457E6; --accent-soft:#E8EEFD;
+  --post:#127A4B; --post-bg:#E3F4EB; --put:#946200; --put-bg:#FBF0D6; --get:#2457E6; --get-bg:#E8EEFD;
+  --cond:#946200; --cond-bg:#FBF0D6;
+  --code-bg:#0F1626; --code-head:#172036; --code-ink:#D5DCEA; --code-dim:#7D889E; --code-line:#25304A;
+  --hl-k:#8FB8FF; --hl-s:#A8E0B8; --hl-n:#F3C27A; --hl-b:#F59EB0; --hl-f:#C3A6FF;
+  --header-h:60px; --side-w:272px;
+  --font:"Schibsted Grotesk", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1220; --paper-2:#131A2B; --ink:#E7EBF3; --ink-2:#AEB7C8; --ink-3:#8590A6;
+    --line:#222B3F; --accent:#7EA2FF; --accent-soft:#1B2747;
+    --post:#5FD49A; --post-bg:#12301F; --put:#F0C060; --put-bg:#33280F; --get:#8FB0FF; --get-bg:#18254A;
+    --cond:#F0C060; --cond-bg:#33280F;
+    --code-bg:#080D18; --code-head:#101829; --code-line:#1E2840;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1220; --paper-2:#131A2B; --ink:#E7EBF3; --ink-2:#AEB7C8; --ink-3:#8590A6;
+  --line:#222B3F; --accent:#7EA2FF; --accent-soft:#1B2747;
+  --post:#5FD49A; --post-bg:#12301F; --put:#F0C060; --put-bg:#33280F; --get:#8FB0FF; --get-bg:#18254A;
+  --cond:#F0C060; --cond-bg:#33280F;
+  --code-bg:#080D18; --code-head:#101829; --code-line:#1E2840;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + var(--header-h) + 16px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--paper)}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.84em;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:.05em .35em;white-space:nowrap}
+img,svg{max-width:100%}
+
+/* Header */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;height:var(--header-h);display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--paper);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand .mark{color:var(--accent)}
+.brand .sub{font-weight:500;font-size:14px;color:var(--ink-3)}
+.ver{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 9px}
+.menu-btn{display:none;margin-left:auto;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--paper-2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:var(--side-w) minmax(0,1fr)}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--header-h));height:calc(100dvh - var(--header-h) - env(safe-area-inset-top,0px));overflow-y:auto;border-right:1px solid var(--line);padding:20px 12px 40px;background:var(--paper)}
+.side h4{margin:22px 10px 6px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.side h4:first-child{margin-top:4px}
+.side a{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;color:var(--ink-2);text-decoration:none;font-size:14.5px;line-height:1.35}
+.side a:hover{background:var(--paper-2);color:var(--ink)}
+.side a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.side a:focus-visible,.tab:focus-visible,.copy:focus-visible,.menu-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.m{flex:none;font-family:var(--mono);font-size:10.5px;font-weight:500;border-radius:4px;padding:1px 0;width:38px;text-align:center}
+.m.post{color:var(--post);background:var(--post-bg)}
+.m.put{color:var(--put);background:var(--put-bg)}
+.m.get{color:var(--get);background:var(--get-bg)}
+.m.evt{color:var(--ink-3);background:var(--paper-2)}
+
+/* Rows */
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.92fr);gap:48px;padding:56px 48px;border-bottom:1px solid var(--line)}
+.row.solo{grid-template-columns:minmax(0,1fr)}
+.row.solo .main{max-width:1040px}
+.main{min-width:0;max-width:720px}
+.aside{min-width:0}
+.aside .stick{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--header-h) + 24px);display:flex;flex-direction:column;gap:16px}
+.crumb{font-size:14px;font-weight:600;color:var(--accent);margin:0 0 6px}
+h1{font-size:40px;line-height:1.1;letter-spacing:-.025em;margin:0 0 14px;font-weight:700}
+h2{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:0 0 12px;font-weight:700}
+h3{font-size:19px;letter-spacing:-.01em;margin:34px 0 10px;font-weight:600}
+.lead{font-size:18px;color:var(--ink-2);margin:0 0 22px}
+p{margin:0 0 14px}
+ul,ol{padding-left:22px;margin:0 0 16px}
+li{margin:4px 0}
+
+.endpoint{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:14px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:0 0 26px;overflow-x:auto;white-space:nowrap}
+.endpoint .m{width:auto;padding:3px 9px;font-size:12.5px}
+.endpoint .base{color:var(--ink-3)}
+
+.tbl-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.5}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--ink-2);background:var(--paper-2);font-size:13.5px}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+.req{display:inline-block;font-size:12.5px;font-weight:600;border-radius:5px;padding:1px 7px;white-space:nowrap}
+.req.man{color:var(--ink);background:var(--paper-2);border:1px solid var(--line)}
+.req.opt{color:var(--ink-3)}
+.req.con{color:var(--cond);background:var(--cond-bg)}
+
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:12px 16px;margin:0 0 18px;font-size:15px}
+.errs{font-size:15px;color:var(--ink-2)}
+.errs code{color:var(--ink)}
+.checks{list-style:none;padding:0}
+.checks li{display:flex;gap:10px}
+.checks li::before{content:"";flex:none;width:14px;height:14px;margin-top:5px;border:1.5px solid var(--ink-3);border-radius:3px}
+.diagram{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;margin:0 0 14px}
+.diagram pre.mermaid{margin:0;background:transparent;text-align:center}
+
+/* Code panels */
+.panel{background:var(--code-bg);border-radius:12px;overflow:hidden;border:1px solid var(--code-line)}
+.panel-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px;background:var(--code-head);padding:6px 8px 6px 14px;border-bottom:1px solid var(--code-line)}
+.panel-title{color:var(--code-ink);font-size:13.5px;font-weight:600;margin-right:auto;padding:4px 0}
+.tab{font:inherit;font-size:12.5px;font-weight:500;color:var(--code-dim);background:none;border:0;border-radius:6px;padding:5px 10px;cursor:pointer}
+.tab[aria-selected="true"]{color:var(--code-ink);background:var(--code-line)}
+.copy{font:inherit;font-size:12.5px;color:var(--code-dim);background:none;border:1px solid var(--code-line);border-radius:6px;padding:4px 10px;margin-left:6px;cursor:pointer}
+.copy:hover{color:var(--code-ink)}
+.panel pre{margin:0;padding:16px 18px;max-height:62vh;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--code-ink);white-space:pre}
+.panel .k{color:var(--hl-k)} .panel .s{color:var(--hl-s)} .panel .n{color:var(--hl-n)} .panel .b{color:var(--hl-b)} .panel .f{color:var(--hl-f)} .panel .d{color:var(--code-dim)}
+
+@media (max-width:1180px){
+  .row{grid-template-columns:minmax(0,1fr);gap:28px;padding:44px 32px}
+  .main{max-width:820px}
+  .aside{max-width:820px}
+  .aside .stick{position:static}
+}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .menu-btn{display:block}
+  .brand .sub{display:none}
+  .side{position:fixed;left:0;top:calc(env(safe-area-inset-top,0px) + var(--header-h));bottom:0;width:min(86vw,300px);height:auto;z-index:40;transform:translateX(-105%);transition:transform .2s ease;box-shadow:none}
+  .side.open{transform:none;border-right:1px solid var(--line)}
+  .row{padding:36px 18px}
+  h1{font-size:32px} h2{font-size:26px}
+}
+@media (prefers-reduced-motion: reduce){.side{transition:none}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#overview"><span><span class="mark">Pay</span>Glocal</span><span class="sub">Partner Onboarding API</span></a>
+  <span class="ver">v1</span>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="side">Sections</button>
+</header>
+
+<div class="layout">
+<nav class="side" id="side" aria-label="Sections">
+  <h4>Introduction</h4>
+  <a href="#overview">Overview</a>
+  <a href="#getting-started">Getting started</a>
+  <a href="#lifecycle">Onboarding lifecycle</a>
+  <a href="#api-reference">Endpoint summary</a>
+  <h4>Merchant onboarding</h4>
+  <a href="#create-merchant"><span class="m post">POST</span>Create merchant</a>
+  <a href="#business-categories"><span class="m get">GET</span>List business categories</a>
+  <a href="#business-details"><span class="m put">PUT</span>Business details</a>
+  <a href="#authorised-signatory"><span class="m put">PUT</span>Authorised signatory</a>
+  <a href="#beneficial-owners"><span class="m put">PUT</span>Beneficial owners</a>
+  <a href="#bank-account"><span class="m put">PUT</span>Settlement bank account</a>
+  <a href="#products-and-fees"><span class="m put">PUT</span>Products and fees</a>
+  <a href="#upload-url"><span class="m put">PUT</span>Get upload URL</a>
+  <a href="#upload-status"><span class="m get">GET</span>Check upload status</a>
+  <a href="#merchant-status"><span class="m get">GET</span>Merchant status</a>
+  <a href="#merchant-link"><span class="m put">PUT</span>Merchant link</a>
+  <h4>Needs action</h4>
+  <a href="#needs-action"><span class="m get">GET</span>Get needs action</a>
+  <a href="#answer-needs-action"><span class="m put">PUT</span>Answer needs action</a>
+  <h4>Webhooks</h4>
+  <a href="#webhooks">Delivery and handling</a>
+  <a href="#webhook-verification"><span class="m evt">EVT</span>Verification completed</a>
+  <a href="#webhook-terms"><span class="m evt">EVT</span>Terms accepted</a>
+  <a href="#webhook-vkyc"><span class="m evt">EVT</span>Video KYC completed</a>
+  <a href="#webhook-product-status"><span class="m evt">EVT</span>Product status updated</a>
+  <h4>Reference</h4>
+  <a href="#document-types">Document types</a>
+  <a href="#errors">Errors</a>
+  <a href="#reference-data">Reference data</a>
+  <a href="#go-live">Compliance and go-live</a>
+</nav>
+
+<main>
+
+<!-- 1. Overview -->
+<section class="row" id="overview">
+  <div class="main">
+    <p class="crumb">Partner APIs: Merchant onboarding</p>
+    <h1>Partner Onboarding API v1</h1>
+    <p class="lead">Onboard a merchant to PayGlocal end to end: create the merchant, submit KYC and KYB data, configure products and fees, upload documents, and hand over to the merchant for verification.</p>
+    <p>This is the standard contract for every new partner integration.</p>
+
+    <h3>Roles</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Actor</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td>Partner</td><td>Creates the merchant, submits business details, authorised signatory, beneficial owners, settlement bank account, products and documents, and issues the merchant link.</td></tr>
+        <tr><td>Merchant</td><td>End customer who wants to enable payments for their business. Opens the merchant link, verifies the signatory through the generative link and video KYC, confirms the details and accepts the terms. Responds to any pendency on the same link.</td></tr>
+        <tr><td>PayGlocal</td><td>Validates each submission, raises pendencies where clarification is needed, reviews each product and activates its MID.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Integration flows</h3>
+    <p>The <code>{flow}</code> path segment selects how the merchant is onboarded.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Flow</th><th><code>{flow}</code></th><th>How it works</th><th><code>externalOnboardingId</code></th></tr></thead>
+      <tbody>
+        <tr><td>Merchant completes</td><td><code>onboard</code></td><td>The partner submits the data; the merchant completes verification on the link.</td><td><span class="req man">Mandatory</span></td></tr>
+        <tr><td>Partner assisted</td><td><code>assisted-onb</code></td><td>The partner’s team completes the details with the merchant; issuing the link hands the onboarding over to the merchant.</td><td><span class="req opt">Optional</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  participant P as Partner
+  participant G as PayGlocal API
+  participant M as Merchant
+  P->>G: 1. POST /initiate
+  G-->>P: orgId
+  P->>G: 2. PUT business, signatory, owners
+  P->>G: 3. PUT bank details and products
+  P->>G: 4. Upload documents
+  P->>G: 5. PUT /redirect
+  G-->>P: Merchant link
+  P->>M: 6. Share the merchant link
+  M->>G: 7. Verify, confirm, accept terms
+  G-->>P: Webhooks (verification, terms, VKYC)
+  G-->>M: 8. Pendency raised, status NEEDS_ACTION
+  M->>G: Clarification on the same link
+  P->>G: Resolve items via needs action APIs
+  G-->>P: 9. PRODUCT_STATUS_UPDATED (LIVE)
+</pre>
+    </div>
+    <p style="font-size:14px;color:var(--ink-3);margin:0">The partner drives every step until the merchant link is issued. After that, the merchant and PayGlocal act, and the partner tracks progress through webhooks and the status API. Every response carries <code>nextAction</code>, naming the next step.</p>
+  </div></div>
+</section>
+
+<!-- 2. Getting started -->
+<section class="row" id="getting-started">
+  <div class="main">
+    <h2>Getting started</h2>
+    <p class="lead">All v1 requests go over HTTPS to the PayGlocal API gateway and are authenticated with your partner credentials.</p>
+    <p>PayGlocal issues UAT credentials at kickoff and production credentials after UAT sign-off.</p>
+
+    <h3>Environments</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Environment</th><th>Base URL</th><th>Credentials</th></tr></thead>
+      <tbody>
+        <tr><td>UAT</td><td><code>https://&lt;UAT_GATEWAY_HOST&gt;</code></td><td>UAT <code>&lt;API_KEY&gt;</code> and <code>&lt;API_SECRET&gt;</code>; test identities only</td></tr>
+        <tr><td>Production</td><td><code>https://&lt;PROD_GATEWAY_HOST&gt;</code></td><td>Issued after UAT sign-off</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Endpoint structure</h3>
+    <div class="endpoint"><span class="base">{baseUrl}</span>/onb/v1/partner/merchant/{flow}/{orgId}/{resource}</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Path parameter</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>{flow}</code></td><td><code>onboard</code> or <code>assisted-onb</code> (see Overview)</td></tr>
+        <tr><td><code>{orgId}</code></td><td>Merchant identifier returned by <code>POST /initiate</code></td></tr>
+        <tr><td><code>{resource}</code></td><td>Endpoint resource, listed in the endpoint summary</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Authentication</h3>
+    <p>Every request to the gateway carries the following headers.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Header</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>x-gl-auth</code></td><td>Partner API key. The gateway identifies the partner from this key; never send a partner ID in the body.</td></tr>
+        <tr><td><code>x-gl-digest</code></td><td>Base64-encoded HMAC-SHA256 of the signing input, keyed with your API secret.</td></tr>
+        <tr><td><code>Content-Type</code></td><td><code>application/json</code> on every POST and PUT</td></tr>
+      </tbody>
+    </table></div>
+    <p>The signing input is the exact raw body for POST and PUT requests, and the request path including any query string for GET requests (no host or scheme). Any change to the body after signing, including whitespace or field order, returns HTTP 401. Always sign with the API secret, never the API key, and send the digest as Base64, never hex. See <a href="https://payglocal.in/docs/authentication.md" target="_blank" rel="noopener">Authentication</a>.</p>
+    <p class="note">The file upload to a presigned URL goes directly to storage, not the gateway. Do not send <code>x-gl-auth</code> or <code>x-gl-digest</code> on that request.</p>
+
+    <h3>Response format</h3>
+    <p>Every response uses a common envelope. Endpoint samples in this reference show the <code>data</code> object only.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Returned on</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>gid</code></td><td>All responses</td><td>Unique request ID. Quote it in every support ticket.</td></tr>
+        <tr><td><code>message</code></td><td>All responses</td><td>Human-readable outcome</td></tr>
+        <tr><td><code>timestamp</code></td><td>Success</td><td>Response time, ISO 8601 in UTC</td></tr>
+        <tr><td><code>data</code></td><td>Success</td><td>Endpoint payload</td></tr>
+        <tr><td><code>reasonCode</code></td><td>Error</td><td>Error code (see Errors)</td></tr>
+        <tr><td><code>errors</code></td><td>Error</td><td>Map of each field at fault to its error code</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Conventions</h3>
+    <ul>
+      <li><strong>Naming and time.</strong> Field names are camelCase. Timestamps are ISO 8601 in UTC.</li>
+      <li><strong>Partial updates.</strong> Every PUT is a partial update. Send the fields you have and resend a field to correct it. Unrecognised fields are ignored, not rejected, so check field names carefully.</li>
+      <li><strong>Write responses.</strong> Every write returns <code>orgId</code>, <code>onboardingStatus</code> and <code>nextAction</code>. Call the status API for the full record.</li>
+      <li><strong>Rejected requests.</strong> A rejected request saves nothing. Correct the named field and resend.</li>
+    </ul>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Signing and envelope">
+<script type="text/plain" data-tab="Signing" data-lang="shell">
+digest = Base64( HmacSHA256( signingInput, API_SECRET ) )
+
+# POST and PUT: signingInput = exact raw body
+# GET:          signingInput = path + query string
+</script>
+<script type="text/plain" data-tab="Success" data-lang="json">
+{
+  "gid": "<REQUEST_ID>",
+  "message": "Partner Merchant Onboarding Info fetched successfully",
+  "timestamp": "2026-11-16T10:15:00Z",
+  "data": { }
+}
+</script>
+<script type="text/plain" data-tab="Error" data-lang="json">
+{
+  "gid": "<REQUEST_ID>",
+  "reasonCode": "<REASON_CODE>",
+  "message": "Readable reason",
+  "errors": { "<fieldName>": "<REASON_CODE>" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 3. Lifecycle -->
+<section class="row" id="lifecycle">
+  <div class="main">
+    <h2>Onboarding lifecycle</h2>
+    <p class="lead">Three fields track progress: <code>onboardingStatus</code> for the merchant, <code>productStatus</code> for each product, and <code>nextAction</code> for the next step.</p>
+
+    <h3>Onboarding status</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>onboardingStatus</code></th><th>Description</th><th>Final</th></tr></thead>
+      <tbody>
+        <tr><td><code>IN_PROGRESS</code></td><td>The partner or merchant still has details to submit.</td><td>No</td></tr>
+        <tr><td><code>UNDER_REVIEW</code></td><td>The merchant has confirmed the details and PayGlocal is reviewing them. Details can change only through a pendency.</td><td>No</td></tr>
+        <tr><td><code>NEEDS_ACTION</code></td><td>PayGlocal has raised one or more action items during review. List them with <a href="#needs-action">Get needs action</a> and resolve each through <a href="#answer-needs-action">Answer needs action</a>, <a href="#upload-url">Get upload URL</a> or the merchant link (<code>nextAction</code> is <code>RESOLVE_PENDENCY</code>). Once every item is resolved, the status returns to <code>UNDER_REVIEW</code>.</td><td>No</td></tr>
+        <tr><td><code>ACCEPTED</code></td><td>The merchant’s KYC is accepted.</td><td>Yes</td></tr>
+        <tr><td><code>REJECTED</code></td><td>The merchant’s KYC is rejected.</td><td>Yes</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Next action</h3>
+    <p>Every v1 response carries <code>nextAction: { action }</code>.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>action</code></th><th>Required step</th></tr></thead>
+      <tbody>
+        <tr><td><code>SUBMIT_BUSINESS_DETAILS</code></td><td>Submit <a href="#business-details">business details</a>.</td></tr>
+        <tr><td><code>SUBMIT_AUTH_SIGNATORY</code></td><td>Submit the <a href="#authorised-signatory">authorised signatory</a>.</td></tr>
+        <tr><td><code>SUBMIT_BENEFICIAL_OWNERS</code></td><td>Submit <a href="#beneficial-owners">beneficial owners</a>.</td></tr>
+        <tr><td><code>SUBMIT_BANK_DETAILS</code></td><td>Submit the <a href="#bank-account">settlement bank account</a>.</td></tr>
+        <tr><td><code>SUBMIT_PRODUCTS</code></td><td>Submit <a href="#products-and-fees">products and fees</a>.</td></tr>
+        <tr><td><code>UPLOAD_DOCUMENTS</code></td><td>Upload each document listed in <code>documentsToBeUploaded</code>.</td></tr>
+        <tr><td><code>COMPLETE_VERIFICATION</code></td><td>Share the <a href="#merchant-link">merchant link</a>. The merchant verifies, confirms the details and accepts the terms.</td></tr>
+        <tr><td><code>RESOLVE_PENDENCY</code></td><td>Resolve the open items listed by <a href="#needs-action">Get needs action</a>.</td></tr>
+        <tr><td><code>WAIT_FOR_REVIEW</code></td><td>No action. Wait for a <a href="#webhooks">webhook</a>.</td></tr>
+        <tr><td><code>NONE</code></td><td>The onboarding is accepted or rejected.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Product status</h3>
+    <p>Each selected product has an entry in <code>productStatuses</code>.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>productStatus</code></th><th>Description</th><th>Final</th></tr></thead>
+      <tbody>
+        <tr><td><code>NEEDS_ACTION</code></td><td>The partner or merchant owes a step or a pendency for this product.</td><td>No</td></tr>
+        <tr><td><code>UNDER_REVIEW</code></td><td>PayGlocal is reviewing this product.</td><td>No</td></tr>
+        <tr><td><code>REJECTED</code></td><td>This product is rejected.</td><td>Yes</td></tr>
+        <tr><td><code>LIVE</code></td><td>The MID is active and can accept payments. Always the last status a product reaches.</td><td>Yes</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Onboarding checklist</h3>
+    <p><code>onboardingCheckListStatus</code> reports each step as <code>COMPLETED</code> or <code>PENDING</code>.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Key</th><th>Step</th></tr></thead>
+      <tbody>
+        <tr><td><code>businessDetails</code></td><td>Business details</td></tr>
+        <tr><td><code>authorisedSignatory</code></td><td>Authorised signatory</td></tr>
+        <tr><td><code>beneficialOwners</code></td><td>Beneficial owners</td></tr>
+        <tr><td><code>bankDetails</code></td><td>Settlement bank account</td></tr>
+        <tr><td><code>productsAndFees</code></td><td>Products and fees</td></tr>
+        <tr><td><code>documents</code></td><td>Required documents</td></tr>
+        <tr><td><code>vkyc</code></td><td>Signatory video KYC</td></tr>
+        <tr><td><code>acknowledgement</code></td><td>Merchant acceptance of the terms</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><strong>Merchant link.</strong> The merchant link can be issued only once every partner-owned step, from business details to documents, is <code>COMPLETED</code>.</li>
+      <li><strong><code>documentsToBeUploaded</code></strong> lists the document keys still required for the merchant’s entity type.</li>
+    </ul>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Progress fields in the status response">
+<script type="text/plain" data-tab="Example" data-lang="json">
+{
+  "merchantInfo": {
+    "onboardingStatus": "UNDER_REVIEW",
+    "nextAction": { "action": "WAIT_FOR_REVIEW" },
+    "productStatuses": [
+      { "product": "DOMESTIC_CARDS_UPI_AND_INB", "productStatus": "UNDER_REVIEW" }
+    ]
+  },
+  "onboardingCheckListStatus": {
+    "businessDetails": "COMPLETED",
+    "documents": "COMPLETED",
+    "vkyc": "COMPLETED",
+    "acknowledgement": "COMPLETED",
+    "documentsToBeUploaded": []
+  }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4. Endpoint summary -->
+<section class="row solo" id="api-reference">
+  <div class="main">
+    <h2>Endpoint summary</h2>
+    <p class="lead">v1 exposes 13 endpoints: 11 onboarding endpoints under <code>/onb/v1/partner/merchant/{flow}</code> and 2 needs action endpoints under <code>/onb/v1/partner/merchant/dashboard</code>. Each endpoint page follows the same layout: purpose, endpoint, request fields, then a sample request and response on the right.</p>
+    <p>Requirement is stated as <span class="req man">Mandatory</span>, <span class="req opt">Optional</span> or <span class="req con">Conditional</span>; the condition is given in the description.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><span class="m post">POST</span></td><td><code>/initiate</code></td><td><a href="#create-merchant">Create the merchant and receive <code>orgId</code></a></td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/business-category</code></td><td><a href="#business-categories">List business categories</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/business-details</code></td><td><a href="#business-details">Submit business details</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/auth-signatory</code></td><td><a href="#authorised-signatory">Submit the authorised signatory</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/beneficial-owner</code></td><td><a href="#beneficial-owners">Submit beneficial owners</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/bank-details</code></td><td><a href="#bank-account">Submit the settlement bank account</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/products</code></td><td><a href="#products-and-fees">Submit products and fees</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/document/upload-url</code></td><td><a href="#upload-url">Get a one-time upload URL</a></td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/{orgId}/document/{fileId}/status</code></td><td><a href="#upload-status">Check the upload scan status</a></td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/{orgId}/status</code></td><td><a href="#merchant-status">Get the full merchant record</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/{orgId}/redirect</code></td><td><a href="#merchant-link">Issue the merchant link</a></td></tr>
+        <tr><td><span class="m get">GET</span></td><td><code>/dashboard/{orgId}/needs-action</code></td><td><a href="#needs-action">List what is blocking approval and how to resolve it</a></td></tr>
+        <tr><td><span class="m put">PUT</span></td><td><code>/dashboard/{orgId}/needs-action</code></td><td><a href="#answer-needs-action">Answer one open action item</a></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 4.1 -->
+<section class="row" id="create-merchant">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Create merchant</h2>
+    <p class="lead">Starts an onboarding and returns the <code>orgId</code> used in every subsequent call. Store <code>orgId</code> against your own merchant record.</p>
+    <div class="endpoint"><span class="m post">POST</span><span><span class="base">…/merchant/{flow}</span>/initiate</span></div>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>externalOnboardingId</code></td><td><span class="req con">Conditional</span></td><td>1 to 100 characters, unique per merchant</td><td>Your reference for this merchant. Mandatory on <code>onboard</code>, optional on <code>assisted-onb</code>.</td></tr>
+        <tr><td><code>panNumber</code></td><td><span class="req man">Mandatory</span></td><td>PAN (see <a href="#business-identifiers">identifiers</a>)</td><td>Business PAN for a company or firm; personal PAN for a proprietor.</td></tr>
+        <tr><td><code>emailId</code></td><td><span class="req opt">Optional</span></td><td>Email address</td><td>Merchant contact email</td></tr>
+        <tr><td><code>phoneNumber</code></td><td><span class="req opt">Optional</span></td><td>Digits only</td><td>Merchant mobile number</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">The call is idempotent. The same PAN with an open onboarding returns the same <code>orgId</code>.</p>
+    <p class="errs"><strong>Errors:</strong> <code>EXTERNAL_ID_ALREADY_USED</code>, <code>PAN_ALREADY_ONBOARDED</code>, <code>PAN_BLOCKED</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Create merchant" data-method="POST" data-path="/initiate">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "panNumber": "<PAN>",
+  "emailId": "owner@example-merchant.in",
+  "phoneNumber": "<PHONE>"
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "IN_PROGRESS"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.2 -->
+<section class="row" id="business-categories">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>List business categories</h2>
+    <p class="lead">Returns the accepted business categories and their sub-categories. Use a sub-category code, in dotted format such as <code>BUS.IT_SERVICES</code>, as <code>natureOfBusiness</code> in business details.</p>
+    <div class="endpoint"><span class="m get">GET</span><span><span class="base">…/merchant/{flow}</span>/business-category</span></div>
+    <p>No <code>{orgId}</code> and no request body. The list changes rarely and can be cached.</p>
+    <h3>Response fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>categories[].categoryCode</code></td><td>Top-level category code, such as <code>BUS</code></td></tr>
+        <tr><td><code>categories[].categoryName</code></td><td>Category name</td></tr>
+        <tr><td><code>categories[].subcategories[].categoryCode</code></td><td>Sub-category code in dotted format, such as <code>BUS.IT_SERVICES</code>. Send this as <code>natureOfBusiness</code>.</td></tr>
+        <tr><td><code>categories[].subcategories[].categoryName</code></td><td>Sub-category name</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="List business categories" data-method="GET" data-path="/business-category">
+<script type="text/plain" data-tab="cURL" data-lang="curl"></script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "categories": [
+    {
+      "categoryCode": "AGRI",
+      "categoryName": "Agricultural Services",
+      "subcategories": [
+        { "categoryCode": "AGRI.VET", "categoryName": "Veterinary Services" },
+        { "categoryCode": "AGRI.COOP", "categoryName": "Agricultural Cooperatives" }
+      ]
+    },
+    {
+      "categoryCode": "BUS",
+      "categoryName": "Business Services",
+      "subcategories": [
+        { "categoryCode": "BUS.IT_SERVICES", "categoryName": "IT & Programming Services" },
+        { "categoryCode": "BUS.CONSULTING", "categoryName": "Consulting & Management" }
+      ]
+    }
+  ]
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.3 -->
+<section class="row" id="business-details">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Business details</h2>
+    <p class="lead">Submits the merchant’s business profile and registrations. Registered names are fetched from the PAN and government registries, so they are not sent.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/business-details</span></div>
+
+    <h3 id="business-identifiers">Business identifiers</h3>
+    <p>These identifiers are validated against their issuing registries. In the format column, <code>A</code> is a letter, <code>9</code> is a digit and <code>X</code> is a letter or digit.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Identifier</th><th>Field</th><th>What it is</th><th>Format</th></tr></thead>
+      <tbody>
+        <tr><td>PAN</td><td><code>panNumber</code></td><td>Permanent Account Number issued by the Income Tax Department. The 4th character shows the holder type, such as <code>P</code> for an individual, <code>C</code> for a company and <code>F</code> for a firm.</td><td>10 characters: <code>AAAAA9999A</code></td></tr>
+        <tr><td>GSTIN</td><td><code>gst</code></td><td>Goods and Services Tax Identification Number, one per state of registration. Characters 3 to 12 are the business PAN.</td><td>15 characters: <code>99AAAAA9999AXZX</code> (state code, PAN, entity number, <code>Z</code>, check character)</td></tr>
+        <tr><td>Udyam</td><td><code>udyamNumber</code></td><td>MSME registration number issued on the Udyam Registration portal.</td><td>19 characters: <code>UDYAM-AA-99-9999999</code> (state, district, serial)</td></tr>
+        <tr><td>CIN</td><td><code>cin</code></td><td>Corporate Identity Number issued by the Ministry of Corporate Affairs to every company.</td><td>21 characters: <code>A99999AA9999AAA999999</code> (listing status, industry code, state, year, company type, registration number)</td></tr>
+        <tr><td>LLPIN</td><td><code>llpIn</code></td><td>LLP Identification Number issued by the Ministry of Corporate Affairs to every limited liability partnership.</td><td>8 characters: <code>AAA-9999</code></td></tr>
+        <tr><td>IEC</td><td><code>iecNumber</code></td><td>Importer Exporter Code issued by the DGFT, required to import or export goods. For most businesses it is the same as the business PAN.</td><td>10 characters: <code>XXXXXXXXXX</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>entityType</code></td><td><span class="req opt">Optional</span></td><td>Enum (see <a href="#reference-data">reference data</a>)</td><td>Legal form of the business. Must match the PAN: a personal PAN accepts only <code>PROPRIETOR</code>.</td></tr>
+        <tr><td><code>cin</code></td><td><span class="req con">Conditional</span></td><td>CIN</td><td>Mandatory for private and public limited companies.</td></tr>
+        <tr><td><code>llpIn</code></td><td><span class="req con">Conditional</span></td><td>LLPIN</td><td>Mandatory for LLPs.</td></tr>
+        <tr><td><code>gst</code></td><td><span class="req con">Conditional</span></td><td>GSTIN</td><td>Business GST registration. Send <code>gst</code> or <code>noGstCheck</code>.</td></tr>
+        <tr><td><code>noGstCheck</code></td><td><span class="req con">Conditional</span></td><td>Boolean</td><td><code>true</code> declares that the business has no GST registration.</td></tr>
+        <tr><td><code>udyamNumber</code></td><td><span class="req con">Conditional</span></td><td>Udyam</td><td>Mandatory for a proprietor without GST, unless PayGlocal finds a Udyam registration linked to the PAN.</td></tr>
+        <tr><td><code>businessOperatingAddress</code></td><td><span class="req opt">Optional</span></td><td>Object</td><td>Operating address. Only the street address (<code>streetAddress1</code>) and pincode (<code>zipcode</code>, 6 digits) are collected.</td></tr>
+        <tr><td><code>websiteUrl</code></td><td><span class="req con">Conditional</span></td><td>URL</td><td>Merchant website. Send <code>websiteUrl</code> or <code>noWebsiteCheck</code>.</td></tr>
+        <tr><td><code>noWebsiteCheck</code></td><td><span class="req con">Conditional</span></td><td>Boolean</td><td><code>true</code> declares that the merchant has no website.</td></tr>
+        <tr><td><code>socialMediaUrl</code></td><td><span class="req opt">Optional</span></td><td>Object: <code>instagram</code>, <code>linkedin</code>, <code>twitter</code>, <code>facebook</code></td><td>Merchant’s social media pages. Each key is optional and takes the full profile URL.</td></tr>
+        <tr><td><code>natureOfBusiness</code></td><td><span class="req man">Mandatory</span></td><td>Sub-category code, such as <code>BUS.IT_SERVICES</code></td><td>Merchant’s line of business, from <a href="#business-categories">business categories</a></td></tr>
+        <tr><td><code>merchantBrandName</code></td><td><span class="req man">Mandatory</span></td><td>Text</td><td>Name shown to customers. Must match the registered name, GST trade name or website.</td></tr>
+        <tr><td><code>expectedMonthlyVolume</code></td><td><span class="req man">Mandatory</span></td><td>Object: <code>amount</code> (digits), <code>currency</code></td><td>Expected monthly sales volume</td></tr>
+        <tr><td><code>exportStatus</code></td><td><span class="req man">Mandatory</span></td><td>Boolean</td><td><code>true</code> if the merchant exports goods or services across borders. When <code>true</code>, <code>iecNumber</code> is mandatory.</td></tr>
+        <tr><td><code>iecNumber</code></td><td><span class="req con">Conditional</span></td><td>IEC</td><td>Mandatory when <code>exportStatus</code> is <code>true</code>.</td></tr>
+        <tr><td><code>noIecCheck</code></td><td><span class="req con">Conditional</span></td><td>Boolean</td><td><code>true</code> declares that the merchant has no IEC. Accepted only when <code>exportStatus</code> is <code>false</code>.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Response fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Returned</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>orgId</code></td><td>Always</td><td>Merchant identifier</td></tr>
+        <tr><td><code>onboardingStatus</code></td><td>Always</td><td>Current onboarding status</td></tr>
+        <tr><td><code>nextAction</code></td><td>Always</td><td>Next step. Remains <code>SUBMIT_BUSINESS_DETAILS</code> while any mandatory field is pending.</td></tr>
+        <tr><td><code>pendingFields</code></td><td>Only when a mandatory field is absent</td><td>Map of each pending mandatory field to <code>PENDING</code>. Possible keys: <code>gst</code>, <code>udyamNumber</code>, <code>cin</code>, <code>llpIn</code>, <code>iecNumber</code>, <code>exportStatus</code>, <code>expectedMonthlyVolume</code>, <code>natureOfBusiness</code>, <code>merchantBrandName</code>.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">The request is accepted even when mandatory fields are missing, because every PUT is a partial update. Send the pending fields in a later call; <code>onboardingCheckListStatus.businessDetails</code> stays <code>PENDING</code> until <code>pendingFields</code> is empty.</p>
+    <p class="errs"><strong>Errors:</strong> <code>ENTITY_TYPE_NOT_ALLOWED</code>, <code>GST_OR_UDYAM_REQUIRED</code>, <code>BRAND_NAME_NOT_ACCEPTED</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Business details" data-method="PUT" data-path="/{orgId}/business-details">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "entityType": "PVT_LTD_COMPANY",
+  "cin": "<CIN>",
+  "gst": "<GSTIN>",
+  "businessOperatingAddress": {
+    "streetAddress1": "12, MG Road, Indiranagar, Bengaluru",
+    "zipcode": "560038"
+  },
+  "websiteUrl": "https://www.example-merchant.in",
+  "socialMediaUrl": {
+    "instagram": "https://www.instagram.com/example-merchant",
+    "linkedin": "https://www.linkedin.com/company/example-merchant"
+  },
+  "natureOfBusiness": "BUS.IT_SERVICES",
+  "merchantBrandName": "Example Traders",
+  "expectedMonthlyVolume": { "amount": "500000", "currency": "INR" },
+  "exportStatus": true,
+  "iecNumber": "<IEC>"
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "onboardingStatus": "IN_PROGRESS",
+  "nextAction": { "action": "SUBMIT_BUSINESS_DETAILS" },
+  "pendingFields": {
+    "gst": "PENDING",
+    "udyamNumber": "PENDING",
+    "iecNumber": "PENDING"
+  }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.4 -->
+<section class="row" id="authorised-signatory">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Authorised signatory</h2>
+    <p class="lead">Submits the person authorised to act for the business. The signatory completes video KYC on the merchant link.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/auth-signatory</span></div>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>authSignatoryName</code></td><td><span class="req man">Mandatory</span></td><td>1 to 200 characters</td><td>Full name as on the PAN</td></tr>
+        <tr><td><code>authSignatoryPan</code></td><td><span class="req man">Mandatory</span></td><td>Personal PAN</td><td>Signatory’s personal PAN. A business PAN is rejected.</td></tr>
+        <tr><td><code>contact.email</code></td><td><span class="req opt">Optional</span></td><td>Email address</td><td>Signatory email, used on the merchant journey</td></tr>
+        <tr><td><code>contact.phone</code></td><td><span class="req opt">Optional</span></td><td>Digits only</td><td>Signatory mobile number, used on the merchant journey</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Authorised signatory" data-method="PUT" data-path="/{orgId}/auth-signatory">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "authSignatoryName": "Asha Rao",
+  "authSignatoryPan": "<SIGNATORY_PAN>",
+  "contact": { "email": "asha@example-merchant.in", "phone": "<PHONE>" }
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "onboardingStatus": "IN_PROGRESS",
+  "nextAction": { "action": "SUBMIT_BENEFICIAL_OWNERS" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.5 -->
+<section class="row" id="beneficial-owners">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Beneficial owners</h2>
+    <p class="lead">Submits every natural person who owns more than 10% of the business. Not required for a proprietor.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/beneficial-owner</span></div>
+    <p>If no person owns more than 10%, name a senior managing official instead.</p>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>beneficialOwners[].name</code></td><td><span class="req man">Mandatory</span></td><td>1 to 200 characters</td><td>Owner’s full name</td></tr>
+        <tr><td><code>beneficialOwners[].pan</code></td><td><span class="req man">Mandatory</span></td><td>Personal PAN</td><td>Owner’s personal PAN</td></tr>
+        <tr><td><code>beneficialOwners[].percentageOwnership</code></td><td><span class="req man">Mandatory</span></td><td>Number, 0 to 100</td><td>Ownership share. Owners at 10% or below are ignored.</td></tr>
+        <tr><td><code>seniorManagingOfficial.personRef</code></td><td><span class="req con">Conditional</span></td><td>Reference to a person already on the merchant</td><td>Mandatory when no owner holds more than 10%.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Resending an existing owner updates that owner; it does not create a duplicate.</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Beneficial owners" data-method="PUT" data-path="/{orgId}/beneficial-owner">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "beneficialOwners": [
+    { "name": "Ravi Kumar", "pan": "<BO_PAN>", "percentageOwnership": 60 }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "onboardingStatus": "IN_PROGRESS",
+  "nextAction": { "action": "SUBMIT_BANK_DETAILS" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.6 -->
+<section class="row" id="bank-account">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Settlement bank account</h2>
+    <p class="lead">Submits the account that receives settlements. PayGlocal verifies it by penny drop and matches the account holder name to the business name.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/bank-details</span></div>
+    <p>Submitting a new account replaces the previous one and triggers a fresh verification.</p>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>bankAccountNumber</code></td><td><span class="req man">Mandatory</span></td><td>9 to 18 digits</td><td>Settlement account number</td></tr>
+        <tr><td><code>bankIfscCode</code></td><td><span class="req man">Mandatory</span></td><td>11 characters: <code>AAAA0XXXXXX</code></td><td>Indian Financial System Code of the branch: a 4-letter bank code, <code>0</code>, then a 6-character branch code</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Settlement bank account" data-method="PUT" data-path="/{orgId}/bank-details">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "bankAccountNumber": "<BANK_ACCOUNT_NUMBER>",
+  "bankIfscCode": "<IFSC>"
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "onboardingStatus": "IN_PROGRESS",
+  "nextAction": { "action": "SUBMIT_PRODUCTS" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.7 -->
+<section class="row" id="products-and-fees">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Products and fees</h2>
+    <p class="lead">Submits the payment products the merchant needs and the fee for each. Every fee must sit within the pricing range PayGlocal has agreed with you.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/products</span></div>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>products</code></td><td><span class="req man">Mandatory</span></td><td>Array of product codes</td><td>Products to activate (see <a href="#reference-data">reference data</a>)</td></tr>
+        <tr><td><code>productFees</code></td><td><span class="req man">Mandatory</span></td><td>Object, one fee block per product</td><td>Fees for each selected product. Each fee has <code>feeType</code> and <code>fee</code>.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Fees in the sample request are illustrative. Fee rules and card networks per product are listed under <a href="#reference-data">reference data</a>.</p>
+    <p class="errs"><strong>Errors:</strong> <code>FEE_REQUIRED</code>, <code>FEE_FOR_PRODUCT_NOT_SELECTED</code>, <code>CARD_FEES_INCOMPLETE</code>, <code>FEE_OUT_OF_RANGE</code>, <code>FEE_TYPE_NOT_TAKEN</code>, <code>CARD_NETWORK_NOT_TAKEN</code>, <code>CARD_NETWORK_REPEATED</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Products and fees" data-method="PUT" data-path="/{orgId}/products">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "products": ["DOMESTIC_CARDS_UPI_AND_INB", "INTERNATIONAL_CARDS_AND_ALT_PAYS"],
+  "productFees": {
+    "domesticCardsUpiAndInb": [
+      { "cardNetwork": "OTHER_CREDIT_CARDS", "feeType": "PERCENTAGE", "fee": 1.9 },
+      { "cardNetwork": "OTHER_DEBIT_CARDS_UNDER_2K", "feeType": "PERCENTAGE", "fee": 0.4 },
+      { "cardNetwork": "OTHER_DEBIT_CARDS_OVER_2K", "feeType": "PERCENTAGE", "fee": 0.9 },
+      { "cardNetwork": "INDIAN_NET_BANKING", "feeType": "PERCENTAGE", "fee": 1.8 }
+    ],
+    "domesticPlatformFeeDto": { "feeType": "PERCENTAGE", "fee": 0.1 },
+    "internationalCardsAndAltPays": [
+      { "cardNetwork": "AMERICAN_EXPRESS", "feeType": "PERCENTAGE", "fee": 3.5 },
+      { "cardNetwork": "DINERS", "feeType": "PERCENTAGE", "fee": 3.5 },
+      { "cardNetwork": "DISCOVER", "feeType": "PERCENTAGE", "fee": 3.5 },
+      { "cardNetwork": "OTHER_DEBIT_CARDS", "feeType": "PERCENTAGE", "fee": 3 },
+      { "cardNetwork": "OTHER_CREDIT_CARDS", "feeType": "PERCENTAGE", "fee": 3 }
+    ]
+  }
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "onboardingStatus": "IN_PROGRESS",
+  "nextAction": { "action": "UPLOAD_DOCUMENTS" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.8 -->
+<section class="row" id="upload-url">
+  <div class="main">
+    <p class="crumb">Merchant onboarding: documents</p>
+    <h2>Get upload URL</h2>
+    <p class="lead">Documents are never sent in an API body. Each document is uploaded in three steps.</p>
+    <ol>
+      <li>Get a one-time upload URL (this endpoint).</li>
+      <li>Upload the file directly to that URL, with no gateway headers.</li>
+      <li>Poll the <a href="#upload-status">upload status</a> until it is <code>COMPLETED</code>. The document is then linked to the merchant.</li>
+    </ol>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/document/upload-url</span></div>
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>document</code></td><td><span class="req man">Mandatory</span></td><td>Document type enum, such as <code>COI_DOCUMENT</code></td><td>Document being uploaded (see <a href="#document-types">document types</a>)</td></tr>
+        <tr><td><code>fileName</code></td><td><span class="req man">Mandatory</span></td><td>File name with extension</td><td>Original file name. PDF, JPG and PNG are accepted, up to the size returned in <code>maxFileSizeMb</code>.</td></tr>
+        <tr><td><code>actionItemId</code></td><td><span class="req con">Conditional</span></td><td>String, exactly as listed</td><td>Mandatory when the upload resolves a document item from <a href="#needs-action">Get needs action</a>. Use one of that item’s <code>acceptedDocumentTypes</code> as <code>document</code>.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Response fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>fileId</code></td><td>Identifier of the file, used to check its upload status</td></tr>
+        <tr><td><code>presignedPutUrl</code></td><td>One-time URL to upload the file to</td></tr>
+        <tr><td><code>originalFileName</code></td><td>File name as sent in the request</td></tr>
+        <tr><td><code>maxFileSizeMb</code></td><td>Maximum allowed file size in MB. Larger files are rejected by the upload URL.</td></tr>
+        <tr><td><code>metaData</code></td><td>Headers to send, exactly as returned, with the file upload</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Uploading the file</h3>
+    <p>Send <code>PUT {presignedPutUrl}</code> with the file as the raw binary body and every <code>metaData</code> entry as a request header, exactly as returned. Do not send <code>x-gl-auth</code> or <code>x-gl-digest</code>. An empty HTTP 200 response confirms the file is stored.</p>
+    <p class="errs"><strong>Errors:</strong> <code>DOCUMENT_TYPE_NOT_TAKEN</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Get upload URL" data-method="PUT" data-path="/{orgId}/document/upload-url">
+<script type="text/plain" data-tab="cURL" data-lang="curl">
+{
+  "document": "COI_DOCUMENT",
+  "fileName": "certificate-of-incorporation.pdf"
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "fileId": "<FILE_ID>",
+  "presignedPutUrl": "https://<UPLOAD_HOST>/...",
+  "originalFileName": "certificate-of-incorporation.pdf",
+  "maxFileSizeMb": 5,
+  "metaData": { "<HEADER_NAME>": "<HEADER_VALUE>" }
+}
+</script>
+<script type="text/plain" data-tab="File upload" data-lang="shell">
+curl --request PUT \
+  --url '<PRESIGNED_PUT_URL>' \
+  --header '<HEADER_NAME>: <HEADER_VALUE>' \
+  --data-binary '@certificate-of-incorporation.pdf'
+
+# No x-gl-auth or x-gl-digest on this request.
+# An empty HTTP 200 response means the file is stored.
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.9 -->
+<section class="row" id="upload-status">
+  <div class="main">
+    <p class="crumb">Merchant onboarding: documents</p>
+    <h2>Check upload status</h2>
+    <p class="lead">Returns the virus scan status of an uploaded file.</p>
+    <div class="endpoint"><span class="m get">GET</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/document/{fileId}/status</span></div>
+    <p>Once <code>uploadStatus</code> is <code>COMPLETED</code>, the document is linked to the merchant and removed from <code>documentsToBeUploaded</code>. While it is <code>IN_PROGRESS</code>, wait a few seconds and retry. No request body.</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Check upload status" data-method="GET" data-path="/{orgId}/document/{fileId}/status">
+<script type="text/plain" data-tab="cURL" data-lang="curl"></script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "fileId": "<FILE_ID>",
+  "uploadStatus": "COMPLETED"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.11 -->
+<section class="row" id="merchant-status">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Merchant status</h2>
+    <p class="lead">Returns the full merchant record: submitted data, onboarding checklist, <code>nextAction</code> and product statuses. Open action items are listed by <a href="#needs-action">Get needs action</a>.</p>
+    <div class="endpoint"><span class="m get">GET</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/status</span></div>
+    <p>Call it after every webhook to get the current state. No request body.</p>
+    <h3>Response fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>merchantInfo</code></td><td>Merchant identifiers, statuses, <code>nextAction</code>, <code>productStatuses</code> and all submitted details</td></tr>
+        <tr><td><code>onboardingCheckListStatus</code></td><td>Status of each onboarding step, as <code>COMPLETED</code> or <code>PENDING</code></td></tr>
+        <tr><td><code>onboardingCheckListStatus.documentsToBeUploaded</code></td><td>Document keys still required</td></tr>
+      </tbody>
+    </table></div>
+    <p class="errs"><strong>Errors:</strong> <code>ORG_NOT_OWNED</code> (HTTP 403) when the <code>orgId</code> belongs to another partner or does not exist</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Merchant status" data-method="GET" data-path="/{orgId}/status">
+<script type="text/plain" data-tab="cURL" data-lang="curl"></script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "merchantInfo": {
+    "orgId": "<ORG_ID>",
+    "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+    "onboardingStatus": "IN_PROGRESS",
+    "nextAction": { "action": "COMPLETE_VERIFICATION" },
+    "productStatuses": [
+      {
+        "product": "DOMESTIC_CARDS_UPI_AND_INB",
+        "productStatus": "NEEDS_ACTION"
+      }
+    ],
+    "businessDetails": {
+      "entityType": "PVT_LTD_COMPANY",
+      "registeredName": "<REGISTERED_NAME>"
+    }
+  },
+  "onboardingCheckListStatus": {
+    "businessDetails": "COMPLETED",
+    "authorisedSignatory": "COMPLETED",
+    "beneficialOwners": "COMPLETED",
+    "bankDetails": "COMPLETED",
+    "productsAndFees": "COMPLETED",
+    "documents": "COMPLETED",
+    "vkyc": "PENDING",
+    "acknowledgement": "PENDING",
+    "documentsToBeUploaded": []
+  }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 4.12 -->
+<section class="row" id="merchant-link">
+  <div class="main">
+    <p class="crumb">Merchant onboarding</p>
+    <h2>Merchant link</h2>
+    <p class="lead">Issues a secure link for the merchant to complete verification. Share it by email, SMS or in-app.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant/{flow}</span>/{orgId}/redirect</span></div>
+    <p>Each call issues a new link and invalidates the previous one. No request body.</p>
+    <p class="note">When a pendency is open, a link is issued so the merchant can respond to it.</p>
+    <p class="errs"><strong>Errors:</strong> <code>VERIFICATION_NOT_ALLOWED</code> until every partner-owned step is <code>COMPLETED</code>; <code>VERIFICATION_ALREADY_COMPLETE</code> once the merchant has verified and nothing is open</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Merchant link" data-method="PUT" data-path="/{orgId}/redirect">
+<script type="text/plain" data-tab="cURL" data-lang="curl"></script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "orgId": "<ORG_ID>",
+  "redirectLink": "https://<MERCHANT_LINK_HOST>/...",
+  "expiresAt": "2026-11-17T10:15:00Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- Needs action: GET -->
+<section class="row" id="needs-action">
+  <div class="main">
+    <p class="crumb">Needs action</p>
+    <h2>Get needs action</h2>
+    <p class="lead">Lists what is blocking the merchant’s approval and how to resolve each item. Each item names the products it blocks and, where you can act, the exact inputs to render.</p>
+    <div class="endpoint"><span class="m get">GET</span><span><span class="base">…/merchant</span>/dashboard/{orgId}/needs-action</span></div>
+    <p>No request body. The path uses <code>dashboard</code> where the onboarding endpoints use <code>{flow}</code>; headers and authentication are the same as every other endpoint.</p>
+    <p class="note">Poll every 5 seconds while any item is <code>PROCESSING</code> or any product is <code>INITIATED</code> or <code>IN_PROGRESS</code>, and stop otherwise. An empty <code>actionItems</code> list while a product is <code>IN_PROGRESS</code> means a check is running, not that the merchant is clear.</p>
+
+    <h3>Response fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Returned</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>products[]</code></td><td>Always</td><td>One entry per undecided product, sorted by <code>productId</code></td></tr>
+        <tr><td><code>products[].productId</code></td><td>Always</td><td>Product code (see <a href="#reference-data">reference data</a>)</td></tr>
+        <tr><td><code>products[].state</code></td><td>Always</td><td>Risk evaluation state: <code>INITIATED</code>, <code>IN_PROGRESS</code>, <code>PENDENCY</code>, <code>MANUAL_REVIEW</code> or <code>COMPLETED</code>. <code>MANUAL_REVIEW</code> means the product is with PayGlocal and lists no item.</td></tr>
+        <tr><td><code>actionItems[]</code></td><td>Always</td><td>Open items, <code>ACTION_REQUIRED</code> first, then <code>PROCESSING</code>. An empty list means nothing is open.</td></tr>
+        <tr><td><code>actionItemId</code></td><td>Always</td><td>Opaque identifier. Do not parse it or put it in a URL path; it can contain <code>#</code> and <code>:</code>.</td></tr>
+        <tr><td><code>source</code></td><td>Always</td><td><code>KYC</code> (blocks every product) or <code>RISK</code> (blocks the products it names)</td></tr>
+        <tr><td><code>group</code></td><td>Always</td><td>Grouping for the UI, such as <code>DOCUMENTS</code> or <code>WEBSITE</code></td></tr>
+        <tr><td><code>title</code></td><td>Always</td><td>Heading of the item</td></tr>
+        <tr><td><code>description</code></td><td>Always</td><td>What is wrong or what to do, specific to the cause. Several causes are joined by a newline.</td></tr>
+        <tr><td><code>status</code></td><td>Always</td><td><code>ACTION_REQUIRED</code> (something is to be given or fixed) or <code>PROCESSING</code> (being checked)</td></tr>
+        <tr><td><code>blockedProducts[]</code></td><td>Always</td><td>Products this item holds up. Empty when no product is chosen yet.</td></tr>
+        <tr><td><code>subject</code></td><td>Person items only</td><td><code>type</code> (<code>BENEFICIAL_OWNER</code> or <code>SIGNATORY</code>), <code>personRef</code> and <code>name</code></td></tr>
+        <tr><td><code>evalId</code></td><td>Risk items only</td><td>Evaluation the item belongs to</td></tr>
+        <tr><td><code>resolution</code></td><td>When something can be submitted</td><td><code>type</code> and <code>inputs[]</code>. Absent for <code>PROCESSING</code> items and for items a person completes on their own link.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Input fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>fieldId</code></td><td>Identifier to send back in <code>answers[]</code>. Unique within one item only.</td></tr>
+        <tr><td><code>partnerFieldName</code></td><td>Name of the same field in the other APIs on this page, such as <code>bankAccountNumber</code>. Omitted when there is none.</td></tr>
+        <tr><td><code>kind</code></td><td><code>TEXT</code>, <code>URL</code>, <code>SELECT</code>, <code>CHECKBOX</code> or <code>FILE</code></td></tr>
+        <tr><td><code>isRequired</code></td><td><code>false</code> for an input that has an alternative</td></tr>
+        <tr><td><code>label</code></td><td>Caption to show</td></tr>
+        <tr><td><code>alternativeTo</code></td><td><code>fieldId</code> of the input that answers the same question. Exactly one of the pair is answered, for example <code>gst</code> and <code>noGstCheck</code>.</td></tr>
+        <tr><td><code>options[]</code></td><td>For <code>SELECT</code>: <code>value</code> to send and <code>label</code> to show. When <code>label</code> is absent, show the value.</td></tr>
+        <tr><td><code>acceptedDocumentTypes[]</code></td><td>For <code>FILE</code>: document types accepted (see <a href="#document-types">document types</a>)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Resolution types</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>resolution.type</code></th><th>What to render</th><th>How to answer</th></tr></thead>
+      <tbody>
+        <tr><td><code>FIELD_INPUT</code></td><td>Text boxes, and selects where an input has options</td><td><a href="#answer-needs-action">Answer needs action</a></td></tr>
+        <tr><td><code>CHOICE</code></td><td>A select with options and, where listed, a checkbox as its alternative</td><td><a href="#answer-needs-action">Answer needs action</a></td></tr>
+        <tr><td><code>DOCUMENT_UPLOAD</code></td><td>One uploader per <code>FILE</code> input, limited to its <code>acceptedDocumentTypes</code></td><td><a href="#upload-url">Get upload URL</a> with the item’s <code>actionItemId</code></td></tr>
+        <tr><td><code>URL_INPUT</code></td><td>A URL input for a page on the merchant’s website</td><td><a href="#answer-needs-action">Answer needs action</a></td></tr>
+        <tr><td><code>RECHECK</code></td><td>Title and description only</td><td><a href="#answer-needs-action">Answer needs action</a> with empty <code>answers</code></td></tr>
+        <tr><td><code>CONFIRMATION</code></td><td>Title and description only</td><td>Not yet available</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Rendering rules</h3>
+    <ul>
+      <li><strong>Products.</strong> Show each product’s <code>state</code>. A product in <code>MANUAL_REVIEW</code> is with PayGlocal and lists no item.</li>
+      <li><strong>Order.</strong> Render <code>actionItems</code> in the order received, grouped by <code>group</code> if the design needs it.</li>
+      <li><strong>Inputs.</strong> <code>TEXT</code> and <code>URL</code> are text boxes. <code>SELECT</code> is a drop-down that sends <code>value</code>. <code>CHECKBOX</code> sends <code>true</code> when ticked. <code>FILE</code> is an uploader limited to <code>acceptedDocumentTypes</code>.</li>
+      <li><strong>Alternatives.</strong> Two inputs that name each other in <code>alternativeTo</code> are one question. Ticking the checkbox clears the select, and the reverse. Mark neither as mandatory on its own.</li>
+      <li><strong>No resolution.</strong> An <code>ACTION_REQUIRED</code> item with no <code>resolution</code> is a link the person completes on their own, such as an address check or video KYC. Ask the user to share it with <code>subject.name</code>.</li>
+      <li><strong>Processing.</strong> Show a progress state and keep polling.</li>
+      <li><strong>Identifiers.</strong> Never branch on <code>actionItemId</code>. Use <code>status</code>, <code>resolution.type</code> and the inputs.</li>
+      <li><strong>Optional fields.</strong> Treat missing optional fields as absent, not empty. Inputs do not carry current values, so corrections cannot be pre-filled.</li>
+    </ul>
+
+    <h3>Action items</h3>
+    <p>Every item the API can list. Per-person items add <code>:&lt;PERSON_REF&gt;</code> to the <code>actionItemId</code>; risk items add <code>:&lt;EVAL_ID&gt;</code>.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>actionItemId</code></th><th><code>group</code></th><th>Resolution</th><th>Inputs (<code>fieldId</code>)</th><th>How to resolve</th></tr></thead>
+      <tbody>
+        <tr><td><code>PAN</code></td><td><code>BUSINESS_IDENTITY</code></td><td><code>FIELD_INPUT</code></td><td><code>panNumber</code></td><td>Answer needs action, before the details are confirmed. After that, the PAN cannot change and the item has no resolution.</td></tr>
+        <tr><td><code>ENTITY_TYPE</code></td><td><code>BUSINESS_IDENTITY</code></td><td><code>CHOICE</code></td><td><code>entityType</code></td><td>Answer needs action. Options are the entity types the PAN allows.</td></tr>
+        <tr><td><code>CIN_LLPIN</code></td><td><code>BUSINESS_IDENTITY</code></td><td><code>FIELD_INPUT</code></td><td><code>cin</code>, <code>llpIn</code></td><td>Answer needs action. Only <code>cin</code> for a company, only <code>llpIn</code> for an LLP.</td></tr>
+        <tr><td><code>GST_ANSWER</code></td><td><code>GST_AND_PROOFS</code></td><td><code>CHOICE</code></td><td><code>gst</code>, <code>noGstCheck</code></td><td>Answer needs action. <code>gst</code> options are the active GSTINs found for the PAN.</td></tr>
+        <tr><td><code>BUSINESS_PROOF</code></td><td><code>GST_AND_PROOFS</code></td><td><code>DOCUMENT_UPLOAD</code></td><td><code>solePropDoc1Upload</code>, <code>solePropDoc2Upload</code></td><td>Get upload URL. Sole proprietors only, up to two files.</td></tr>
+        <tr><td><code>DOC_MOA</code>, <code>DOC_AOA</code>, <code>DOC_COI</code>, <code>DOC_PARTNERSHIP_DEED</code>, <code>DOC_LLP_AGREEMENT</code>, <code>DOC_HUF_DEED</code>, <code>DOC_REGISTRATION_CERT</code>, <code>DOC_SIGNATORY_AUTHORITY</code></td><td><code>DOCUMENTS</code></td><td><code>DOCUMENT_UPLOAD</code></td><td>One <code>FILE</code> input</td><td>Get upload URL, with <code>document</code> set to an accepted type.</td></tr>
+        <tr><td><code>SIGNATORY</code>, <code>PERSON_PAN</code>, <code>PARTNERS_KARTA</code></td><td><code>PEOPLE</code></td><td><code>FIELD_INPUT</code></td><td><code>name</code>, <code>pan</code></td><td>Not yet answerable through this API.</td></tr>
+        <tr><td><code>BENEFICIAL_OWNER</code></td><td><code>PEOPLE</code></td><td><code>FIELD_INPUT</code></td><td><code>name</code>, <code>pan</code>, <code>stakePercent</code></td><td>Not yet answerable through this API. Treat <code>stakePercent</code> as optional.</td></tr>
+        <tr><td><code>PERSON_ADDRESS</code>, <code>VKYC</code></td><td><code>PEOPLE</code></td><td>None</td><td>None</td><td>The person completes their own link. Share it with <code>subject.name</code>.</td></tr>
+        <tr><td><code>BANK_ACCOUNT</code></td><td><code>BANK</code></td><td><code>FIELD_INPUT</code></td><td><code>accountNumber</code>, <code>ifsc</code></td><td>Not yet answerable through this API.</td></tr>
+        <tr><td><code>ADDRESS_LEGAL</code>, <code>ADDRESS_OPERATING</code></td><td><code>ADDRESS</code></td><td><code>CONFIRMATION</code></td><td>None</td><td>Not yet answerable. Show the title and description.</td></tr>
+        <tr><td><code>RISK_WEBSITE_LIVE</code></td><td><code>WEBSITE</code></td><td><code>RECHECK</code></td><td>None</td><td>Answer needs action with empty <code>answers</code>. Listed first, as it re-evaluates every website check.</td></tr>
+        <tr><td><code>RISK_BUSINESS_NAME</code></td><td><code>WEBSITE</code></td><td><code>URL_INPUT</code></td><td><code>ownershipUrl</code></td><td>Answer needs action with the page that shows the business name.</td></tr>
+        <tr><td><code>RISK_GST_ON_SITE</code>, <code>RISK_PRIVACY_POLICY</code>, <code>RISK_TNC</code>, <code>RISK_REFUND_POLICY</code>, <code>RISK_SHIPPING_POLICY</code>, <code>RISK_ADDRESS_ON_SITE</code></td><td><code>WEBSITE</code></td><td><code>URL_INPUT</code></td><td><code>gstUrl</code>, <code>privacyPolicyUrl</code>, <code>tncUrl</code>, <code>refundPolicyUrl</code>, <code>shippingPolicyUrl</code>, <code>addressUrl</code> (one per item)</td><td>Answer needs action with the page URL.</td></tr>
+        <tr><td><code>RISK_BUSINESS_DESCRIPTION</code></td><td><code>WEBSITE</code></td><td><code>FIELD_INPUT</code></td><td><code>businessOverview</code></td><td>Not yet answerable through this API.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="errs"><strong>Errors:</strong> <code>ORG_NOT_OWNED</code> (HTTP 403) when the <code>orgId</code> belongs to another partner or does not exist</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Get needs action" data-method="GET" data-path="/dashboard/{orgId}/needs-action" data-base="{baseUrl}/onb/v1/partner/merchant">
+<script type="text/plain" data-tab="cURL" data-lang="curl"></script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "products": [
+    { "productId": "INTERNATIONAL_CARDS_AND_ALT_PAYS", "state": "PENDENCY" }
+  ],
+  "actionItems": [
+    {
+      "actionItemId": "GST_ANSWER",
+      "source": "KYC",
+      "group": "GST_AND_PROOFS",
+      "title": "GST registration",
+      "description": "Choose your GSTIN, or tell us you have none",
+      "status": "ACTION_REQUIRED",
+      "blockedProducts": ["INTERNATIONAL_CARDS_AND_ALT_PAYS"],
+      "resolution": {
+        "type": "CHOICE",
+        "inputs": [
+          {
+            "fieldId": "gst",
+            "partnerFieldName": "gst",
+            "kind": "SELECT",
+            "isRequired": false,
+            "label": "A GSTIN registered to the business PAN",
+            "alternativeTo": "noGstCheck",
+            "options": [{ "value": "<GSTIN>", "label": "<TRADE_NAME>" }]
+          },
+          {
+            "fieldId": "noGstCheck",
+            "partnerFieldName": "noGstCheck",
+            "kind": "CHECKBOX",
+            "isRequired": false,
+            "label": "The business has no GST registration",
+            "alternativeTo": "gst"
+          }
+        ]
+      }
+    },
+    {
+      "actionItemId": "DOC_MOA",
+      "source": "KYC",
+      "group": "DOCUMENTS",
+      "title": "Memorandum of association",
+      "description": "Upload your memorandum of association",
+      "status": "ACTION_REQUIRED",
+      "blockedProducts": ["INTERNATIONAL_CARDS_AND_ALT_PAYS"],
+      "resolution": {
+        "type": "DOCUMENT_UPLOAD",
+        "inputs": [
+          {
+            "fieldId": "moaDocumentUpload",
+            "kind": "FILE",
+            "isRequired": true,
+            "label": "A company's memorandum of association",
+            "acceptedDocumentTypes": ["MOA_DOCUMENT"]
+          }
+        ]
+      }
+    }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="Person link" data-lang="json">
+{
+  "actionItems": [
+    {
+      "actionItemId": "PERSON_ADDRESS:<PERSON_REF>",
+      "source": "KYC",
+      "group": "PEOPLE",
+      "title": "Address check of a person",
+      "description": "Waiting for A. Kumar to complete their address check",
+      "status": "ACTION_REQUIRED",
+      "blockedProducts": ["INTERNATIONAL_CARDS_AND_ALT_PAYS"],
+      "subject": {
+        "type": "BENEFICIAL_OWNER",
+        "personRef": "<PERSON_REF>",
+        "name": "A. Kumar"
+      }
+    }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="Processing" data-lang="json">
+{
+  "products": [
+    { "productId": "INTERNATIONAL_CARDS_AND_ALT_PAYS", "state": "IN_PROGRESS" }
+  ],
+  "actionItems": [
+    {
+      "actionItemId": "PAN",
+      "source": "KYC",
+      "group": "BUSINESS_IDENTITY",
+      "title": "Business PAN",
+      "description": "What was submitted is being checked",
+      "status": "PROCESSING",
+      "blockedProducts": ["INTERNATIONAL_CARDS_AND_ALT_PAYS"]
+    }
+  ]
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- Needs action: PUT -->
+<section class="row" id="answer-needs-action">
+  <div class="main">
+    <p class="crumb">Needs action</p>
+    <h2>Answer needs action</h2>
+    <p class="lead">Sends the answer to one open action item. PayGlocal checks it against the live list, applies it with the same checks as the onboarding APIs, and returns the fresh needs-action view.</p>
+    <div class="endpoint"><span class="m put">PUT</span><span><span class="base">…/merchant</span>/dashboard/{orgId}/needs-action</span></div>
+    <p>Answer one item per call, with all of that item’s inputs together. Render the next item straight from the response.</p>
+
+    <h3>Request fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Requirement</th><th>Format</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>actionItemId</code></td><td><span class="req man">Mandatory</span></td><td>String, exactly as listed</td><td>Item being answered. Sent in the body, never in the path.</td></tr>
+        <tr><td><code>answers[]</code></td><td><span class="req man">Mandatory</span></td><td>Array</td><td>One entry per input of the item. Empty only for an item with no inputs (<code>RECHECK</code>).</td></tr>
+        <tr><td><code>answers[].fieldId</code></td><td><span class="req man">Mandatory</span></td><td>String</td><td>The input’s <code>fieldId</code> from <a href="#needs-action">Get needs action</a></td></tr>
+        <tr><td><code>answers[].value</code></td><td><span class="req con">Conditional</span></td><td>String</td><td>Mandatory for <code>TEXT</code>, <code>URL</code> and <code>SELECT</code> inputs. A <code>SELECT</code> value must be one of the offered options.</td></tr>
+        <tr><td><code>answers[].isChecked</code></td><td><span class="req con">Conditional</span></td><td>Boolean, <code>true</code></td><td>For a <code>CHECKBOX</code> input. Sent only when ticked.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Items answered here</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Item</th><th>Answers</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td><code>ENTITY_TYPE</code></td><td><code>entityType</code></td><td>Saved immediately. <code>CIN_LLPIN</code> may appear next.</td></tr>
+        <tr><td><code>CIN_LLPIN</code></td><td><code>cin</code> or <code>llpIn</code></td><td><code>PROCESSING</code> while the registry lookup runs</td></tr>
+        <tr><td><code>GST_ANSWER</code></td><td><code>gst</code> or <code>noGstCheck</code>, exactly one</td><td>The item clears when the GSTIN is active and verified; otherwise it stays.</td></tr>
+        <tr><td><code>PAN</code></td><td><code>panNumber</code></td><td>Only before the details are confirmed. <code>PROCESSING</code> while the lookup runs.</td></tr>
+        <tr><td><code>RISK_*</code> with a URL input</td><td>The page URL</td><td>The website check reruns in the background. The product is <code>IN_PROGRESS</code> and risk items leave the list until it ends.</td></tr>
+        <tr><td><code>RISK_WEBSITE_LIVE</code></td><td>None (<code>answers</code> is empty)</td><td>Every website check reruns in the background.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Document items are resolved through <a href="#upload-url">Get upload URL</a>. Person links (<code>PERSON_ADDRESS</code>, <code>VKYC</code>) are completed by the person. Every other item is not yet answerable here and is rejected with <code>ACTION_ITEM_NOT_ANSWERABLE</code>.</p>
+
+    <h3>Notes</h3>
+    <ul>
+      <li><strong>One call at a time.</strong> Two calls for the same merchant at the same moment can conflict. The losing call returns HTTP 409; call Get needs action and resend.</li>
+      <li><strong>Website rechecks.</strong> Each risk answer counts as one resubmission round. After 3 rounds, the product moves to PayGlocal review (<code>MANUAL_REVIEW</code>) and further risk answers are rejected.</li>
+      <li><strong>No registry wait.</strong> A GSTIN the registry does not know, or a PAN that does not match, is saved and the item stays open.</li>
+    </ul>
+    <p class="errs"><strong>Errors:</strong> <code>ACTION_ITEM_NOT_OPEN</code>, <code>ACTION_ITEM_NOT_ANSWERABLE</code>, <code>FIELD_NOT_ASKED</code>, <code>ANSWER_REQUIRED</code>, <code>TWO_ANSWERS</code>, <code>OPTION_NOT_OFFERED</code>, <code>KYC_DECIDED</code>, <code>KYC_FROZEN</code>, plus the field errors of the matching onboarding API, such as <code>ENTITY_TYPE_NOT_ALLOWED</code>, <code>GSTIN_NOT_OF_PAN</code> and <code>GST_OR_UDYAM_REQUIRED</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Answer needs action" data-method="PUT" data-path="/dashboard/{orgId}/needs-action" data-base="{baseUrl}/onb/v1/partner/merchant">
+<script type="text/plain" data-tab="Pick GSTIN" data-lang="curl">
+{
+  "actionItemId": "GST_ANSWER",
+  "answers": [
+    { "fieldId": "gst", "value": "<GSTIN>" }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="No GST" data-lang="curl">
+{
+  "actionItemId": "GST_ANSWER",
+  "answers": [
+    { "fieldId": "noGstCheck", "isChecked": true }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="Website URL" data-lang="curl">
+{
+  "actionItemId": "RISK_PRIVACY_POLICY:<EVAL_ID>",
+  "answers": [
+    { "fieldId": "privacyPolicyUrl", "value": "https://www.example-merchant.in/privacy" }
+  ]
+}
+</script>
+<script type="text/plain" data-tab="Recheck" data-lang="curl">
+{
+  "actionItemId": "RISK_WEBSITE_LIVE:<EVAL_ID>",
+  "answers": []
+}
+</script>
+<script type="text/plain" data-tab="Response" data-lang="json">
+{
+  "products": [
+    { "productId": "INTERNATIONAL_CARDS_AND_ALT_PAYS", "state": "IN_PROGRESS" }
+  ],
+  "actionItems": []
+}
+</script>
+<script type="text/plain" data-tab="Error" data-lang="json">
+{
+  "gid": "<REQUEST_ID>",
+  "reasonCode": "<REASON_CODE>",
+  "message": "Readable reason",
+  "errors": { "answers": "FIELD_NOT_ASKED" }
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 6. Webhooks -->
+<section class="row" id="webhooks">
+  <div class="main">
+    <p class="crumb">Webhooks</p>
+    <h2>Delivery and handling</h2>
+    <p class="lead">PayGlocal sends a signed JSON <code>POST</code> to your webhook URL when the merchant acts or a product changes status.</p>
+    <p>Treat each event as a trigger: on receipt, call <a href="#merchant-status">merchant status</a> for the full record. PayGlocal registers your webhook URL and subscribed events during setup.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>eventType</code></th><th>Sent when</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#webhook-verification"><code>MERCHANT_VERIFICATION_COMPLETED</code></a></td><td>The merchant confirms the details on the merchant link.</td></tr>
+        <tr><td><a href="#webhook-terms"><code>MERCHANT_TNC_ACCEPTED</code></a></td><td>The merchant accepts the terms and conditions.</td></tr>
+        <tr><td><a href="#webhook-vkyc"><code>MERCHANT_VKYC_COMPLETED</code></a></td><td>The signatory’s video KYC is complete.</td></tr>
+        <tr><td><a href="#webhook-product-status"><code>PRODUCT_STATUS_UPDATED</code></a></td><td>A product’s status changes.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Common payload fields</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>eventType</code></td><td>Event name</td></tr>
+        <tr><td><code>orgId</code></td><td>Merchant identifier</td></tr>
+        <tr><td><code>externalOnboardingId</code></td><td>Your reference for the merchant</td></tr>
+        <tr><td><code>onboardingStatus</code></td><td>Onboarding status when the event occurred</td></tr>
+        <tr><td><code>occurredAt</code></td><td>Event time, ISO 8601 in UTC</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Handling rules</h3>
+    <ul>
+      <li><strong>Verify</strong> the signature on every event before acting on it.</li>
+      <li><strong>Acknowledge</strong> with HTTP 2xx promptly and process the event asynchronously.</li>
+      <li><strong>Deduplicate.</strong> An event can be delivered more than once. Key your handler on <code>orgId</code>, <code>eventType</code>, <code>product</code> and <code>occurredAt</code>.</li>
+      <li><strong>Action items</strong> are not sent as webhooks. List them with <a href="#needs-action">Get needs action</a>.</li>
+    </ul>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="Common payload">
+<script type="text/plain" data-tab="Payload" data-lang="json">
+{
+  "eventType": "<EVENT_TYPE>",
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "<ONBOARDING_STATUS>",
+  "occurredAt": "2026-11-16T09:00:42Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<section class="row" id="webhook-verification">
+  <div class="main">
+    <p class="crumb">Webhooks</p>
+    <h2>Verification completed</h2>
+    <div class="endpoint"><span class="m evt">EVT</span><span>MERCHANT_VERIFICATION_COMPLETED</span></div>
+    <p><strong>Trigger:</strong> the merchant confirms the details on the merchant link. The onboarding moves to <code>UNDER_REVIEW</code> and the next step sits with PayGlocal.</p>
+    <p><strong>Additional fields:</strong> <code>nextAction</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="MERCHANT_VERIFICATION_COMPLETED">
+<script type="text/plain" data-tab="Payload" data-lang="json">
+{
+  "eventType": "MERCHANT_VERIFICATION_COMPLETED",
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "UNDER_REVIEW",
+  "nextAction": { "action": "WAIT_FOR_REVIEW" },
+  "occurredAt": "2026-11-16T09:00:42Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<section class="row" id="webhook-terms">
+  <div class="main">
+    <p class="crumb">Webhooks</p>
+    <h2>Terms accepted</h2>
+    <div class="endpoint"><span class="m evt">EVT</span><span>MERCHANT_TNC_ACCEPTED</span></div>
+    <p><strong>Trigger:</strong> the merchant accepts PayGlocal’s terms and conditions on the merchant link.</p>
+    <p><strong>Additional fields:</strong> none</p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="MERCHANT_TNC_ACCEPTED">
+<script type="text/plain" data-tab="Payload" data-lang="json">
+{
+  "eventType": "MERCHANT_TNC_ACCEPTED",
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "UNDER_REVIEW",
+  "occurredAt": "2026-11-16T09:02:11Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<section class="row" id="webhook-vkyc">
+  <div class="main">
+    <p class="crumb">Webhooks</p>
+    <h2>Video KYC completed</h2>
+    <div class="endpoint"><span class="m evt">EVT</span><span>MERCHANT_VKYC_COMPLETED</span></div>
+    <p><strong>Trigger:</strong> the signatory’s video KYC is complete and the agent’s decision is recorded.</p>
+    <p><strong>Additional fields:</strong> <code>vkycStatus</code>, either <code>APPROVED</code> or <code>REJECTED</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="MERCHANT_VKYC_COMPLETED">
+<script type="text/plain" data-tab="Payload" data-lang="json">
+{
+  "eventType": "MERCHANT_VKYC_COMPLETED",
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "UNDER_REVIEW",
+  "vkycStatus": "APPROVED",
+  "occurredAt": "2026-11-16T09:20:05Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<section class="row" id="webhook-product-status">
+  <div class="main">
+    <p class="crumb">Webhooks</p>
+    <h2>Product status updated</h2>
+    <div class="endpoint"><span class="m evt">EVT</span><span>PRODUCT_STATUS_UPDATED</span></div>
+    <p><strong>Trigger:</strong> a product’s status changes. One event is sent per product per change. <code>LIVE</code> is always the last event for a product; <code>REJECTED</code> is also final.</p>
+    <p><strong>Additional fields:</strong> <code>product</code>, <code>productStatus</code>, <code>mid</code>, <code>midStatus</code></p>
+  </div>
+  <div class="aside"><div class="stick">
+    <div class="panel" data-title="PRODUCT_STATUS_UPDATED">
+<script type="text/plain" data-tab="Payload" data-lang="json">
+{
+  "eventType": "PRODUCT_STATUS_UPDATED",
+  "orgId": "<ORG_ID>",
+  "externalOnboardingId": "<EXTERNAL_ONBOARDING_ID>",
+  "onboardingStatus": "ACCEPTED",
+  "product": "DOMESTIC_CARDS_UPI_AND_INB",
+  "productStatus": "LIVE",
+  "mid": "<MID>",
+  "midStatus": "ACTIVE",
+  "occurredAt": "2026-11-16T10:15:00Z"
+}
+</script>
+    </div>
+  </div></div>
+</section>
+
+<!-- 5. Document types -->
+<section class="row solo" id="document-types">
+  <div class="main">
+    <p class="crumb">Reference</p>
+    <h2>Document types</h2>
+    <p class="lead">The documents required depend on the merchant’s entity type; merchant status lists the outstanding types in <code>documentsToBeUploaded</code>.</p>
+    <p>Send the value in the <code>document</code> field of <a href="#upload-url">get upload URL</a>. Files must be PDF, JPG or PNG, within the size limit returned in <code>maxFileSizeMb</code>.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>document</code> value</th><th>Document</th></tr></thead>
+      <tbody>
+        <tr><td><code>COI_DOCUMENT</code></td><td>Certificate of incorporation (company, LLP)</td></tr>
+        <tr><td><code>MOA_DOCUMENT</code></td><td>Memorandum of association (company)</td></tr>
+        <tr><td><code>AOA_DOCUMENT</code></td><td>Articles of association (company)</td></tr>
+        <tr><td><code>LLP_AGREEMENT</code></td><td>LLP agreement</td></tr>
+        <tr><td><code>PARTNERSHIP_DEED</code></td><td>Partnership deed</td></tr>
+        <tr><td><code>PARTNERSHIP_REGISTRATION_CERTIFICATE</code></td><td>Partnership registration certificate</td></tr>
+        <tr><td><code>HUF_DEED</code></td><td>HUF deed</td></tr>
+        <tr><td><code>REPRESENTATIVE_DOC</code></td><td>Board resolution or power of attorney for the signatory</td></tr>
+        <tr><td><code>CANCELLED_CHEQUE</code></td><td>Cancelled cheque of the settlement account</td></tr>
+        <tr><td><code>LOB_DOCUMENT</code></td><td>Licence for a regulated line of business</td></tr>
+        <tr><td><code>SERVICE_LEVEL_AGREEMENT</code></td><td>Freelancer service agreement</td></tr>
+        <tr><td><code>SHOP_ESTABLISHMENT_CERTIFICATE</code></td><td>Proprietor business proof: shop and establishment certificate</td></tr>
+        <tr><td><code>ITR</code></td><td>Proprietor business proof: income tax return</td></tr>
+        <tr><td><code>IEC</code></td><td>Proprietor business proof: Importer Exporter Code certificate</td></tr>
+        <tr><td><code>UDYAM</code></td><td>Proprietor business proof: Udyam registration certificate</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">A proprietor submits two business proofs, chosen from <code>SHOP_ESTABLISHMENT_CERTIFICATE</code>, <code>ITR</code>, <code>IEC</code> and <code>UDYAM</code>.</p>
+  </div>
+</section>
+
+<!-- 7. Errors -->
+<section class="row solo" id="errors">
+  <div class="main">
+    <p class="crumb">Reference</p>
+    <h2>Errors</h2>
+    <p class="lead">A rejected request returns <code>reasonCode</code>, a readable <code>message</code> and an <code>errors</code> map naming each field at fault. Nothing is saved, so correct the field and resend.</p>
+    <p>Authentication failures, such as a missing or mismatched <code>x-gl-digest</code> or an invalid key, return HTTP 401 before any business validation.</p>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th><code>reasonCode</code></th><th>Endpoint</th><th>Field</th><th>Cause</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td><code>PARTNER_NOT_RECOGNISED</code></td><td>All</td><td>Partner</td><td>The API key is not enabled for this API.</td><td>Check <code>x-gl-auth</code>; ask PayGlocal to enable the key.</td></tr>
+        <tr><td><code>ORG_NOT_OWNED</code></td><td>All with <code>{orgId}</code></td><td><code>orgId</code></td><td>The merchant belongs to another partner or does not exist (HTTP 403).</td><td>Use the <code>orgId</code> returned by your own create call.</td></tr>
+        <tr><td><code>PAN_BLOCKED</code></td><td><a href="#create-merchant">Create merchant</a></td><td><code>panNumber</code></td><td>PayGlocal cannot onboard this PAN.</td><td>Do not retry; contact PayGlocal.</td></tr>
+        <tr><td><code>PAN_ALREADY_ONBOARDED</code></td><td><a href="#create-merchant">Create merchant</a></td><td><code>panNumber</code></td><td>The PAN is already an accepted merchant under your account.</td><td>Use the existing merchant.</td></tr>
+        <tr><td><code>EXTERNAL_ID_ALREADY_USED</code></td><td><a href="#create-merchant">Create merchant</a></td><td><code>externalOnboardingId</code></td><td>The ID is already used for a merchant with a different PAN.</td><td>Send a new ID.</td></tr>
+        <tr><td><code>ENTITY_TYPE_NOT_ALLOWED</code></td><td><a href="#business-details">Business details</a></td><td><code>entityType</code></td><td>The entity type does not match the PAN.</td><td>A personal PAN accepts only <code>PROPRIETOR</code>.</td></tr>
+        <tr><td><code>GST_OR_UDYAM_REQUIRED</code></td><td><a href="#business-details">Business details</a></td><td><code>udyamNumber</code></td><td>A proprietor has no GST and no Udyam, and none is found from the PAN.</td><td>Send <code>gst</code>, or <code>noGstCheck</code> as <code>true</code> with <code>udyamNumber</code>.</td></tr>
+        <tr><td><code>BRAND_NAME_NOT_ACCEPTED</code></td><td><a href="#business-details">Business details</a></td><td><code>merchantBrandName</code></td><td>The brand name does not match the registered name, GST trade name or website.</td><td>Send the name the business trades under.</td></tr>
+        <tr><td><code>FEE_REQUIRED</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>A selected product has no fee block.</td><td>Add the fee block.</td></tr>
+        <tr><td><code>FEE_FOR_PRODUCT_NOT_SELECTED</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>A fee block is sent for a product not selected.</td><td>Remove the block or add the product.</td></tr>
+        <tr><td><code>FEE_TYPE_NOT_TAKEN</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td><code>feeType</code> differs from your agreed pricing.</td><td>Use the fee type in your pricing.</td></tr>
+        <tr><td><code>FEE_OUT_OF_RANGE</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>The fee is outside your range or has more than 4 decimal places.</td><td>Send a fee within range.</td></tr>
+        <tr><td><code>CARD_NETWORK_NOT_TAKEN</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>The card network is not valid for this product.</td><td>Use a network listed in reference data.</td></tr>
+        <tr><td><code>CARD_NETWORK_REPEATED</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>A card network appears more than once.</td><td>Send each network once.</td></tr>
+        <tr><td><code>CARD_FEES_INCOMPLETE</code></td><td><a href="#products-and-fees">Products and fees</a></td><td><code>productFees</code></td><td>International cards is missing a network.</td><td>Send all five networks.</td></tr>
+        <tr><td><code>DOCUMENT_TYPE_NOT_TAKEN</code></td><td><a href="#upload-url">Upload URL</a></td><td><code>document</code></td><td>The document type is not accepted by this API.</td><td>Use a value from document types.</td></tr>
+        <tr><td><code>VERIFICATION_NOT_ALLOWED</code></td><td><a href="#merchant-link">Merchant link</a></td><td><code>orgId</code></td><td>A partner-owned step is incomplete.</td><td>Check merchant status and submit what is missing.</td></tr>
+        <tr><td><code>VERIFICATION_ALREADY_COMPLETE</code></td><td><a href="#merchant-link">Merchant link</a></td><td><code>orgId</code></td><td>The merchant has verified and nothing is open.</td><td>No action; wait for webhooks.</td></tr>
+        <tr><td><code>ACTION_ITEM_NOT_OPEN</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>actionItemId</code></td><td>The item is not in the current list, is not <code>ACTION_REQUIRED</code>, or has nothing to submit.</td><td>Call Get needs action and answer only open items.</td></tr>
+        <tr><td><code>ACTION_ITEM_NOT_ANSWERABLE</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>actionItemId</code></td><td>The item is open but not answered through this API, such as a document.</td><td>Upload documents through Get upload URL; see the action items table.</td></tr>
+        <tr><td><code>FIELD_NOT_ASKED</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>answers</code></td><td>A <code>fieldId</code> is not one of the item’s inputs.</td><td>Send only the item’s own <code>fieldId</code> values.</td></tr>
+        <tr><td><code>ANSWER_REQUIRED</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>answers</code></td><td>A required input is empty, or neither input of an <code>alternativeTo</code> pair is answered.</td><td>Answer every required input.</td></tr>
+        <tr><td><code>TWO_ANSWERS</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>answers</code></td><td>Both inputs of a pair are answered, or a <code>fieldId</code> is sent twice.</td><td>Send exactly one answer per question.</td></tr>
+        <tr><td><code>OPTION_NOT_OFFERED</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>answers</code></td><td>A <code>SELECT</code> value is not one of the offered options.</td><td>Use a value from <code>options</code>.</td></tr>
+        <tr><td><code>GSTIN_NOT_OF_PAN</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>gst</code></td><td>The GSTIN does not contain the business PAN.</td><td>Choose a GSTIN registered to the business PAN.</td></tr>
+        <tr><td><code>KYC_DECIDED</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>orgId</code></td><td>The KYC is already approved or rejected.</td><td>No action; nothing can be changed.</td></tr>
+        <tr><td><code>KYC_FROZEN</code></td><td><a href="#answer-needs-action">Answer needs action</a></td><td><code>orgId</code></td><td>The details are confirmed and the answer changes a field that cannot be corrected after that, such as the PAN.</td><td>No action.</td></tr>
+        <tr><td>Conflict (HTTP 409)</td><td><a href="#answer-needs-action">Answer needs action</a></td><td>None</td><td>Another change to the same merchant was saved first.</td><td>Call Get needs action and resend.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 8. Reference data -->
+<section class="row solo" id="reference-data">
+  <div class="main">
+    <p class="crumb">Reference</p>
+    <h2>Reference data</h2>
+    <h3>Entity types</h3>
+    <p><code>entityType</code> accepts <code>PROPRIETOR</code>, <code>PVT_LTD_COMPANY</code>, <code>PUBLIC_LTD_COMPANY</code>, <code>LLP_FIRM</code>, <code>PARTNERSHIP_FIRM</code>, <code>HUF</code>, <code>TRUST_SOCIETY</code>, <code>ASSOCIATION</code> and others. A personal PAN accepts only <code>PROPRIETOR</code>.</p>
+    <h3>Products and fee blocks</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Product</th><th>Fee block in <code>productFees</code></th><th>Card networks</th></tr></thead>
+      <tbody>
+        <tr><td><code>DOMESTIC_CARDS_UPI_AND_INB</code></td><td><code>domesticCardsUpiAndInb[]</code> and <code>domesticPlatformFeeDto</code></td><td><code>AMERICAN_EXPRESS</code>, <code>DINERS</code>, <code>DISCOVER</code>, <code>INDIAN_NET_BANKING</code>, <code>OTHER_CREDIT_CARDS</code>, <code>OTHER_DEBIT_CARDS_UNDER_2K</code>, <code>OTHER_DEBIT_CARDS_OVER_2K</code>; each at most once</td></tr>
+        <tr><td><code>INTERNATIONAL_CARDS_AND_ALT_PAYS</code></td><td><code>internationalCardsAndAltPays[]</code></td><td>All five mandatory: <code>AMERICAN_EXPRESS</code>, <code>DINERS</code>, <code>DISCOVER</code>, <code>OTHER_DEBIT_CARDS</code>, <code>OTHER_CREDIT_CARDS</code></td></tr>
+        <tr><td><code>GLOBAL_FUND_TRANSFER</code></td><td><code>globalFundTransfer</code></td><td>None; a single fee</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Fee rules</h3>
+    <ul>
+      <li>Each fee has a <code>feeType</code> (<code>FIXED</code> or <code>PERCENTAGE</code>) and a <code>fee</code> value.</li>
+      <li><code>feeType</code> must match the type set in your partner pricing for that fee.</li>
+      <li><code>fee</code> must sit within your partner pricing range, with at most 4 decimal places.</li>
+      <li>Send exactly one fee block for each selected product, and none for products not selected.</li>
+    </ul>
+    <h3>Other enumerations</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td><code>uploadStatus</code></td><td><code>IN_PROGRESS</code>, <code>COMPLETED</code></td></tr>
+        <tr><td><code>vkycStatus</code></td><td><code>APPROVED</code>, <code>REJECTED</code></td></tr>
+      </tbody>
+    </table></div>
+    <h3>Needs action enumerations</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Field</th><th>Values</th></tr></thead>
+      <tbody>
+        <tr><td><code>status</code></td><td><code>ACTION_REQUIRED</code>, <code>PROCESSING</code></td></tr>
+        <tr><td><code>source</code></td><td><code>KYC</code>, <code>RISK</code></td></tr>
+        <tr><td><code>group</code></td><td><code>BUSINESS_IDENTITY</code>, <code>GST_AND_PROOFS</code>, <code>DOCUMENTS</code>, <code>PEOPLE</code>, <code>BANK</code>, <code>ADDRESS</code>, <code>WEBSITE</code></td></tr>
+        <tr><td><code>resolution.type</code></td><td><code>FIELD_INPUT</code>, <code>CHOICE</code>, <code>DOCUMENT_UPLOAD</code>, <code>URL_INPUT</code>, <code>CONFIRMATION</code>, <code>RECHECK</code></td></tr>
+        <tr><td><code>kind</code></td><td><code>TEXT</code>, <code>URL</code>, <code>SELECT</code>, <code>CHECKBOX</code>, <code>FILE</code></td></tr>
+        <tr><td><code>subject.type</code></td><td><code>BENEFICIAL_OWNER</code>, <code>SIGNATORY</code></td></tr>
+        <tr><td><code>products[].state</code></td><td><code>INITIATED</code>, <code>IN_PROGRESS</code>, <code>PENDENCY</code>, <code>MANUAL_REVIEW</code>, <code>COMPLETED</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 9. Go-live -->
+<section class="row solo" id="go-live">
+  <div class="main">
+    <p class="crumb">Reference</p>
+    <h2>Compliance and go-live</h2>
+    <h3>Data handling</h3>
+    <p>PayGlocal operates under RBI PA-CB and PA-O authorisation, PCI DSS and the DPDP Act, and partners must handle merchant data to the same standard.</p>
+    <ul>
+      <li><strong>Test data.</strong> Use only UAT test identities in UAT. Never place a real PAN, Aadhaar or bank account number in test tools, screenshots or tickets.</li>
+      <li><strong>Masking.</strong> Mask PAN and bank account numbers in logs and UI. Never log API secrets, digests or presigned URLs.</li>
+      <li><strong>Minimal storage.</strong> Store only what you need to operate: <code>orgId</code>, <code>externalOnboardingId</code>, statuses and MIDs.</li>
+      <li><strong>Secrets.</strong> Keep the API secret server-side and rotate it immediately if exposed.</li>
+      <li><strong>Merchant links.</strong> Send merchant links only to the merchant’s verified contact.</li>
+    </ul>
+    <h3>Go-live checklist</h3>
+    <ul class="checks">
+      <li>HMAC digest verified on GET, POST and PUT in UAT</li>
+      <li>End-to-end flow passed for a private limited company and a proprietor</li>
+      <li>Every partner-facing error code handled and surfaced to your users</li>
+      <li>Document upload round trip passed, including the scan wait</li>
+      <li>Webhook endpoint verifies signatures and is idempotent</li>
+      <li>Pendency loop tested through status polling</li>
+      <li>Fees confirmed within the agreed pricing range</li>
+      <li>Production credentials and webhook URL registered</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var BASE = '{baseUrl}/onb/v1/partner/merchant/{flow}';
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function hlJson(src){
+    return esc(src).replace(/("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\b\d+(?:\.\d+)?\b)/g, function(m, str, colon, kw, num){
+      if (str) return colon ? '<span class="k">' + str + '</span>' + colon : '<span class="s">' + str + '</span>';
+      if (kw) return '<span class="b">' + kw + '</span>';
+      return '<span class="n">' + num + '</span>';
+    });
+  }
+  function hlShell(src){
+    return esc(src).split('\n').map(function(line){
+      if (/^\s*#/.test(line)) return '<span class="d">' + line + '</span>';
+      return line.replace(/('[^']*')/g, '<span class="s">$1</span>').replace(/(^|\s)(--[a-z-]+)/g, '$1<span class="f">$2</span>');
+    }).join('\n');
+  }
+  function buildCurl(method, path, body, base){
+    var head = ['curl --request ' + method, "  --url '" + (base || BASE) + path + "'", "  --header 'x-gl-auth: <API_KEY>'", "  --header 'x-gl-digest: <DIGEST>'"];
+    if (body) head.push("  --header 'Content-Type: application/json'");
+    var text = head.join(' \\\n');
+    var html = hlShell(text);
+    if (body){
+      text += " \\\n  --data '" + body + "'";
+      html += ' \\\n  <span class="f">--data</span> <span class="s">\'</span>' + hlJson(body) + '<span class="s">\'</span>';
+    }
+    return { text: text, html: html };
+  }
+
+  document.querySelectorAll('.panel').forEach(function(panel, pi){
+    var srcs = Array.prototype.slice.call(panel.querySelectorAll('script[type="text/plain"]'));
+    var head = document.createElement('div'); head.className = 'panel-head';
+    var title = document.createElement('span'); title.className = 'panel-title'; title.textContent = panel.dataset.title || '';
+    head.appendChild(title);
+    var tablist = document.createElement('div'); tablist.setAttribute('role','tablist');
+    var pre = document.createElement('pre'); pre.setAttribute('role','tabpanel'); pre.tabIndex = 0;
+    var views = srcs.map(function(s){
+      var raw = s.textContent.replace(/^\n+|\s+$/g,'');
+      var lang = s.dataset.lang, v;
+      if (lang === 'curl') v = buildCurl(panel.dataset.method, panel.dataset.path, raw, panel.dataset.base);
+      else if (lang === 'json') v = { text: raw, html: hlJson(raw) };
+      else v = { text: raw, html: hlShell(raw) };
+      v.name = s.dataset.tab; return v;
+    });
+    var current = 0;
+    function show(i){
+      current = i; pre.innerHTML = views[i].html;
+      tablist.querySelectorAll('.tab').forEach(function(b, j){ b.setAttribute('aria-selected', j === i ? 'true' : 'false'); b.tabIndex = j === i ? 0 : -1; });
+    }
+    views.forEach(function(v, i){
+      var b = document.createElement('button'); b.className = 'tab'; b.type = 'button'; b.setAttribute('role','tab'); b.textContent = v.name;
+      b.addEventListener('click', function(){ show(i); });
+      b.addEventListener('keydown', function(e){
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){ var n = (i + (e.key === 'ArrowRight' ? 1 : views.length - 1)) % views.length; show(n); tablist.children[n].focus(); }
+      });
+      tablist.appendChild(b);
+    });
+    head.appendChild(tablist);
+    var copy = document.createElement('button'); copy.className = 'copy'; copy.type = 'button'; copy.textContent = 'Copy';
+    copy.addEventListener('click', function(){
+      var text = views[current].text, done = function(){ copy.textContent = 'Copied'; setTimeout(function(){ copy.textContent = 'Copy'; }, 1400); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, fallback); }
+        else fallback();
+      } catch (e) { fallback(); }
+      function fallback(){
+        try { var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); }
+        catch (e2) { copy.textContent = 'Select and copy'; }
+      }
+    });
+    head.appendChild(copy);
+    srcs.forEach(function(s){ s.remove(); });
+    panel.appendChild(head); panel.appendChild(pre);
+    show(0);
+  });
+
+  // Scroll spy
+  var links = {}; document.querySelectorAll('.side a').forEach(function(a){ links[a.getAttribute('href').slice(1)] = a; });
+  function setActive(id){
+    Object.keys(links).forEach(function(k){ links[k].classList.toggle('active', k === id); });
+    var a = links[id]; if (a){ var s = document.getElementById('side'), r = a.getBoundingClientRect(), sr = s.getBoundingClientRect(); if (r.top < sr.top || r.bottom > sr.bottom) a.scrollIntoView({ block: 'nearest' }); }
+  }
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main > section[id]'));
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) setActive(e.target.id); });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(function(s){ io.observe(s); });
+  }
+  function fromHash(){ var id = (location.hash || '').slice(1); if (id && document.getElementById(id)) setActive(id); }
+  window.addEventListener('hashchange', fromHash); fromHash();
+
+  // Mobile menu
+  var btn = document.getElementById('menuBtn'), side = document.getElementById('side');
+  btn.addEventListener('click', function(){ var open = side.classList.toggle('open'); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+  side.addEventListener('click', function(e){ if (e.target.closest('a')){ side.classList.remove('open'); btn.setAttribute('aria-expanded','false'); } });
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default' });
+</script>
+</body>
+</html>
